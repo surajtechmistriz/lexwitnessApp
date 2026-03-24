@@ -1,8 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native'; // 1. Import hook
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/AppNavigator'; // Adjust path as needed
+
 const Header = () => {
+  // 2. Initialize navigation with types
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   return (
     <View style={styles.container}>
       <View style={styles.left}>
@@ -19,17 +26,19 @@ const Header = () => {
         <Image
           source={require('../assets/main-logo.png')}
           style={styles.logoImage}
-          //   resizeMode="contain"
+          resizeMode="contain"
         />
       </View>
 
       <View style={styles.right}>
-        <TouchableOpacity>
-          <Entypo name="text-document" size={18} />
+        {/* Navigates to Registration/Profile Page */}
+        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <Entypo name="text-document" size={18} color="black" />
         </TouchableOpacity>
 
-        <TouchableOpacity>
-          <Entypo name="user" size={18} />
+        {/* Navigates to Registration/Profile Page */}
+        <TouchableOpacity onPress={()=> navigation.navigate('SignIn')} >
+          <Entypo name="user" size={18} color="black" />
         </TouchableOpacity>
       </View>
     </View>
@@ -40,63 +49,27 @@ const styles = StyleSheet.create({
   container: {
     height: 60,
     width: '100%',
-    top: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     backgroundColor: '#fff',
-    elevation: 4, // Android shadow
+    elevation: 4,
+    shadowColor: '#000', // Added for iOS shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
   },
-
-  left: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
+  left: { flexDirection: 'row', alignItems: 'center' },
   center: {
     position: 'absolute',
     left: 0,
     right: 0,
     alignItems: 'center',
+    zIndex: -1, // Ensure it doesn't block icon clicks
   },
-
-  logoImage: {
-    width: 120,
-    height: 40,
-  },
-
-  right: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-
-  icon: {
-    fontSize: 20,
-    marginLeft: 8,
-  },
-
-  explore: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-
-  logo: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-
-  subscribe: {
-    fontSize: 14,
-    color: 'red',
-    marginLeft: 10,
-  },
-
-  signIn: {
-    fontSize: 14,
-    marginLeft: 10,
-  },
+  logoImage: { width: 120, height: 40 },
+  right: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  icon: { marginLeft: 8 },
 });
 
 export default Header;
