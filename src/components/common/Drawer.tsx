@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+// import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-import { getMenu } from '../services/api/menubar';
+// import { getMenu } from '../../services/api/menubar';
 
 type Category = {
   id: number;
@@ -27,7 +27,7 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose }) => {
       {/* HEADER */}
       <View style={styles.header}>
         <Image
-          source={require('../assets/main-logo.png')}
+          source={require('../../assets/main-logo.png')}
           style={styles.logo}
         />
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { getEditorial } from './service';
+import { getEditorial } from '../api/home.api';
 import Config from 'react-native-config';
 
 

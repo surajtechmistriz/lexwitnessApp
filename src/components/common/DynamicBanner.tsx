@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ImageBackground, 
-  TouchableOpacity 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Config from 'react-native-config';
@@ -13,7 +13,6 @@ interface BannerProps {
   title: string;
   backgroundImage?: string; // URL string
 }
-
 
 export default function Banner({ title }: BannerProps) {
   const navigation = useNavigation();
@@ -25,32 +24,30 @@ export default function Banner({ title }: BannerProps) {
   const capitalizeAll = (str: string) => str.toUpperCase();
 
   // Fallback image if backgroundImage is not provided
-const imageUrl = Config.BANNER_BASE_URL; // string from env   
-console.log('Banner URL:', imageUrl);
+  const imageUrl = Config.BANNER_BASE_URL; // string from env
+  console.log('Banner URL:', imageUrl);
   return (
- <ImageBackground 
-  source={{ uri: imageUrl }} 
-  style={styles.bannerContainer}
-  resizeMode="cover"
->
+    <ImageBackground
+      source={{ uri: imageUrl }}
+      style={styles.bannerContainer}
+      resizeMode="cover"
+    >
       {/* This View acts as your linear-gradient / overlay */}
       <View style={styles.overlay}>
         <View style={styles.content}>
-          
-          <Text style={styles.mainTitle}>
-            {capitalizeAll(title)}
-          </Text>
+          <Text style={styles.mainTitle}>{capitalizeAll(title)}</Text>
 
           <View style={styles.breadcrumbContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate('Home' as never)}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Home' as never)}
+            >
               <Text style={styles.homeLink}>Home</Text>
             </TouchableOpacity>
-            
+
             <Text style={styles.breadcrumbText}>
-               | {capitalizeFirst(title)}
+              | {capitalizeFirst(title)}
             </Text>
           </View>
-
         </View>
       </View>
     </ImageBackground>
@@ -65,7 +62,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     // This matches your rgb(70 70 70 / 60%) overlay
-    backgroundColor: 'rgba(70, 70, 70, 0.6)', 
+    backgroundColor: 'rgba(70, 70, 70, 0.6)',
     justifyContent: 'center',
   },
   content: {

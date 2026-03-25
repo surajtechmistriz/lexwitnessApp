@@ -6,7 +6,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { getMenu } from '../services/api/menubar';
+import { getMenu } from '../../services/api/menubar';
 type MenuItem = {
   id: number;
   name: string;

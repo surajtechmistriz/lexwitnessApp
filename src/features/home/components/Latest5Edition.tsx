@@ -10,11 +10,11 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { getLatestMagazines } from './service';
+import { getLatestMagazines } from "../api/home.api";
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import { RootStackParamList } from '../../../navigation/AppNavigator';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = (width - 40) / 2;

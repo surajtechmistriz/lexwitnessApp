@@ -1,4 +1,5 @@
-import api from "../../services/axios";
+import api from "../../../services/axios";
+
 // MAGAZINE
 export interface Magazine {
   magazine: Magazine;
@@ -32,4 +33,11 @@ export async function getLatestMagazines(options?: {
     console.error("Error fetching latest magazines:", error);
     return [];
   }
+}
+
+
+
+export const getEditorial = async()=>{
+    const response = await api.get('/editorial-settings')
+    return response.data
 }

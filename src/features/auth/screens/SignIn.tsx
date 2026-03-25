@@ -13,8 +13,8 @@ import {
 // import AsyncStorage from '@react-native-async-storage/async-storage'; // You'll need to install this
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import DynamicBanner from '../components/DynamicBanner/DynamicBanner';
-import Header from '../components/Header';
+import DynamicBanner from '../../../components/common/DynamicBanner';
+import Header from '../../../components/common/Header';
 // import Banner from '../components/Banner'; // Use the Banner we made
 // import { loginUser } from '../lib/auth/auth'; // Ensure path is correct
 

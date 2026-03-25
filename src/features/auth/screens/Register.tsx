@@ -9,9 +9,9 @@ import {
 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../components/Header'; // Import your header
+import Header from '../../../components/common/Header'; // Import your header
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import DynamicBanner from '../components/DynamicBanner/DynamicBanner';
+import DynamicBanner from '../../../components/common/DynamicBanner';
 
 const Register = () => {
   const [selectedPlan, setSelectedPlan] = useState('1 Year Plan');

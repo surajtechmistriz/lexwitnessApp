@@ -1,46 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+
+} from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useNavigation } from '@react-navigation/native'; // 1. Import hook
+import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/AppNavigator'; // Adjust path as needed
+import { RootStackParamList } from '../../navigation/AppNavigator';
 import SearchOverlay from './SearchOverlay';
 import DrawerUI from './Drawer';
-import { getMenu } from '../services/api/menubar';
+import { getMenu } from '../../services/api/menubar';
 
 const Header = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
-
   useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const res = await getMenu();
-      setCategories(res?.data || res || []);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  fetchCategories();
-}, []);
+    const fetchCategories = async () => {
+      try {
+        const res = await getMenu();
+        setCategories(res?.data || res || []);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <>
+      {/* ========== HEADER CONTAINER ========== */}
       <View style={styles.container}>
+        {/* LEFT ICONS */}
         <View style={styles.left}>
-          {/* MENU */}
+          {/* MENU ICON */}
           <TouchableOpacity onPress={() => setDrawerVisible(true)}>
             <Entypo name="menu" size={24} color="black" />
           </TouchableOpacity>
 
-          {/* SEARCH */}
+          {/* SEARCH ICON */}
           <TouchableOpacity
             style={styles.icon}
             onPress={() => setIsSearchVisible(true)}
@@ -49,25 +55,16 @@ const Header = () => {
           </TouchableOpacity>
         </View>
 
-        <SearchOverlay
-          visible={isSearchVisible}
-          onClose={() => setIsSearchVisible(false)}
-        />
-
         {/* LOGO */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Home')}
-          activeOpacity={0.7}
-          style={styles.center}
-        >
+        <View style={styles.center}>
           <Image
-            source={require('../assets/main-logo.png')}
+            source={require('../../assets/main-logo.png')}
             style={styles.logoImage}
             resizeMode="contain"
           />
-        </TouchableOpacity>
+        </View>
 
-        {/* RIGHT */}
+        {/* RIGHT ICONS */}
         <View style={styles.right}>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
             <Entypo name="text-document" size={18} color="black" />
@@ -79,18 +76,24 @@ const Header = () => {
         </View>
       </View>
 
-      {/* ================= DRAWER ================= */}
+      {/* ========== SEARCH OVERLAY MODAL ========== */}
+      <SearchOverlay
+        visible={isSearchVisible}
+        onClose={() => setIsSearchVisible(false)}
+      />
+
+      {/* ========== DRAWER ========== */}
       {drawerVisible && (
         <>
           <TouchableOpacity
             style={styles.overlay}
             onPress={() => setDrawerVisible(false)}
           />
-
           <View style={styles.drawerContainer}>
-            <DrawerUI 
-            categories={categories}
-            onClose={() => setDrawerVisible(false)} />
+            <DrawerUI
+              categories={categories}
+              onClose={() => setDrawerVisible(false)}
+            />
           </View>
         </>
       )}
@@ -98,6 +101,7 @@ const Header = () => {
   );
 };
 
+// ===================== STYLES =====================
 const styles = StyleSheet.create({
   container: {
     height: 80,
@@ -108,22 +112,42 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     backgroundColor: '#fff',
     elevation: 4,
-    shadowColor: '#000', // Added for iOS shadow
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+    zIndex: 0,
   },
-  left: { flexDirection: 'row', alignItems: 'center' },
+
+  // LEFT ICONS
+  left: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 10, // ensure icons clickable above logo
+  },
+
+  icon: { marginLeft: 8 },
+
+  // LOGO CENTERED
   center: {
     position: 'absolute',
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: -1, // Ensure it doesn't block icon clicks
+    pointerEvents: 'none', // logo does not block touches
+    zIndex: 0,
   },
-  logoImage: { width: 120, height: 40 },
-  right: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  icon: { marginLeft: 8 },
 
+  logoImage: { width: 120, height: 40 },
+
+  // RIGHT ICONS
+  right: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+    zIndex: 10, // ensure icons clickable above logo
+  },
+
+  // DRAWER OVERLAY
   overlay: {
     position: 'absolute',
     width: '100%',
@@ -132,6 +156,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
+  // DRAWER CONTAINER
   drawerContainer: {
     position: 'absolute',
     top: 0,

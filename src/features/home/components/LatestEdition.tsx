@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { latesteEdition } from '../../services/api/latestedition';
+import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 
 type Post = {

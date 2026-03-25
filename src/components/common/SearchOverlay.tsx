@@ -7,26 +7,17 @@ import {
   StyleSheet,
   Text,
   Keyboard,
+  Platform,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 
-import { getAuthor } from '../services/api/author';
-import { getMenu } from '../services/api/menubar';
-import { getYears } from '../services/api/years';
+import { getAuthor } from '../../services/api/author';
+import { getMenu } from '../../services/api/menubar';
+import { getYears } from '../../services/api/years';
 
-/**
- * Type Definitions
- */
-type Author = {
-  id: number;
-  name: string;
-};
-
-type Category = {
-  id: number;
-  name: string;
-};
+type Author = { id: number; name: string };
+type Category = { id: number; name: string };
 
 type Props = {
   visible: boolean;
@@ -34,11 +25,7 @@ type Props = {
 };
 
 const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
-
-  
-  //  * ========================= * State Management * =========================
-
-  // Controlled picker states
+  // Picker states
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedAuthor, setSelectedAuthor] = useState<string>('');
@@ -48,12 +35,9 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
 
-
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-
-  //  * ========================= * Fetch Initial Data* =========================
-  
+  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,8 +46,6 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
           getMenu(),
           getYears(),
         ]);
-
-        // API responses normalized
         setAuthors(authorRes.data || []);
         setCategories(categoryRes || []);
         setYears(yearRes.data || []);
@@ -71,52 +53,47 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
         console.log('Error fetching search data:', error);
       }
     };
-
     fetchData();
   }, []);
 
-
-
+  // Keyboard listeners
   useEffect(() => {
-  const showSub = Keyboard.addListener('keyboardDidShow', () => {
-    setKeyboardVisible(true);
-  });
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
-  const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-    setKeyboardVisible(false);
-  });
-
-  return () => {
-    showSub.remove();
-    hideSub.remove();
-  };
-}, []);
-
-  //  * =========================* Handlers* =========================
-  
   const handleSearch = () => {
     const payload = {
       year: selectedYear,
       category: selectedCategory,
       author: selectedAuthor,
     };
-
     console.log('Search Payload:', payload);
-
-    // TODO: Call API / navigate with filters
+    // TODO: call API or navigate with filters
   };
 
-  //  =========================* UI =========================
- 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      statusBarTranslucent={true} // Important for Android
+    >
       <View style={styles.overlayContainer}>
         {/* Close Button */}
-       {!keyboardVisible && (
-  <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-    <Ionicons name="close" size={40} color="white" />
-  </TouchableOpacity>
-)}
+        {!keyboardVisible && (
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Ionicons name="close" size={35} color="white" />
+          </TouchableOpacity>
+        )}
 
         <View style={styles.formContainer}>
           {/* Search Input */}
@@ -133,65 +110,47 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 
           <Text style={styles.orText}>or</Text>
 
-          {/* ================= Year Picker ================= */}
+          {/* Year Picker */}
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={selectedYear}
               style={styles.picker}
               dropdownIconColor="white"
-              onValueChange={(value) => setSelectedYear(String(value))}
+              onValueChange={value => setSelectedYear(String(value))}
             >
               <Picker.Item label="Select Year" value="" color="#000" />
-
-              {years.map((y) => (
-                <Picker.Item
-                  key={y}
-                  label={String(y)}
-                  value={String(y)}
-                  color="#000"
-                />
+              {years.map(y => (
+                <Picker.Item key={y} label={String(y)} value={String(y)} color="#000" />
               ))}
             </Picker>
           </View>
 
-          {/* ================= Category Picker ================= */}
+          {/* Category Picker */}
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={selectedCategory}
               style={styles.picker}
               dropdownIconColor="white"
-              onValueChange={(value) => setSelectedCategory(String(value))}
+              onValueChange={value => setSelectedCategory(String(value))}
             >
               <Picker.Item label="Select Category" value="" color="#000" />
-
-              {categories.map((c) => (
-                <Picker.Item
-                  key={c.id}
-                  label={c.name}
-                  value={String(c.id)}
-                  color="#000"
-                />
+              {categories.map(c => (
+                <Picker.Item key={c.id} label={c.name} value={String(c.id)} color="#000" />
               ))}
             </Picker>
           </View>
 
-          {/* ================= Author Picker ================= */}
+          {/* Author Picker */}
           <View style={styles.pickerWrapper}>
             <Picker
               selectedValue={selectedAuthor}
               style={styles.picker}
               dropdownIconColor="white"
-              onValueChange={(value) => setSelectedAuthor(String(value))}
+              onValueChange={value => setSelectedAuthor(String(value))}
             >
               <Picker.Item label="Select Author" value="" color="#000" />
-
-              {authors.map((a) => (
-                <Picker.Item
-                  key={a.id}
-                  label={a.name}
-                  value={String(a.id)}
-                  color="#000"
-                />
+              {authors.map(a => (
+                <Picker.Item key={a.id} label={a.name} value={String(a.id)} color="#000" />
               ))}
             </Picker>
           </View>
@@ -206,22 +165,18 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   );
 };
 
-
-
-//  * Styles
-
 const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
-    backgroundColor: 'rgba(38, 37, 37, 0.95)',
+    backgroundColor: 'rgba(38,37,37,0.95)',
     justifyContent: 'center',
     padding: 20,
   },
   closeButton: {
     position: 'absolute',
-    top: 50,
+    top: Platform.OS === 'ios' ? 60 : 40,
     right: 20,
-    
+    zIndex: 10,
   },
   formContainer: {
     width: '100%',
@@ -250,6 +205,7 @@ const styles = StyleSheet.create({
     borderColor: '#555',
     marginBottom: 15,
     borderRadius: 5,
+    overflow: 'hidden',
   },
   picker: {
     color: 'white',
@@ -260,6 +216,7 @@ const styles = StyleSheet.create({
     padding: 15,
     alignItems: 'center',
     marginTop: 10,
+    borderRadius: 5,
   },
   searchBtnText: {
     color: 'white',
