@@ -7,6 +7,6 @@ export const getHeroPost = async () => {
      
     },
   });
-  console.log("Home",response)
+  // console.log("Home",response)
   return response.data?.data || [];
 };

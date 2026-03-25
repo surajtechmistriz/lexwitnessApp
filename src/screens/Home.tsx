@@ -1,50 +1,100 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet, ScrollView } from 'react-native';
+import React, { useEffect, useState, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
 import Header from '../components/Header';
 import Menubar from '../components/Menubar';
 import HeroCard from '../components/HeroCard';
-import { getHeroPost } from '../services/api/heroCard';
 import ListCard from '../components/ListCard/ListCard';
-import HomeAdvertisement from '../components/Advertisement/HomeAdvertisement';
 import EditorPicks from '../components/EditorPicks/EditorPicks';
-import { getEditorPick } from '../services/api/editorpicks';
+import HomeAdvertisement from '../components/Advertisement/HomeAdvertisement';
 import HomeBanner from '../components/subscrineBanner/HomeBanner';
 import LatestEdition from '../components/HomeLatestEdition/LatestEdition';
-import EditorialCard from '../components/Editorial/Editorial';
 import LatestEditions from '../components/HomeLatest5Edition/Latest5Edition';
+import EditorialCard from '../components/Editorial/Editorial';
+import Footer from '../components/Footer';
+
+import { getHeroPost } from '../services/api/heroCard';
+import { getEditorPick } from '../services/api/editorpicks';
 
 type RootStackParamList = {
   Home: undefined;
   Profile: undefined;
 };
+
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
+const IMAGE_BASE_URL = 'https://admin.lexwitness.com/uploads/posts';
+
 const Home = ({ navigation }: Props) => {
+  /**
+   * =========================
+   * STATE MANAGEMENT
+   * =========================
+   */
   const [articles, setArticles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editorpick, setEditorpick] = useState<any[]>([]);
+  const [editorPicks, setEditorPicks] = useState<any[]>([]);
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const imgUrl = 'https://admin.lexwitness.com/uploads/posts';
-
+  /**
+   * =========================
+   * API CALLS
+   * =========================
+   * Fetch hero posts and editor picks in parallel
+   */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getHeroPost();
-        const editor = await getEditorPick();
-        console.log(editor);
-        setArticles(res);
-        setEditorpick(editor);
-      } catch (e) {
-        console.log(e);
+        const [heroRes, editorRes] = await Promise.all([
+          getHeroPost(),
+          getEditorPick(),
+        ]);
+
+        setArticles(heroRes || []);
+        setEditorPicks(editorRes || []);
+      } catch (error) {
+        console.log('Home API Error:', error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
+  /**
+   * =========================
+   * DATA DERIVATION
+   * =========================
+   * Split articles into sections for layout
+   */
+  const { firstCard, nextTwoCards, remainingCards } = useMemo(() => {
+    return {
+      firstCard: articles?.[0] || null,
+      nextTwoCards: articles?.slice(1, 3) || [],
+      remainingCards: articles?.slice(3) || [],
+    };
+  }, [articles]);
+
+  /**
+   * =========================
+   * HELPERS
+   * =========================
+   */
+  const formatDate = (item: any) => {
+    const month = item?.magazine?.month?.name || '';
+    const year = item?.magazine?.year || '';
+    return `${month} ${year}`;
+  };
+
+  const getImage = (img: string) => `${IMAGE_BASE_URL}/${img}`;
+
+  /**
+   * =========================
+   * LOADING STATE
+   * =========================
+   */
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -53,11 +103,11 @@ const Home = ({ navigation }: Props) => {
     );
   }
 
-  // Split articles into sections
-  const firstCard = articles[0];
-  const nextTwoCards = articles.slice(1, 3);
-  const remainingCards = articles.slice(3);
-
+  /**
+   * =========================
+   * MAIN UI
+   * =========================
+   */
   return (
     <View style={styles.container}>
       <Header />
@@ -67,86 +117,84 @@ const Home = ({ navigation }: Props) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* First Hero Card */}
+        {/* ================= HERO SECTION ================= */}
         {firstCard && (
           <HeroCard
             category={firstCard?.category?.name}
             title={firstCard.title}
-            date={
-              firstCard.magazine.month.name + '  ' + firstCard.magazine.year
-            }
-            image={`${imgUrl}/${firstCard.image}`}
+            date={formatDate(firstCard)}
+            image={getImage(firstCard.image)}
             height={450}
           />
         )}
 
-        {/* Next Two Cards */}
-        <View style={styles.rowContainer}>
-          {nextTwoCards.map(item => (
+        {/* ================= SECONDARY HERO CARDS ================= */}
+        <View style={styles.columnContainer}>
+          {nextTwoCards.map((item) => (
             <HeroCard
               key={item.id}
               category={item?.category?.name}
               title={item.title}
-              date={item?.magazine?.month?.name + '  ' + item?.magazine?.year}
-              image={`${imgUrl}/${item.image}`}
+              date={formatDate(item)}
+              image={getImage(item.image)}
               height={220}
-              style={{ width: '48%' }}
+              style={{ width: '100%' }}
             />
           ))}
         </View>
 
-        {/* Remaining Cards (List Style) */}
-        <View style={styles.containerBox}>
+        {/* ================= LIST SECTION ================= */}
+        <View style={styles.listContainer}>
           {remainingCards.map((item, index) => (
             <ListCard
               key={item.id}
               category={item?.category?.name}
               title={item.title}
-              date={item?.magazine?.month?.name + '  ' + item?.magazine?.year}
+              date={formatDate(item)}
               isLast={index === remainingCards.length - 1}
             />
           ))}
         </View>
 
+        {/* ================= ADVERTISEMENT ================= */}
         <HomeAdvertisement />
 
-        <View style={styles.mainWrapper}>
-          {/* Corrected the spelling from 'hearderContainer' to 'headerContainer' */}
-          <View style={styles.headerContainer}>
-            <Text style={styles.headerText}>EDITOR PICKS</Text>
-            <View style={styles.headerLine} />
+        {/* ================= EDITOR PICKS ================= */}
+        <View style={styles.sectionWrapper}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>EDITOR PICKS</Text>
+            <View style={styles.sectionUnderline} />
           </View>
 
-          {editorpick.map(item => (
+          {editorPicks.map((item) => (
             <EditorPicks
               key={item.id}
-              image={`${imgUrl}/${item.image}`}
+              image={getImage(item.image)}
               title={item.title}
-              author={item.author.name}
+              author={item.author?.name}
             />
           ))}
         </View>
 
+        {/* ================= SUBSCRIPTION BANNER ================= */}
         <HomeBanner />
+
+        {/* ================= LATEST EDITION ================= */}
         <View style={styles.fullWidth}>
-  <LatestEdition onData={setLatestEditionData} />
-</View>
+          <LatestEdition onData={setLatestEditionData} />
+        </View>
 
-<EditorialCard />
+        {/* ================= EDITORIAL ================= */}
+        <EditorialCard />
 
-<View style={styles.fullWidth}>
-  <LatestEditions skipId={latestEditionData?.magazine?.id} />
-</View>
-        {/* Footer */}
-        <View style={styles.footerContainer}>
-          <Text style={styles.title}>Welcome to Home Screen</Text>
-          <View style={styles.buttonWrapper}>
-            <Button
-              title="Go to Profile"
-              onPress={() => navigation.navigate('Profile')}
-              color="#007AFF"
-            />
-          </View>
+        {/* ================= LATEST 5 EDITIONS ================= */}
+        <View style={styles.fullWidth}>
+          <LatestEditions skipId={latestEditionData?.magazine?.id} />
+        </View>
+
+        {/* ================= FOOTER ================= */}
+        <View style={styles.fullWidth}>
+          <Footer />
         </View>
       </ScrollView>
     </View>
@@ -155,64 +203,79 @@ const Home = ({ navigation }: Props) => {
 
 export default Home;
 
+/**
+ * =========================
+ * STYLES
+ * =========================
+ */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
-  scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 40 },
-
-  rowContainer: {
-    flexDirection: 'col',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  fullWidth: {
-  marginHorizontal: -12,
-},
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginVertical: 10,
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
   },
 
-  footerContainer: {
-    marginTop: 20,
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+  scrollContent: {
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+
+  /**
+   * Column layout for stacked hero cards
+   */
+  columnContainer: {
+    marginVertical: 10,
+    gap: 10,
+  },
+
+  /**
+   * List container for remaining articles
+   */
+  listContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#f5f5f5',
+  },
+
+  /**
+   * Section wrapper (Editor Picks)
+   */
+  sectionWrapper: {
+    marginVertical: 10,
+  },
+
+  sectionHeader: {
+    height: 80,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  title: { fontSize: 20, fontWeight: '600', marginBottom: 15 },
-  buttonWrapper: { width: '70%' },
+
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#000',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+  },
+
+  sectionUnderline: {
+    height: 5,
+    width: 60,
+    marginTop: 5,
+    backgroundColor: '#e60000',
+  },
+
+  /**
+   * Used to break out of ScrollView padding
+   * for full-width components like Footer & banners
+   */
+  fullWidth: {
+    marginHorizontal: -12,
+  },
 
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  containerBox: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f5f5f5',
-  },
-  headerContainer: {
-    width: '100%', // Take up full screen width
-    height: 80, // Vertical space for the header
-    justifyContent: 'center', // Center vertically
-    alignItems: 'center', // Center horizontally
-    marginVertical: 10, // Space between the advertisement and the title
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: '700', // Made it slightly bolder for a professional look
-    color: '#000',
-    letterSpacing: 2, // Increased spacing to match "News" style UI
-    textAlign: 'center', // Backup text alignment
-    textTransform: 'uppercase', // Ensures it stays in caps
-  },
-  headerLine: {
-    height: 5, // Thickness of the line
-    width: 60, // Short width like in your image
-    marginTop: 5,
-    backgroundColor: '#e60000', // Red color
   },
 });

@@ -66,8 +66,10 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
     );
   if (!data) return null;
 
-  console.log('Data', data);
-  console.log('IMAGE', data.posts);
+  // console.log('Data', data);
+  // console.log('IMAGE', data.posts);
+
+
   return (
     <View style={styles.container}>
       {/* --- LATEST EDITION SECTION --- */}
@@ -144,6 +146,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 30,
     marginLeft: 16,
+    
   },
   redUnderline: {
     width: 60,
@@ -153,7 +156,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginLeft: 18,
   },
-  bigImg: { width: '100%', height: 500, marginBottom: 15 },
+  bigImg: { width: '93%', height: 500, marginBottom: 15, marginHorizontal:11 },
   textContainer: { marginVertical: 10 },
   titleText: { fontSize: 22, fontWeight: '800', color: '#000', marginLeft: 4 },
   divider: {
@@ -164,7 +167,7 @@ const styles = StyleSheet.create({
   },
   subTitleText: { fontSize: 16, color: '#444', marginLeft: 4 },
   button: {
-    backgroundColor: '#D80000',
+    backgroundColor: '#c9060a',
     paddingVertical: 15,
     marginHorizontal: 16,
     alignItems: 'center',
@@ -180,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
   },
-  smallImg: { width: 380, height: 240 },
+  smallImg: { width: 335, height: 240, marginRight:2 },
   feedbackTitle: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -207,6 +210,7 @@ const styles = StyleSheet.create({
     borderColor: '#CCC',
     marginTop: 25,
     height: 0,
+    marginHorizontal:15
   },
   content: {
     paddingHorizontal: 12,

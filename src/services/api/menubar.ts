@@ -8,7 +8,7 @@ export const getMenu = async () => {
       },
     });
 
-    console.log('API:', res.data);
+    // console.log('API:', res.data);
     return res.data.data;
   } catch (error) {
     console.log('Error:', error);

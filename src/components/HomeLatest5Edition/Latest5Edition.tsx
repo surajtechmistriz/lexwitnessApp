@@ -12,9 +12,12 @@ import {
 } from 'react-native';
 import { getLatestMagazines } from './service';
 import Config from 'react-native-config';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
 const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 60) / 2;
+const COLUMN_WIDTH = (width - 40) / 2;
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
@@ -22,6 +25,8 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
   const [editions, setEditions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   // 1. Fetch data from your API
   const fetchEditions = async () => {
      if (!skipId) return; // wait until we get id
@@ -83,6 +88,14 @@ useEffect(() => {
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
       />
+        
+              <TouchableOpacity
+                style={styles.button} 
+                onPress={()=> navigation.navigate("MagazinesScreen")}
+                >
+                <Text style={styles.buttonText}>VIEW ALL EDITIONS</Text>
+              </TouchableOpacity>
+
     </View>
   );
 };
@@ -92,6 +105,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingTop: 20,
+     marginRight:2,
   },
   loaderContainer: {
     flex: 1,
@@ -118,14 +132,16 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   row: {
-    justifyContent: 'space-between',
-    gap:10
+    // justifyContent: 'space-between',
+    gap:10,
+    
   },
   card: {
     width: COLUMN_WIDTH,
     // width:"50%",
     backgroundColor: '#fff',
     marginBottom: 15,
+   
     // borderRadius: 6,
     elevation: 3,
     shadowColor: '#000',
@@ -138,7 +154,7 @@ const styles = StyleSheet.create({
   },
   coverImage: {
     width: '100%',
-    height: 230,
+    height: 208,
   },
   dateContainer: {
     paddingVertical: 12,
@@ -152,6 +168,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 5,
   },
+    button: {
+    backgroundColor: '#c9060a',
+    paddingVertical: 15,
+    // marginHorizontal: 0,
+    width:250,
+    justifyContent:'center',
+    alignItems: 'center',
+    marginBottom: 40,
+    marginLeft:50
+  },
+    buttonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+
 });
 
 export default LatestEditions;

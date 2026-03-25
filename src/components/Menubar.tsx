@@ -30,17 +30,6 @@ const TopMenu = () => {
     fetchMenu();
   }, []);
 
-  // const menuItems = [
-  //   'Cutting Edge',
-  //   'Rendezvous',
-  //   "Editor's Picks",
-  //   'In Depth',
-  //   'In-House Counsel',
-  //   'Buzz Square',
-  //   'Verdict',
-  //   'Vintage Lane',
-  //   'Stop Press',
-  // ];
 
   return (
     <View style={styles.wrapper}>
@@ -72,7 +61,7 @@ export default TopMenu;
 const styles = StyleSheet.create({
   // full bar container
   wrapper: {
-    height: 60,
+    height: 50,
     backgroundColor: '#f0efeff0',
     justifyContent: 'center',
     borderBottomWidth: 2,

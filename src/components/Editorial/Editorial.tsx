@@ -24,7 +24,7 @@ const EditorialCard: React.FC = () => {
     const fetchData = async () => {
       try {
         const result = await getEditorial();
-        console.log("Editorial", result.data);
+        // console.log("Editorial", result.data);
         setData(result.data);
       } catch (error) {
         console.error("Error fetching editorial:", error);
