@@ -109,8 +109,9 @@ const Home = ({ navigation }: Props) => {
         </View>
 
         {/* ================= ADVERTISEMENT ================= */}
-        <HomeAdvertisement />
-
+      <View style={styles.graySectionWrapper}>
+           <HomeAdvertisement />
+        </View>
         {/* ================= EDITOR PICKS ================= */}
         <EditorPicksSection data={editorPicks} getImage={getImage} />
 
@@ -158,5 +159,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  graySectionWrapper: {
+    backgroundColor: '#f5f5f5', // The gray background from your image
+    // marginHorizontal: 0,     // This cancels out the ScrollView padding (12)
+    paddingVertical: 40,       // Adjusts the height of the gray area
+    paddingHorizontal: 25,     // Adds space inside the gray so the white box isn't touching the edges
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
   },
 });

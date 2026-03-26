@@ -257,9 +257,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#c9060a',
     padding: 12,
     borderRadius: 5,
-    width: 120,
+    width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    marginVertical: 20,
   },
   regBtnText: { color: '#fff', fontWeight: 'bold' },
 });

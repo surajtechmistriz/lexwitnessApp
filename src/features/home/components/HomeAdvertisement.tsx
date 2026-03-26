@@ -3,8 +3,8 @@ import React from 'react';
 
 const HomeAdvertisement = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Advertisement</Text>
+    <View >
+      <Text style={styles.adText}>Advertisement</Text>
     </View>
   );
 };
@@ -12,16 +12,17 @@ const HomeAdvertisement = () => {
 export default HomeAdvertisement;
 
 const styles = StyleSheet.create({
-  container: {
-    height: 100, // fixed height (important for ads)
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 18,
-    backgroundColor: '#f5eded',
-  },
+//   container: {
+//     height: 100, // fixed height (important for ads)
+//     justifyContent: 'center',
+//     alignItems: 'center',
+//     marginVertical: 18,
+//     backgroundColor: '#ffffff',
+//   },
 
-  text: {
-    fontSize: 22,
-    color: '#333',
+ adText: {
+    fontSize: 20,             // Increased size (previous was 18 or 22)
+    // fontWeight: '600',        // Semi-bold for better visibility
+    color: '#333333',         // Dark grey text
   },
 });

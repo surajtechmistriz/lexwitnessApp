@@ -114,7 +114,7 @@ container: {
 dropdownContainer: {
   position: 'relative',
   width: '100%',
-   // 🔥 important
+   //  important
 },
   dropdownBtn: {
     borderWidth: 1,

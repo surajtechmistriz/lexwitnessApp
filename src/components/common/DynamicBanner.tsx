@@ -25,7 +25,7 @@ export default function Banner({ title }: BannerProps) {
 
   // Fallback image if backgroundImage is not provided
   const imageUrl = Config.BANNER_BASE_URL; // string from env
-  console.log('Banner URL:', imageUrl);
+  // console.log('Banner URL:', imageUrl);
   return (
     <ImageBackground
       source={{ uri: imageUrl }}

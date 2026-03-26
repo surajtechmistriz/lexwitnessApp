@@ -13,7 +13,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 
 import { getAuthor } from '../../services/api/author';
-import { getMenu } from '../../services/api/menubar';
+import { getMenu } from '../../services/api/category';
 import { getYears } from '../../services/api/years';
 
 type Author = { id: number; name: string };

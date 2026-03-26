@@ -13,7 +13,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import SearchOverlay from './SearchOverlay';
 import DrawerUI from './Drawer';
-import { getMenu } from '../../services/api/menubar';
+import { getMenu } from '../../services/api/category';
 
 const Header = () => {
   const navigation =
@@ -56,13 +56,15 @@ const Header = () => {
         </View>
 
         {/* LOGO */}
-        <View style={styles.center}>
-          <Image
-            source={require('../../assets/main-logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
-        </View>
+<View style={styles.center}>
+  <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+    <Image
+      source={require('../../assets/main-logo.png')}
+      style={styles.logoImage}
+      resizeMode="contain"
+    />
+  </TouchableOpacity>
+</View>
 
         {/* RIGHT ICONS */}
         <View style={styles.right}>
@@ -133,7 +135,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    pointerEvents: 'none', // logo does not block touches
+    // pointerEvents: 'none', // logo does not block touches
     zIndex: 0,
   },
 

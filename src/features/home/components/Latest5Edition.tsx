@@ -21,21 +21,32 @@ const COLUMN_WIDTH = (width - 40) / 2;
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
+//  TYPE
+type MagazineItem = {
+  id: number;
+  slug?: string;
+  title: string;
+  image?: string;
+};
+
 const LatestEditions = ({ skipId }: { skipId?: number }) => {
-  const [editions, setEditions] = useState([]);
+  const [editions, setEditions] = useState<MagazineItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  // 1. Fetch data from your API
+  //  FETCH
   const fetchEditions = async () => {
-     if (!skipId) return; // wait until we get id
+    if (skipId === undefined || skipId === null) return; //  FIXED
+
     try {
       const response = await getLatestMagazines({
-      skipId: skipId,
-      limit: 5,
-    }); 
-      setEditions(response);
+        skipId,
+        limit: 5,
+      });
+
+      setEditions(response || []);
     } catch (error) {
       console.error(error);
       Alert.alert('Error', 'Could not fetch latest editions.');
@@ -44,28 +55,41 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
     }
   };
 
-useEffect(() => {
-  if (skipId) {
-    fetchEditions();
-  }
-}, [skipId]); // re-run when skipId updates
+  useEffect(() => {
+    if (skipId !== undefined && skipId !== null) {
+      fetchEditions();
+    }
+  }, [skipId]);
 
-  const renderItem = ({ item }) => (
+  // RENDER ITEM
+  const renderItem = ({ item }: { item: MagazineItem }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => console.log('Opening edition:', item.id)}
+      onPress={() => {
+        console.log("Clicked:", item.slug, item.id);
+
+        navigation.navigate("MagazineDetail", {
+          slug: item.slug ?? String(item.id), //  SAFE
+        });
+      }}
     >
       <Image
-        source={{ uri: `${imgUrl}/${item.image}` }}
+        source={{
+          uri: item.image
+            ? `${imgUrl}/${item.image}`
+            : "https://via.placeholder.com/300x400", //  fallback
+        }}
         style={styles.coverImage}
         resizeMode="contain"
       />
+
       <View style={styles.dateContainer}>
         <Text style={styles.dateText}>{item.title}</Text>
       </View>
     </TouchableOpacity>
   );
 
+  // LOADING
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -82,23 +106,23 @@ useEffect(() => {
       <FlatList
         data={editions}
         renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         contentContainerStyle={styles.listPadding}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
       />
-        
-              <TouchableOpacity
-                style={styles.button} 
-                onPress={()=> navigation.navigate("MagazinesScreen")}
-                >
-                <Text style={styles.buttonText}>VIEW ALL EDITIONS</Text>
-              </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate("MagazinesScreen")}
+      >
+        <Text style={styles.buttonText}>VIEW ALL EDITIONS</Text>
+      </TouchableOpacity>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -154,7 +178,7 @@ const styles = StyleSheet.create({
   },
   coverImage: {
     width: '100%',
-    height: 208,
+    height: 243,
   },
   dateContainer: {
     paddingVertical: 12,
@@ -168,16 +192,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 5,
   },
-    button: {
-    backgroundColor: '#c9060a',
-    paddingVertical: 15,
-    // marginHorizontal: 0,
-    width:250,
-    justifyContent:'center',
-    alignItems: 'center',
-    marginBottom: 40,
-    marginLeft:50
-  },
+ button: {
+  backgroundColor: '#c9060a',
+  paddingVertical: 15,
+  width: 250,
+  
+  // This is the "Margin Auto" equivalent for a single element
+  alignSelf: 'center', 
+  
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginBottom: 40,
+},
     buttonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
 
 });

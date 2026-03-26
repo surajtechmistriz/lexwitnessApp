@@ -6,46 +6,57 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { getMenu } from '../../services/api/menubar';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { getMenu } from '../../services/api/category';
+
 type MenuItem = {
   id: number;
   name: string;
+  slug: string;
 };
+
 const TopMenu = () => {
-  const [active, setActive] = React.useState(0);
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+  const activeSlug = route.params?.slug || "";
 
   useEffect(() => {
     const fetchMenu = async () => {
       try {
         const data = await getMenu();
-        setMenuItems(data); // store API data
+        setMenuItems(data);
       } catch (error) {
         console.log(error);
-      } finally {
-        // setLoading(false);
       }
     };
-
     fetchMenu();
   }, []);
 
+  const handlePress = (slug: string) => {
+    // Navigate to the same screen with new slug
+    navigation.navigate('CategoryScreen', { slug });
+  };
 
   return (
     <View style={styles.wrapper}>
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={true}
+        showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
-        {menuItems.map((item, index) => (
+        {menuItems.map(item => (
           <TouchableOpacity
             key={item.id}
             style={styles.menuItem}
-            onPress={() => setActive(index)}
+            onPress={() => handlePress(item.slug)}
           >
             <Text
-              style={[styles.menuText, active === index && styles.activeText]}
+              style={[
+                styles.menuText,
+                activeSlug === item.slug && styles.activeText
+              ]}
             >
               {item.name}
             </Text>
@@ -59,34 +70,26 @@ const TopMenu = () => {
 export default TopMenu;
 
 const styles = StyleSheet.create({
-  // full bar container
   wrapper: {
     height: 50,
     backgroundColor: '#f0efeff0',
     justifyContent: 'center',
-    borderBottomWidth: 2,
-    borderTopWidth: 2,
-    borderTopColor: '#ddd',
+    borderBottomWidth: 1,
     borderBottomColor: '#ddd',
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
   },
   activeText: {
     color: 'red',
-    //   borderBottomWidth: 2,
-    //   borderBottomColor: "blue",
+    fontWeight: 'bold',
   },
-
-  // scroll container
   container: {
     alignItems: 'center',
     paddingHorizontal: 10,
   },
-
-  // menu item (flat style, not pill)
   menuItem: {
     marginRight: 20,
   },
-
-  // text like tab bar
   menuText: {
     fontSize: 15,
     fontWeight: '500',
