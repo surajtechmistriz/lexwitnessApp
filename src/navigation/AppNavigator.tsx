@@ -7,6 +7,7 @@ import SignInScreen from '../features/auth/screens/SignIn';
 import MagazinesScreen from '../features/magazines/MagazinesScreen';
 import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
 import CategoryScreen from '../features/category/CategoryScreen';
+import ArticleDetail from '../features/article/ArticleScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -15,6 +16,7 @@ export type RootStackParamList = {
   CategoryScreen:undefined;
   MagazinesScreen:undefined;
     MagazineDetail: { slug: string | number };
+    ArticleDetail: { slug: string; category?:string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -39,6 +41,7 @@ const AppNavigator = () => {
   component={CategoryScreen} 
   options={({ route }: any) => ({ title: route.params?.slug || 'Category' })} 
 />
+<Stack.Screen name='ArticleDetail' component={ArticleDetail}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

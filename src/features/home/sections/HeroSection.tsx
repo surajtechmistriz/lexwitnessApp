@@ -35,27 +35,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({
    */
   if (!firstCard) return null;
 
+  console.log("First Card slug",firstCard)
+
   return (
     <>
       {/* ================= MAIN HERO CARD ================= */}
-      <HeroCard
-        category={firstCard.category?.name}
-        title={firstCard.title}
-        date={formatDate(firstCard)}
-        image={getImage(firstCard.image)}
-        height={450}
-      />
+     <HeroCard
+  category={firstCard.category}   // ✅ send full object
+  title={firstCard.title}
+  slug={firstCard.slug}
+  date={formatDate(firstCard)}
+  image={getImage(firstCard.image)}
+  height={450}
+/>
 
       {/* ================= SECONDARY HERO CARDS ================= */}
       <View style={styles.secondaryContainer}>
         {nextTwoCards.map((item) => (
           <HeroCard
             key={item.id}
-            category={item.category?.name}
+            category={item.category}
             title={item.title}
             date={formatDate(item)}
             image={getImage(item.image)}
             height={220}
+            slug={item.slug}
             style={styles.fullWidthCard}
           />
         ))}

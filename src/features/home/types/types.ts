@@ -1,4 +1,6 @@
 export interface EditorPickItem {
+  slug: any;
+  category: any;
   id: number;
   title: string;
   image: string;
@@ -16,6 +18,7 @@ export interface EditorPicksSectionProps {
 
 // types.ts
 export type Article = {
+  slug: string;
   id: number;
   title: string;
   image: string;

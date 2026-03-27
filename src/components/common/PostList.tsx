@@ -1,3 +1,5 @@
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import {
   View,
@@ -7,25 +9,31 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
 interface PostListProps {
   posts: any[];
   postBaseUrl?: string;
   loading?: boolean;
   emptyMessage?: string;
+  onPressPost?: (post: any) => void;
 }
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function PostList({
   posts,
-  postBaseUrl = "",
+  postBaseUrl = '',
   loading = false,
-  emptyMessage = "No posts available.",
+  emptyMessage = 'No posts available.',
+  onPressPost,
 }: PostListProps) {
-  
   const getImageUrl = (image?: string) => {
     if (!image) return null;
-    return image.startsWith("http") ? image : `${postBaseUrl}/${image}`;
+    return image.startsWith('http') ? image : `${postBaseUrl}/${image}`;
   };
+
+  const navigation = useNavigation<NavigationProp>();
 
   if (loading) {
     return (
@@ -45,18 +53,25 @@ export default function PostList({
 
   return (
     <View style={styles.container}>
-      {/* <View style={styles.topDivider} /> */}
-      
       {posts.map((article, index) => (
-        <View 
-          key={article.id || index} 
+        <View
+          key={article.id || index}
           style={[
-            styles.articleItem, 
-            index === posts.length - 1 && styles.noBorder
+            styles.articleItem,
+            index === posts.length - 1 && styles.noBorder,
           ]}
         >
-          {/* Image Section */}
-          <TouchableOpacity style={styles.imageContainer}>
+          {/* IMAGE */}
+          <TouchableOpacity
+            style={styles.imageContainer}
+            activeOpacity={0.8}
+            onPress={() => {
+              navigation.navigate('ArticleDetail', {
+                slug: article.slug,
+                category: article.category?.slug || 'general',
+              });
+            }}
+          >
             {article.image ? (
               <Image
                 source={{ uri: getImageUrl(article.image) }}
@@ -65,14 +80,23 @@ export default function PostList({
               />
             ) : (
               <View style={styles.placeholderContainer}>
-                 <Text style={{color: '#999'}}>Img</Text>
+                <Text style={{ color: '#999' }}>Img</Text>
               </View>
             )}
           </TouchableOpacity>
 
-          {/* Content Section */}
+          {/* CONTENT */}
           <View style={styles.contentContainer}>
-            <TouchableOpacity>
+            {/* TITLE */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.navigate('ArticleDetail', {
+                  slug: article.slug,
+                  category: article.category?.slug || 'general',
+                });
+              }}
+            >
               <Text style={styles.title} numberOfLines={2}>
                 {article.title}
               </Text>
@@ -80,19 +104,29 @@ export default function PostList({
 
             <Text style={styles.metaText}>
               <Text style={styles.authorText}>
-                {typeof article.author === "string" 
-                  ? article.author 
-                  : article.author?.name || "Unknown"}
+                {typeof article.author === 'string'
+                  ? article.author
+                  : article.author?.name || 'Unknown'}
               </Text>
-              {" | "}
+              {' | '}
               {article.magazine?.month?.name} {article.magazine?.year}
             </Text>
 
             <Text style={styles.description} numberOfLines={2}>
-              {article.short_description || "No description available"}
+              {article.short_description || 'No description available'}
             </Text>
 
-            <TouchableOpacity style={styles.readMoreContainer}>
+            {/* READ MORE */}
+            <TouchableOpacity
+              style={styles.readMoreContainer}
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.navigate('ArticleDetail', {
+                  slug: article.slug,
+                  category: article.category?.slug || 'general',
+                });
+              }}
+            >
               <Text style={styles.readMoreText}>Read More</Text>
             </TouchableOpacity>
           </View>

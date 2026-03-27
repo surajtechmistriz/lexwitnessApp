@@ -1,3 +1,4 @@
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
   View,
@@ -9,35 +10,65 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 
 type HeroCardProps = {
-  category: string;
+  category: any; // can be string or object
   title: string;
+  slug: string; // ✅ REQUIRED
   date?: string;
   image?: string;
   height?: number;
 };
 
-const HeroCard = ({ category, title, date, image, height = 350 }) => {
+const HeroCard = ({
+  category,
+  title,
+  slug,
+  date,
+  image,
+  height = 350,
+}: HeroCardProps) => {
+  const navigation = useNavigation<any>();
+
+  const categoryName =
+    typeof category === 'string' ? category : category?.name;
+
+  const categorySlug = category?.slug ?? 'general';
+  
   return (
     <TouchableOpacity activeOpacity={0.9} style={[styles.container, { height }]}>
-      <ImageBackground 
-        source={{ uri: image }} 
-        style={styles.image}
-        resizeMode="cover"
-      >
+      <ImageBackground source={{ uri: image }} style={styles.image} resizeMode="cover">
         <LinearGradient
           colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)']}
           style={styles.gradient}
         >
-          {/* Badge pinned to top-left */}
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{category}</Text>
-          </View>
+          {/* CATEGORY CLICK */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+     onPress={() =>
+  navigation.navigate('CategoryScreen', {
+    slug: categorySlug,
+  })
+}
+            style={styles.badge}
+          >
+            <Text style={styles.badgeText}>{categoryName}</Text>
+          </TouchableOpacity>
 
-          {/* Bottom Content with its own padding */}
+          {/* TITLE CLICK */}
           <View style={styles.bottomContent}>
-            <Text style={styles.title} numberOfLines={3}>
-              {title}
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() =>
+                navigation.navigate('ArticleDetail', {
+                  slug: slug,
+                  category: categorySlug,
+                })
+              }
+            >
+              <Text style={styles.title} numberOfLines={3}>
+                {title}
+              </Text>
+            </TouchableOpacity>
+
             {date && <Text style={styles.dateText}>{date}</Text>}
           </View>
         </LinearGradient>

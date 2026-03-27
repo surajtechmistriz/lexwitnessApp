@@ -128,25 +128,35 @@ export default function MagazineDetailScreen() {
           <Text style={styles.articlesHeading}>ARTICLES</Text>
           <View style={styles.redUnderline} />
 
-          {magazine.posts?.map((post: any) => (
-            <View key={post.id} style={styles.articleCard}>
-              <Image
-                source={{
-                  uri: post.image
-                    ? `${imgUrl2}/${post.image}`
-                    : 'https://via.placeholder.com/150',
-                }}
-                style={styles.articleImage}
-              />
+         {magazine.posts?.map((post: any) => (
+  <TouchableOpacity 
+    key={post.id} 
+    style={styles.articleCard}
+    activeOpacity={0.8}
+    onPress={() => {
+      navigation.navigate('ArticleDetail', { 
+        slug: post.slug, 
+        category: post.category?.slug || 'general' 
+      });
+    }}
+  >
+    <Image
+      source={{
+        uri: post.image
+          ? `${imgUrl2}/${post.image}`
+          : 'https://via.placeholder.com/150',
+      }}
+      style={styles.articleImage}
+    />
 
-              <View style={styles.articleInfo}>
-                <Text style={styles.articleTitle}>{post.title}</Text>
-                <Text style={styles.articleCategory}>
-                  {post.category?.name || 'Uncategorized'}
-                </Text>
-              </View>
-            </View>
-          ))}
+    <View style={styles.articleInfo}>
+      <Text style={styles.articleTitle}>{post.title}</Text>
+      <Text style={styles.articleCategory}>
+        {post.category?.name || 'Uncategorized'}
+      </Text>
+    </View>
+  </TouchableOpacity>
+))}
         </View>
 
         {/*  LATEST EDITIONS (works correctly now) */}

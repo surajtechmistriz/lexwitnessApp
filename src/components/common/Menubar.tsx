@@ -15,12 +15,13 @@ type MenuItem = {
   slug: string;
 };
 
-const TopMenu = () => {
+const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
-  const activeSlug = route.params?.slug || "";
+  // ✅ FIX: use prop first, fallback to route
+  const currentSlug = activeSlug || route.params?.slug || '';
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -35,7 +36,6 @@ const TopMenu = () => {
   }, []);
 
   const handlePress = (slug: string) => {
-    // Navigate to the same screen with new slug
     navigation.navigate('CategoryScreen', { slug });
   };
 
@@ -55,7 +55,7 @@ const TopMenu = () => {
             <Text
               style={[
                 styles.menuText,
-                activeSlug === item.slug && styles.activeText
+                currentSlug === item.slug && styles.activeText, // ✅ FIXED
               ]}
             >
               {item.name}

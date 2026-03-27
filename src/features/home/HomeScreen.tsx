@@ -53,11 +53,14 @@ const Home = ({ navigation }: Props) => {
   }, []);
 
   // ========================= DATA DERIVATION =========================
-  const { firstCard, nextTwoCards, remainingCards } = useMemo(() => ({
-    firstCard: articles?.[0] || null,
-    nextTwoCards: articles?.slice(1, 3) || [],
-    remainingCards: articles?.slice(3) || [],
-  }), [articles]);
+  const { firstCard, nextTwoCards, remainingCards } = useMemo(
+    () => ({
+      firstCard: articles?.[0] || null,
+      nextTwoCards: articles?.slice(1, 3) || [],
+      remainingCards: articles?.slice(3) || [],
+    }),
+    [articles],
+  );
 
   // ========================= HELPERS =========================
   const formatDate = (item: any) => {
@@ -109,8 +112,8 @@ const Home = ({ navigation }: Props) => {
         </View>
 
         {/* ================= ADVERTISEMENT ================= */}
-      <View style={styles.graySectionWrapper}>
-           <HomeAdvertisement />
+        <View style={styles.graySectionWrapper}>
+          <HomeAdvertisement />
         </View>
         {/* ================= EDITOR PICKS ================= */}
         <EditorPicksSection data={editorPicks} getImage={getImage} />
@@ -164,8 +167,8 @@ const styles = StyleSheet.create({
   graySectionWrapper: {
     backgroundColor: '#f5f5f5', // The gray background from your image
     // marginHorizontal: 0,     // This cancels out the ScrollView padding (12)
-    paddingVertical: 40,       // Adjusts the height of the gray area
-    paddingHorizontal: 25,     // Adds space inside the gray so the white box isn't touching the edges
+    paddingVertical: 40, // Adjusts the height of the gray area
+    paddingHorizontal: 25, // Adds space inside the gray so the white box isn't touching the edges
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,

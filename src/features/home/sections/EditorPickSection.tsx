@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import EditorPicks from '../components/EditorPicks';
 import { EditorPicksSectionProps } from '../types/types';
 
-
 const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
   data,
   getImage,
@@ -15,12 +14,14 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
         <View style={styles.line} />
       </View>
 
-      {data.map((item) => (
+      {data.map(item => (
         <EditorPicks
           key={item.id}
           image={getImage(item.image)}
           title={item.title}
           author={item.author?.name}
+          category={item.category} // send full object
+          slug={item.slug}
         />
       ))}
     </View>

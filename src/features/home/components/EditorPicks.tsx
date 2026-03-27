@@ -1,9 +1,22 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
 
-const EditorPicks = ({ image, title, author }) => {
+const EditorPicks = ({ image, title, author, slug, category }) => {
+  const navigation = useNavigation<any>();
+
+  const categorySlug = category?.slug ?? 'general';
   return (
-    <View style={styles.cardContainer}>
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() =>
+        navigation.navigate('ArticleDetail', {
+          slug: slug,
+          category: categorySlug,
+        })
+      }
+      style={styles.cardContainer}
+    >
       <Image
         source={{ uri: image }}
         style={styles.cardImage}
@@ -15,7 +28,7 @@ const EditorPicks = ({ image, title, author }) => {
         </Text>
         <Text style={styles.authorText}>{author}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 export default EditorPicks;

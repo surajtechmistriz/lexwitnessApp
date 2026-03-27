@@ -33,12 +33,11 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 export default function CategoryScreen() {
   const route = useRoute<any>();
   const scrollRef = useRef<ScrollView>(null);
-  const isInitialMount = useRef(true);
 
   const slug = route.params?.slug || '';
   const postBaseUrl = Config.POSTS_BASE_URL;
 
-  // --- State ---
+  // --- STATE ---
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
@@ -49,7 +48,7 @@ export default function CategoryScreen() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
-  // --- Data Fetcher ---
+  // --- FETCH DATA ---
   const fetchData = useCallback(
     async (catId: number, year: number | null, page: number) => {
       setLoading(true);
@@ -60,6 +59,7 @@ export default function CategoryScreen() {
           page,
           per_page: 10,
         });
+
         setPosts(response.data ?? []);
         setLastPage(response.meta?.paging?.last_page ?? 1);
         setCurrentPage(page);
@@ -73,39 +73,48 @@ export default function CategoryScreen() {
     [],
   );
 
+  // --- INIT LOAD ---
   useEffect(() => {
     const init = async () => {
       setLoading(true);
+
       try {
         const [catData, yearData] = await Promise.all([
           getCategoryBySlug(slug),
           getYears(),
         ]);
+
         setCategory(catData);
         setYears(yearData.data || []);
-        if (catData?.id) await fetchData(catData.id, null, 1);
+
+        if (catData?.id) {
+          await fetchData(catData.id, null, 1);
+        }
       } catch (err) {
         console.error('Init error:', err);
       } finally {
         setLoading(false);
       }
     };
+
     init();
   }, [slug, fetchData]);
 
+  // --- FILTER CHANGE ---
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    if (category?.id) fetchData(category.id, appliedYear, 1);
+    if (!category?.id) return;
+    fetchData(category.id, appliedYear, 1);
   }, [appliedYear, category?.id, fetchData]);
 
+  // --- REFRESH ---
   const onRefresh = () => {
     setRefreshing(true);
-    if (category?.id) fetchData(category.id, appliedYear, currentPage);
+    if (category?.id) {
+      fetchData(category.id, appliedYear, currentPage);
+    }
   };
 
+  // --- APPLY FILTER ---
   const handleApplyFilter = () => {
     if (selectedYear !== appliedYear) {
       setAppliedYear(selectedYear);
@@ -113,19 +122,20 @@ export default function CategoryScreen() {
     }
   };
 
+  // --- PAGINATION ---
   const handlePageChange = (page: number) => {
     scrollRef.current?.scrollTo({ y: 0, animated: true });
-    if (category?.id) fetchData(category.id, appliedYear, page);
+    if (category?.id) {
+      fetchData(category.id, appliedYear, page);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <Header />
-      <TopMenu />
+      <TopMenu   activeSlug={slug}/>
       <Banner title={slug?.replace(/-/g, ' ') || 'Category'} />
 
-      {/* FIXED CONTAINER: High zIndex and nestedScrollEnabled */}
-      {/* <View style={styles.filterContainer}> */}
       <View style={styles.filterButton} pointerEvents="box-none">
         <YearFilter
           years={years}
@@ -133,7 +143,6 @@ export default function CategoryScreen() {
           onSelect={setSelectedYear}
           onApply={handleApplyFilter}
         />
-        {/* </View> */}
       </View>
 
       <ScrollView
@@ -147,8 +156,8 @@ export default function CategoryScreen() {
             colors={['#c9060a']}
           />
         }
-        keyboardShouldPersistTaps="always" // 🔥 change this
-        nestedScrollEnabled={true} // 🔥 important
+        keyboardShouldPersistTaps="always"
+        nestedScrollEnabled={true}
       >
         <View style={styles.content}>
           <PostList
@@ -156,9 +165,10 @@ export default function CategoryScreen() {
             loading={loading && !refreshing}
             postBaseUrl={postBaseUrl}
             emptyMessage={
-              appliedYear ? `No posts for ${appliedYear}` : 'No posts available'
+              appliedYear
+                ? `No posts for ${appliedYear}`
+                : 'No posts available'
             }
-            renderCategory={post => post.category?.name || 'Uncategorized'}
           />
 
           {!loading && posts.length > 0 && (
@@ -175,12 +185,15 @@ export default function CategoryScreen() {
           <View style={styles.magazine}>
             <LatestEditionImageOnly />
           </View>
+
           <View style={styles.BannerContainer}>
             <HomeBanner />
           </View>
+
           <View style={styles.adContainer}>
             <HomeAdvertisement />
           </View>
+
           <Footer />
         </View>
       </ScrollView>
@@ -192,26 +205,20 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   container: { flex: 1 },
   scrollContent: { flexGrow: 1 },
-  // This matches the logic of your Magazine screen's content area
-  filterContainer: {
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-    zIndex: 1000, // Keeps dropdown above the ScrollView
-    elevation: Platform.OS === 'android' ? 10 : 0,
-    overflow: 'visible',
-  },
+
   filterButton: {
     marginHorizontal: 15,
     paddingVertical: 10,
     overflow: 'visible',
   },
+
   content: {
     paddingTop: 10,
     paddingBottom: 20,
     minHeight: SCREEN_HEIGHT * 0.5,
-    zIndex: 1, // Ensures content stays below the dropdown
+    zIndex: 1,
   },
+
   footerContainer: { marginTop: 'auto', width: '100%' },
   BannerContainer: { marginHorizontal: 15 },
   adContainer: {
