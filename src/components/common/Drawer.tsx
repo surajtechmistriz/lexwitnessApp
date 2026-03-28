@@ -1,4 +1,4 @@
-// import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -8,30 +8,39 @@ import {
   ScrollView,
 } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-// import { getMenu } from '../../services/api/menubar';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+import Icon from 'react-native-vector-icons/FontAwesome6';
+
 
 type Category = {
   id: number;
   name: string;
+  slug: string;
 };
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 type Props = {
-    categories: Category[];
+  categories: Category[];
   onClose: () => void;
+  navigation: NavigationProp; // ✅ passed from parent
 };
 
-const DrawerUI: React.FC<Props> = ({ categories, onClose }) => {
-   
+const DrawerUI: React.FC<Props> = ({ categories, onClose, navigation }) => {
+  function openLink(arg0: string): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <View style={styles.drawer}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Image
-          source={require('../../assets/main-logo.png')}
-          style={styles.logo}
-        />
+       <Image
+  source={{ uri: 'https://lexwitness.com/wp-content/themes/lexwitness/images/favicon.png' }}
+  style={styles.logo}
+/>
 
-        {/* CLOSE BUTTON */}
         <TouchableOpacity onPress={onClose}>
           <Entypo name="cross" size={22} color="white" />
         </TouchableOpacity>
@@ -43,7 +52,16 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose }) => {
           <Text style={{ color: 'white', padding: 15 }}>Loading...</Text>
         ) : (
           categories.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.menuItem}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.menuItem}
+              onPress={() => {
+                navigation.navigate('CategoryScreen', {
+                  slug: item.slug, // ✅ correct slug
+                });
+                onClose(); // ✅ close drawer
+              }}
+            >
               <Text style={styles.menuText}>{item.name}</Text>
             </TouchableOpacity>
           ))
@@ -51,17 +69,34 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose }) => {
       </ScrollView>
 
       {/* FOOTER */}
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <Entypo name="user" size={18} color="white" />
-          <Text style={styles.footerText}>Sign In</Text>
-        </View>
+   <View style={styles.footer}>
+  <View style={styles.footerRow}>
+    {/* LEFT SIDE */}
+    <View style={styles.footerLeft}>
+      <Entypo name="user" size={18} color="white" />
+      <Text style={styles.footerText}>Sign In</Text>
+    </View>
 
-        <View style={styles.socialContainer}>
-          <View style={[styles.socialBox, { backgroundColor: '#0A66C2' }]} />
-          <View style={[styles.socialBox, { backgroundColor: '#25D366' }]} />
-        </View>
-      </View>
+    {/* RIGHT SIDE */}
+    <View style={styles.socialContainer}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={[styles.btn, styles.linkedin]}
+        onPress={() => openLink('https://www.linkedin.com/')}
+      >
+        <Icon name="linkedin-in" size={12} color="#fff" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={[styles.btn, styles.whatsapp]}
+        onPress={() => openLink('https://wa.me/')}
+      >
+        <Icon name="whatsapp" size={12} color="#fff" />
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
     </View>
   );
 };
@@ -74,7 +109,6 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: '#333',
   },
-
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -84,53 +118,67 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#555',
   },
-
   logo: {
     width: 40,
     height: 40,
   },
-
   menuContainer: {
     flex: 1,
   },
-
   menuItem: {
     paddingVertical: 14,
     paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderColor: '#555',
   },
-
   menuText: {
     color: 'white',
     fontSize: 14,
   },
-
+  footerRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between', //  pushes left & right
+  alignItems: 'center',
+},
   footer: {
     backgroundColor: '#545454',
     borderTopWidth: 1,
     borderColor: '#555',
     padding: 15,
   },
-
   footerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 10,
+    // marginBottom: 10,
   },
-
   footerText: {
     color: 'white',
   },
-
   socialContainer: {
     flexDirection: 'row',
     gap: 10,
   },
-
   socialBox: {
     width: 40,
     height: 25,
+  },
+  
+  btn: {
+    width: 36,
+    height: 26,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+
+  linkedin: {
+    backgroundColor: '#0A66C2',
+    borderColor: '#0A66C2',
+  },
+   whatsapp: {
+    backgroundColor: '#25D366',
+    borderColor: '#25D366',
   },
 });

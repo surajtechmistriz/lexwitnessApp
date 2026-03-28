@@ -95,6 +95,7 @@ const Header = () => {
             <DrawerUI
               categories={categories}
               onClose={() => setDrawerVisible(false)}
+                navigation={navigation}
             />
           </View>
         </>

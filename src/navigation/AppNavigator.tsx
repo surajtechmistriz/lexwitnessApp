@@ -12,11 +12,11 @@ import ArticleDetail from '../features/article/ArticleScreen';
 export type RootStackParamList = {
   Home: undefined;
   Register: undefined;
-  SignIn:undefined;
-  CategoryScreen:undefined;
-  MagazinesScreen:undefined;
-    MagazineDetail: { slug: string | number };
-    ArticleDetail: { slug: string; category?:string };
+  SignIn: undefined;
+  CategoryScreen: { slug: string }; // ✅ FIXED
+  MagazinesScreen: undefined;
+  MagazineDetail: { slug: string | number };
+  ArticleDetail: { slug: string; category?: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
