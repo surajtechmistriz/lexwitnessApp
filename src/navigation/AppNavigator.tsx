@@ -9,21 +9,34 @@ import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
 import CategoryScreen from '../features/category/CategoryScreen';
 import ArticleDetail from '../features/article/ArticleScreen';
 import AuthorScreen from '../features/author/AuthorScreen';
+import ArchiveScreen from '../features/archive/ArchiveScreen';
+import SubscriptionPage from '../features/auth/screens/Subscription';
 
 export type RootStackParamList = {
   Home: undefined;
   Register: undefined;
+  Subscription: undefined;
   SignIn: undefined;
-  CategoryScreen: { slug: string }; // ✅ FIXED
+  CategoryScreen: { slug: string }; //  FIXED
   MagazinesScreen: undefined;
   MagazineDetail: { slug: string | number };
   ArticleDetail: { slug: string; category?: string };
-   AuthorScreen: { author: string };
+   AuthorScreen: {  slug: string};
+   Archive: {
+    search?: string;
+    mode?: string;
+    year?: string | number;
+    category_id?: string | number;
+    author_id?: string | number;
+    page?: number;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
+
+
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -31,6 +44,7 @@ const AppNavigator = () => {
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Home" component={Home} />
+        <Stack.Screen name="Subscription" component={SubscriptionPage} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="SignIn" component={SignInScreen} />
         <Stack.Screen name="MagazinesScreen" component={MagazinesScreen} />
@@ -49,6 +63,7 @@ const AppNavigator = () => {
     title: route.params?.author || 'Author',
   })}
 />
+<Stack.Screen name='Archive' component={ArchiveScreen}/>
         <Stack.Screen name="ArticleDetail" component={ArticleDetail} />
       </Stack.Navigator>
     </NavigationContainer>

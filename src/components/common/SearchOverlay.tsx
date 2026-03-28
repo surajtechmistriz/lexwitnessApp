@@ -15,6 +15,8 @@ import { Picker } from '@react-native-picker/picker';
 import { getAuthor } from '../../services/api/author';
 import { getMenu } from '../../services/api/category';
 import { getYears } from '../../services/api/years';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
 type Author = { id: number; name: string };
 type Category = { id: number; name: string };
@@ -24,7 +26,13 @@ type Props = {
   onClose: () => void;
 };
 
+
 const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
+  
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const [searchText, setSearchText] = useState('');
+
+
   // Picker states
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -36,6 +44,9 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const [authors, setAuthors] = useState<Author[]>([]);
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+
+
 
   // Fetch initial data
   useEffect(() => {
@@ -70,15 +81,28 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     };
   }, []);
 
-  const handleSearch = () => {
-    const payload = {
-      year: selectedYear,
-      category: selectedCategory,
-      author: selectedAuthor,
-    };
-    console.log('Search Payload:', payload);
-    // TODO: call API or navigate with filters
+const handleSearch = () => {
+  const params: any = {
+    page: 1, // always reset
   };
+
+  if (searchText.trim()) {
+    params.search = searchText.trim();
+    params.mode = 'search';
+
+    // auto detect year
+    if (/^\d{4}$/.test(searchText.trim())) {
+      params.year = searchText.trim();
+    }
+  }
+
+  if (selectedYear) params.year = selectedYear;
+  if (selectedCategory) params.category_id = selectedCategory;
+  if (selectedAuthor) params.author_id = selectedAuthor;
+
+  onClose();
+  navigation.navigate('Archive', params);
+};
 
   return (
     <Modal
@@ -97,13 +121,16 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 
         <View style={styles.formContainer}>
           {/* Search Input */}
-          <View style={styles.searchBar}>
+         <View style={styles.searchBar}>
             <TextInput
               style={styles.input}
               placeholder="Search here..."
               placeholderTextColor="#ccc"
+              value={searchText}
+              onChangeText={setSearchText}
+              onSubmitEditing={handleSearch}
             />
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleSearch}>
               <Ionicons name="search" size={24} color="white" />
             </TouchableOpacity>
           </View>
