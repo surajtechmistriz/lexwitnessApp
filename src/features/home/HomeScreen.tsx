@@ -103,10 +103,11 @@ const Home = ({ navigation }: Props) => {
           {remainingCards.map((item, index) => (
             <ListCard
               key={item.id}
-              category={item?.category?.name}
+              category={item?.category}
               title={item.title}
               date={formatDate(item)}
               isLast={index === remainingCards.length - 1}
+              slug={item.slug}
             />
           ))}
         </View>

@@ -12,7 +12,7 @@ import LinearGradient from 'react-native-linear-gradient';
 type HeroCardProps = {
   category: any; // can be string or object
   title: string;
-  slug: string; // ✅ REQUIRED
+  slug: string; //  REQUIRED
   date?: string;
   image?: string;
   height?: number;
@@ -28,14 +28,20 @@ const HeroCard = ({
 }: HeroCardProps) => {
   const navigation = useNavigation<any>();
 
-  const categoryName =
-    typeof category === 'string' ? category : category?.name;
+  const categoryName = typeof category === 'string' ? category : category?.name;
 
   const categorySlug = category?.slug ?? 'general';
-  
+
   return (
-    <TouchableOpacity activeOpacity={0.9} style={[styles.container, { height }]}>
-      <ImageBackground source={{ uri: image }} style={styles.image} resizeMode="cover">
+    <TouchableOpacity
+      activeOpacity={0.9}
+      style={[styles.container, { height }]}
+    >
+      <ImageBackground
+        source={{ uri: image }}
+        style={styles.image}
+        resizeMode="cover"
+      >
         <LinearGradient
           colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.8)']}
           style={styles.gradient}
@@ -43,11 +49,11 @@ const HeroCard = ({
           {/* CATEGORY CLICK */}
           <TouchableOpacity
             activeOpacity={0.8}
-     onPress={() =>
-  navigation.navigate('CategoryScreen', {
-    slug: categorySlug,
-  })
-}
+            onPress={() =>
+              navigation.navigate('CategoryScreen', {
+                slug: categorySlug,
+              })
+            }
             style={styles.badge}
           >
             <Text style={styles.badgeText}>{categoryName}</Text>
@@ -92,7 +98,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   badge: {
-    backgroundColor: '#C9060a', 
+    backgroundColor: '#C9060a',
     alignSelf: 'flex-start',
     // These ensure it sticks to the very top-left
     paddingHorizontal: 15,

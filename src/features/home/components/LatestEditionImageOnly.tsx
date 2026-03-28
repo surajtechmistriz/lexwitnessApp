@@ -1,12 +1,23 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, View, ActivityIndicator } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  View,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
-import { Text } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+/* ---------- TYPES ---------- */
 
 type Magazine = {
+  slug: string;
   id: number;
   title: string;
   image: string;
@@ -18,28 +29,42 @@ type EditionResponse = {
   magazine: Magazine;
 };
 
+type RootStackParamList = {
+  MagazineDetail: { slug: string };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+/* ---------- CONSTANT ---------- */
+
 const MagimgUrl = Config.MAGAZINES_BASE_URL;
+
+/* ---------- COMPONENT ---------- */
 
 const LatestEditionImageOnly = () => {
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const navigation = useNavigation<NavigationProp>();
+
+  /* fetch latest edition */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await latesteEdition();
-        setData(result.data);
+        setData(result.data); // set api data
       } catch (error) {
-        console.error('Error fetching latest edition:', error);
+        console.error('Fetch Error:', error);
       } finally {
-        setLoading(false);
+        setLoading(false); // stop loader
       }
     };
 
     fetchData();
   }, []);
 
-  if (loading)
+  /* loader */
+  if (loading) {
     return (
       <ActivityIndicator
         size="large"
@@ -47,36 +72,59 @@ const LatestEditionImageOnly = () => {
         style={{ marginTop: 50 }}
       />
     );
+  }
 
-  if (!data || !data.magazine) return null;
+  /* no data */
+  if (!data?.magazine) return null;
 
+  const goToMagazine = () => {
+    navigation.navigate('MagazineDetail', {
+      slug: data.magazine?.slug ?? String(data.magazine.id),
+    });
+  };
+
+  /* UI */
   return (
     <View style={styles.container}>
-      <View>
+      {/* header */}
+      <Text style={styles.headerText}>LATEST EDITION</Text>
+      <View style={styles.redUnderline} />
 
-       <Text style={styles.headerText}>LATEST EDITION</Text>
-      </View>
-        <View style={styles.redUnderline} />
-      <Image
-        source={{ uri: `${MagimgUrl}/${data.magazine.image}` }}
-        style={styles.bigImg}
-        resizeMode="contain"
-      />
+      {/* magazine image */}
+      <TouchableOpacity onPress={goToMagazine}>
+        <Image
+          source={{ uri: `${MagimgUrl}/${data.magazine.image}` }}
+          style={styles.bigImg}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
     </View>
   );
 };
 
+export default LatestEditionImageOnly;
+
+/* ---------- STYLES ---------- */
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  bigImg: { width: '100%', height: 500 },
-   headerText: {
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+
+  bigImg: {
+    width: '100%',
+    height: 500,
+  },
+
+  headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
     marginTop: 30,
     marginLeft: 16,
-    
   },
+
   redUnderline: {
     width: 60,
     height: 4,
@@ -86,5 +134,3 @@ const styles = StyleSheet.create({
     marginLeft: 18,
   },
 });
-
-export default LatestEditionImageOnly;

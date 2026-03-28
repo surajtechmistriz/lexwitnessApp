@@ -12,13 +12,22 @@ import {
 } from 'react-native';
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+/* ---------- TYPES ---------- */
 
 type Post = {
-  short_description: ReactNode;
   id: number;
   title: string;
   image?: string;
   description?: string;
+  short_description: string;
+  slug: string;
+  category?: {
+    slug: string;
+    name?: string;
+  };
 };
 
 type Magazine = {
@@ -27,36 +36,54 @@ type Magazine = {
   title: string;
   image: string;
   year: number;
+  slug?: string; // safe slug
+  link?: string; // subscribe link
 };
 
 type EditionResponse = {
   magazine: Magazine;
   posts: Post[];
 };
+
+type RootStackParamList = {
+  ArticleDetail: { slug: string; category: string };
+  MagazineDetail: { slug: string };
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+/* ---------- CONSTANTS ---------- */
+
 const MagimgUrl = Config.MAGAZINES_BASE_URL;
 const PostimgUrl = Config.POSTS_BASE_URL;
+
+/* ---------- COMPONENT ---------- */
 
 const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const navigation = useNavigation<NavigationProp>();
+
+  /* ---------- FETCH DATA ---------- */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await latesteEdition();
-        // Check console to confirm if it's result.data or result.data.data
-        setData(result.data);
-        onData(result.data);
+        setData(result.data); // set api data
+        onData(result.data);  // pass parent
       } catch (error) {
-        console.error('Error:', error);
+        console.error('API Error:', error);
       } finally {
-        setLoading(false);
+        setLoading(false); // stop loader
       }
     };
+
     fetchData();
   }, []);
 
-  if (loading)
+  /* ---------- LOADING ---------- */
+  if (loading) {
     return (
       <ActivityIndicator
         size="large"
@@ -64,28 +91,48 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
         style={{ marginTop: 50 }}
       />
     );
+  }
+
   if (!data) return null;
 
-  // console.log('Data', data);
-  // console.log('IMAGE', data.posts);
+  /* ---------- NAVIGATION ---------- */
 
+  // article navigation
+  const goToArticle = (item: Post) => {
+    navigation.navigate('ArticleDetail', {
+      slug: item.slug,
+      category: item.category?.slug ?? 'general',
+    });
+  };
+
+  // magazine navigation
+  const goToMagazine = () => {
+    navigation.navigate('MagazineDetail', {
+      slug: data.magazine?.slug ?? String(data.magazine.id),
+    });
+  };
+
+  /* ---------- UI ---------- */
 
   return (
     <View style={styles.container}>
-      {/* --- LATEST EDITION SECTION --- */}
+      {/* header */}
       <Text style={styles.headerText}>LATEST EDITION</Text>
       <View style={styles.redUnderline} />
 
-      {/* FIXED: Added imgUrl prefix */}
-      <Image
-        source={{ uri: `${MagimgUrl}/${data?.magazine?.image}` }}
-        style={styles.bigImg}
-        resizeMode="contain"
-      />
+      {/* magazine image */}
+      <TouchableOpacity onPress={goToMagazine}>
+        <Image
+          source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
+          style={styles.bigImg}
+          resizeMode="contain"
+        />
+      </TouchableOpacity>
 
+      {/* magazine info */}
       <View style={styles.content}>
         <View style={styles.textContainer}>
-          <Text style={styles.titleText}>{data?.magazine?.title}</Text>
+          <Text style={styles.titleText}>{data.magazine?.title}</Text>
           <View style={styles.divider} />
           <Text style={styles.subTitleText}>
             {data.magazine?.magazine_name}
@@ -93,6 +140,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
         </View>
       </View>
 
+      {/* subscribe button */}
       <TouchableOpacity
         style={styles.button}
         onPress={() =>
@@ -102,22 +150,30 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
         <Text style={styles.buttonText}>SUBSCRIBE NOW!</Text>
       </TouchableOpacity>
 
-      {/* --- READERS' FEEDBACK SECTION --- */}
-
-      {data?.posts?.map((item, index) => (
-        <View key={index} style={styles.feedbackSection}>
+      {/* posts list */}
+      {data.posts?.map((item) => (
+        <View key={item.id} style={styles.feedbackSection}>
+          {/* post image */}
           <View style={styles.content}>
             <View style={styles.smallImgContainer}>
-              <Image
-                source={{ uri: `${PostimgUrl}/${item.image}` }}
-                style={styles.smallImg}
-                resizeMode="cover"
-              />
+              <TouchableOpacity onPress={() => goToArticle(item)}>
+                <Image
+                  source={{ uri: `${PostimgUrl}/${item.image}` }}
+                  style={styles.smallImg}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
-          <Text style={styles.feedbackTitle}>{item.title}</Text>
+          {/* post title */}
+          <TouchableOpacity onPress={() => goToArticle(item)}>
+            <Text style={styles.feedbackTitle}>{item.title}</Text>
+          </TouchableOpacity>
+
           <View style={styles.divider} />
+
+          {/* post description */}
           <Text
             style={styles.feedbackDescription}
             numberOfLines={3}
@@ -126,7 +182,8 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
             {item.short_description}
           </Text>
 
-          <TouchableOpacity>
+          {/* read more */}
+          <TouchableOpacity onPress={() => goToArticle(item)}>
             <Text style={styles.readMore}>Read More</Text>
           </TouchableOpacity>
 
@@ -137,17 +194,19 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   );
 };
 
-// ... styles remain the same
+/* ---------- STYLES ---------- */
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
     marginTop: 30,
     marginLeft: 16,
-    
   },
+
   redUnderline: {
     width: 60,
     height: 4,
@@ -156,16 +215,36 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginLeft: 18,
   },
-  bigImg: { width: '93%', height: 500, marginBottom: 15, marginHorizontal:11 },
+
+  bigImg: {
+    width: '93%',
+    height: 500,
+    marginBottom: 15,
+    marginHorizontal: 11,
+  },
+
   textContainer: { marginVertical: 10 },
-  titleText: { fontSize: 22, fontWeight: '800', color: '#000', marginLeft: 4 },
+
+  titleText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000',
+    marginLeft: 4,
+  },
+
   divider: {
     height: 1,
     backgroundColor: '#E0E0E0',
     marginVertical: 10,
     marginHorizontal: 16,
   },
-  subTitleText: { fontSize: 16, color: '#444', marginLeft: 4 },
+
+  subTitleText: {
+    fontSize: 16,
+    color: '#444',
+    marginLeft: 4,
+  },
+
   button: {
     backgroundColor: '#c9060a',
     paddingVertical: 15,
@@ -173,29 +252,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 
-  /* Feedback Styles */
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+
+  /* feedback */
   feedbackSection: { marginTop: 20 },
+
   smallImgContainer: {
-    // backgroundColor: '#F5F5F5', // Light grey background like your image
-    // padding: 10,
     alignItems: 'center',
     marginBottom: 15,
   },
-  smallImg: { width: 335, height: 240, marginRight:2 },
+
+  smallImg: {
+    width: 335,
+    height: 240,
+  },
+
   feedbackTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
     marginHorizontal: 16,
   },
+
   feedbackDescription: {
     fontSize: 16,
     color: '#555',
     lineHeight: 22,
     marginHorizontal: 16,
   },
+
   readMore: {
     color: '#D80000',
     fontSize: 16,
@@ -203,15 +293,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: 16,
   },
+
   dottedLine: {
     borderStyle: 'dotted',
     borderWidth: 1,
-    borderRadius: 1,
     borderColor: '#CCC',
     marginTop: 25,
     height: 0,
-    marginHorizontal:15
+    marginHorizontal: 15,
   },
+
   content: {
     paddingHorizontal: 12,
   },
