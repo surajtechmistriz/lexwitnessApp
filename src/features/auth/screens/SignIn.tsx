@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DynamicBanner from '../../../components/common/DynamicBanner';
 import Header from '../../../components/common/Header';
+import TopMenu from '../../../components/common/Menubar';
 // import Banner from '../components/Banner'; // Use the Banner we made
 // import { loginUser } from '../lib/auth/auth'; // Ensure path is correct
 
@@ -58,6 +59,7 @@ const SignInScreen = () => {
       <SafeAreaView style={styles.container}>
       <ScrollView>
         <Header/>
+        <TopMenu/>
         <DynamicBanner title='Signin'/>
 
         <View style={styles.content}>
