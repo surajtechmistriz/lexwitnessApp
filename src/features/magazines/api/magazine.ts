@@ -6,7 +6,7 @@ export const getMagazines = async (params?: { year?: number; page?: number; limi
       params, // Axios automatically converts this to query string
     });
 
-    console.log("Magazines data", response.data);
+    // console.log("Magazines data", response.data);
     return response.data; // or response.data.data if API wraps data
   } catch (error) {
     console.error("Error fetching magazines:", error);

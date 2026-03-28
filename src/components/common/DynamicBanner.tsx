@@ -73,21 +73,26 @@ const styles = StyleSheet.create({
     maxWidth: 1152, // Roughly matches max-w-6xl
     alignSelf: 'center',
     width: '100%',
+     gap: 10,
   },
   mainTitle: {
     color: '#ffffff',
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 0.5,
+    flexShrink: 1, 
+     flexWrap: 'wrap',
   },
   breadcrumbContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+      flexShrink: 0,
   },
   homeLink: {
     color: '#c9060a', // Your specific red
     fontSize: 14,
     fontWeight: '500',
+    marginRight:3
   },
   breadcrumbText: {
     color: '#e5e7eb', // Matches text-gray-200

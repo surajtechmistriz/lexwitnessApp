@@ -180,11 +180,27 @@ export default function ArticleDetailPage() {
 
         {/* Meta */}
         <View style={styles.meta}>
-          <Text style={styles.author}>
+          <TouchableOpacity
+            onPress={() => {
+              if (article.author?.slug) {
+                navigation.navigate('AuthorScreen', {
+                  slug: article.author.slug,
+                });
+              }
+            }}
+          >
+            <Text style={styles.author}>
+              {typeof article.author === 'string'
+                ? article.author
+                : article.author?.name || 'Unknown'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* <Text style={styles.author}>
             {typeof article.author === 'string'
               ? article.author
               : article.author?.name || 'Lex Witness Bureau'}
-          </Text>
+          </Text> */}
 
           <Text style={styles.sep}>|</Text>
 
@@ -373,8 +389,13 @@ const styles = StyleSheet.create({
 
   image: { width: '100%', aspectRatio: 16 / 9, marginBottom: 20 },
 
-  content: { marginVertical: 10, textAlign: 'justify', },
-  text: { fontSize: 17, lineHeight: 24,textAlign: 'justify', color:'#333333' },
+  content: { marginVertical: 10, textAlign: 'justify' },
+  text: {
+    fontSize: 17,
+    lineHeight: 24,
+    textAlign: 'justify',
+    color: '#333333',
+  },
 
   lock: { padding: 24, backgroundColor: '#f9f9f9', alignItems: 'center' },
   lockText: { fontSize: 20, fontWeight: '600' },

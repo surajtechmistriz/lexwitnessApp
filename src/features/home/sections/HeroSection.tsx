@@ -35,7 +35,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
    */
   if (!firstCard) return null;
 
-  console.log("First Card slug",firstCard)
+  // console.log("First Card slug",firstCard)
 
   return (
     <>

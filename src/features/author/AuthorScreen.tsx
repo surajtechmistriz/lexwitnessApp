@@ -1,0 +1,221 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  RefreshControl,
+  Dimensions,
+} from 'react-native';
+import { useRoute } from '@react-navigation/native';
+import Config from 'react-native-config';
+
+// API Services
+import { getPosts } from '../../services/api/posts';
+import { getYears } from '../../services/api/years';
+import { getAuthor } from '../../services/api/author';
+
+// Components
+import PostList from '../../components/common/PostList';
+import Pagination from '../../components/common/Pagination';
+import YearFilter from '../../components/common/YearFilter';
+import TopMenu from '../../components/common/Menubar';
+import Header from '../../components/common/Header';
+import Banner from '../../components/common/DynamicBanner';
+import Footer from '../../components/common/Footer';
+import HomeBanner from '../home/components/HomeBanner';
+import HomeAdvertisement from '../home/components/HomeAdvertisement';
+import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
+import { getAuthorBySlug } from './api/authorarticle';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+export default function AuthorScreen() {
+  const route = useRoute<any>();
+  const scrollRef = useRef<ScrollView>(null);
+
+  // 1. Get slug from navigation params
+  const slug = route.params?.slug || '';
+  const postBaseUrl = Config.POSTS_BASE_URL;
+
+  // --- STATE ---
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [years, setYears] = useState<number[]>([]);
+  const [author, setAuthor] = useState<any>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [appliedYear, setAppliedYear] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+
+  // --- FETCH POSTS BY AUTHOR ID ---
+  const fetchAuthorPosts = useCallback(
+    async (authorId: number, year: number | null, page: number) => {
+      setLoading(true);
+      try {
+        const response = await getPosts({
+          author_id: authorId, // Pass the numeric ID found from the slug
+          year: year ?? undefined,
+          page,
+          per_page: 10,
+        });
+
+        setPosts(response.data ?? []);
+        setLastPage(response.meta?.paging?.last_page ?? 1);
+        setCurrentPage(page);
+      } catch (err) {
+        console.error('Fetch posts error:', err);
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [],
+  );
+
+  // --- INITIAL LOAD: SLUG TO ID RESOLUTION ---
+
+useEffect(() => {
+  const init = async () => {
+    if (!slug) return;
+
+    setLoading(true);
+    try {
+      const [authorRes, yearRes] = await Promise.all([
+        getAuthorBySlug(slug), // direct slug API
+        getYears(),
+      ]);
+
+      const authorData = authorRes?.data || authorRes;
+      setAuthor(authorData);
+
+      const yearList =
+        yearRes?.data?.data || yearRes?.data || yearRes || [];
+      setYears(yearList);
+
+      if (authorData?.id) {
+        await fetchAuthorPosts(authorData.id, null, 1);
+      }
+    } catch (err) {
+      console.error('Initial Load Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  init();
+}, [slug, fetchAuthorPosts]);
+
+useEffect(() => {
+  console.log('Slug received:', slug);
+}, [slug]);
+
+  // --- FILTER CHANGE ---
+  useEffect(() => {
+    if (author?.id) {
+      fetchAuthorPosts(author.id, appliedYear, 1);
+    }
+  }, [appliedYear, author?.id, fetchAuthorPosts]);
+
+  // --- ACTIONS ---
+  const onRefresh = () => {
+    setRefreshing(true);
+    if (author?.id) {
+      fetchAuthorPosts(author.id, appliedYear, currentPage);
+    }
+  };
+
+  const handleApplyFilter = () => {
+    setAppliedYear(selectedYear);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  const handlePageChange = (page: number) => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    if (author?.id) {
+      fetchAuthorPosts(author.id, appliedYear, page);
+    }
+  };
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <Header />
+      <TopMenu activeSlug={null} />
+      
+      <Banner title={author?.name || slug?.replace(/-/g, ' ')} />
+
+      <View style={styles.filterButton} pointerEvents="box-none">
+        <YearFilter
+          years={years}
+          selectedYear={selectedYear}
+          onSelect={setSelectedYear}
+          onApply={handleApplyFilter}
+        />
+      </View>
+
+      <ScrollView
+        ref={scrollRef}
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#c9060a']}
+          />
+        }
+      >
+        <View style={styles.content}>
+          <PostList
+            posts={posts}
+            loading={loading && !refreshing}
+            postBaseUrl={postBaseUrl}
+            emptyMessage={
+              appliedYear
+                ? `No posts by ${author?.name || 'this author'} for ${appliedYear}`
+                : 'No posts available'
+            }
+          />
+
+          {!loading && posts.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              lastPage={lastPage}
+              onPageChange={handlePageChange}
+              loading={loading}
+            />
+          )}
+        </View>
+
+        <View style={styles.footerContainer}>
+          <View style={styles.magazine}><LatestEditionImageOnly /></View>
+          <View style={styles.BannerContainer}><HomeBanner /></View>
+          <View style={styles.adContainer}><HomeAdvertisement /></View>
+          <Footer />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
+  filterButton: { marginHorizontal: 15, paddingVertical: 10 },
+  content: { paddingTop: 10, paddingBottom: 20, minHeight: SCREEN_HEIGHT * 0.5 },
+  footerContainer: { marginTop: 'auto', width: '100%' },
+  BannerContainer: { marginHorizontal: 15 },
+  adContainer: {
+    height: 300,
+    backgroundColor: '#fff',
+    marginVertical: 20,
+    borderWidth: 1,
+    borderColor: '#dddbdb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 15,
+  },
+  magazine: { marginBottom: 20 },
+});

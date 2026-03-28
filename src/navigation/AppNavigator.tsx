@@ -8,6 +8,7 @@ import MagazinesScreen from '../features/magazines/MagazinesScreen';
 import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
 import CategoryScreen from '../features/category/CategoryScreen';
 import ArticleDetail from '../features/article/ArticleScreen';
+import AuthorScreen from '../features/author/AuthorScreen';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -17,6 +18,7 @@ export type RootStackParamList = {
   MagazinesScreen: undefined;
   MagazineDetail: { slug: string | number };
   ArticleDetail: { slug: string; category?: string };
+   AuthorScreen: { author: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -30,18 +32,24 @@ const AppNavigator = () => {
       >
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Register" component={Register} />
-        <Stack.Screen name="SignIn" component = {SignInScreen}/>
-        <Stack.Screen name="MagazinesScreen" component={MagazinesScreen}/>
-         <Stack.Screen
-        name="MagazineDetail"
-        component={MagazineDetailScreen}
-      />
-      <Stack.Screen 
-  name="CategoryScreen" 
-  component={CategoryScreen} 
-  options={({ route }: any) => ({ title: route.params?.slug || 'Category' })} 
+        <Stack.Screen name="SignIn" component={SignInScreen} />
+        <Stack.Screen name="MagazinesScreen" component={MagazinesScreen} />
+        <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
+        <Stack.Screen
+          name="CategoryScreen"
+          component={CategoryScreen}
+          options={({ route }: any) => ({
+            title: route.params?.slug || 'Category',
+          })}
+        />
+        <Stack.Screen
+  name="AuthorScreen"
+  component={AuthorScreen}
+  options={({ route }: any) => ({
+    title: route.params?.author || 'Author',
+  })}
 />
-<Stack.Screen name='ArticleDetail' component={ArticleDetail}/>
+        <Stack.Screen name="ArticleDetail" component={ArticleDetail} />
       </Stack.Navigator>
     </NavigationContainer>
   );

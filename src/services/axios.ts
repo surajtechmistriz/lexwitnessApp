@@ -15,8 +15,8 @@ const api: AxiosInstance = axios.create({
   },
 });
 
-console.log("FULL CONFIG:", Config);
-console.log("BASE URL:", Config.API_BASE_URL);
+// console.log("FULL CONFIG:", Config);
+// console.log("BASE URL:", Config.API_BASE_URL);
 
 
 // Request interceptor 

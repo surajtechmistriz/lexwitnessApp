@@ -102,15 +102,39 @@ export default function PostList({
               </Text>
             </TouchableOpacity>
 
-            <Text style={styles.metaText}>
-              <Text style={styles.authorText}>
-                {typeof article.author === 'string'
-                  ? article.author
-                  : article.author?.name || 'Unknown'}
-              </Text>
-              {' | '}
-              {article.magazine?.month?.name} {article.magazine?.year}
-            </Text>
+
+{/* <TouchableOpacity
+  onPress={() =>
+    navigation.navigate('AuthorScreen', {
+      author: item.author?.slug, // ✅ pass slug
+    })
+  }
+>
+  <Text>{item.author?.name}</Text>
+</TouchableOpacity> */}
+
+          <View style={styles.metaText}>
+  <TouchableOpacity
+    onPress={() => {
+      if (article.author?.slug) {
+        navigation.navigate('AuthorScreen', {
+          slug: article.author.slug,
+        });
+      }
+    }}
+  >
+    <Text style={styles.authorText}>
+      {typeof article.author === 'string'
+        ? article.author
+        : article.author?.name || 'Unknown'}
+    </Text>
+  </TouchableOpacity>
+
+  <Text style={styles.date}>
+    {' | '}
+    {article.magazine?.month?.name} {article.magazine?.year}
+  </Text>
+</View>
 
             <Text style={styles.description} numberOfLines={2}>
               {article.short_description || 'No description available'}
@@ -182,6 +206,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   metaText: {
+    flexDirection:'row',
     fontSize: 14,
     color: '#333',
     borderBottomWidth: 1,
@@ -190,6 +215,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   authorText: { color: '#c9060a', fontWeight: '500' },
+date: {
+  // color:'#666'
+},
   description: {
     fontSize: 14,
     color: '#666',

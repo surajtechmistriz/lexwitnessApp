@@ -69,7 +69,7 @@ export default function MagazineDetailScreen() {
       </View>
     );
   }
-  console.log(magazine);
+  // console.log(magazine);
   return (
     <View style={{ flex: 1 }}>
       <Header />
