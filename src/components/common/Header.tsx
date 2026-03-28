@@ -68,7 +68,7 @@ const Header = () => {
 
         {/* RIGHT ICONS */}
         <View style={styles.right}>
-          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
             <Entypo name="text-document" size={18} color="black" />
           </TouchableOpacity>
 

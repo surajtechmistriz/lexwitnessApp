@@ -41,7 +41,7 @@ export async function getSingleMagazine(
 
     const magazine =
       result?.data?.data ?? result?.data ?? result;
-
+console.log("Jarvis",magazine)
     return magazine;
   } catch (error: any) {
     // fallback if slug not found
