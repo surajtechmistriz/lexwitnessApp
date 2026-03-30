@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#ff4b4b', // Red dot
+    backgroundColor: '#c9060a', // Red dot
     marginRight: 12,
   },
   text: {

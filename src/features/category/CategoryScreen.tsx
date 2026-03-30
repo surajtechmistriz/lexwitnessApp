@@ -27,6 +27,7 @@ import Footer from '../../components/common/Footer';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
+import MainLayout from '../../components/layout/MainLayout';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -131,10 +132,12 @@ export default function CategoryScreen() {
   };
 
   return (
+    <MainLayout title={slug?.replace(/-/g, ' ')} activeSlug={slug}>
+
     <SafeAreaView style={styles.safeArea}>
-      <Header />
+      {/* <Header />
       <TopMenu   activeSlug={slug}/>
-      <Banner title={slug?.replace(/-/g, ' ') || 'Category'} />
+      <Banner title={slug?.replace(/-/g, ' ') || 'Category'} /> */}
 
       <View style={styles.filterButton} pointerEvents="box-none">
         <YearFilter
@@ -198,6 +201,7 @@ export default function CategoryScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </MainLayout>
   );
 }
 

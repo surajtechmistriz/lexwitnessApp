@@ -19,9 +19,15 @@ type MenuItem = {
 
 const screenWidth = Dimensions.get('window').width;
 
-const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
+const TopMenu = ({
+  activeSlug,
+  activeRoute,
+}: {
+  activeSlug?: string;
+  activeRoute?: string;
+}) => {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
+  // const route = useRoute<any>();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
@@ -34,7 +40,10 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   }>({});
 
   // Get current active slug (priority: prop > route)
-  const currentSlug = activeSlug || route.params?.slug || '';
+ const currentSlug =
+  activeSlug ||
+  (activeRoute === 'CategoryScreen' ? navigation?.getState()?.routes?.slice(-1)[0]?.params?.slug : '') ||
+  '';
 
   /**
    * Fetch menu data

@@ -20,6 +20,9 @@ import Header from '../../components/common/Header';
 import TopMenu from '../../components/common/Menubar';
 import SocialShare from './components/SocialShare';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import HomeAdvertisement from '../home/components/HomeAdvertisement';
+import Footer from '../../components/common/Footer';
+import HomeBanner from '../home/components/HomeBanner';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -157,8 +160,8 @@ export default function ArticleDetailPage() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Header />
-      <TopMenu />
+      {/* <Header /> */}
+      {/* <TopMenu /> */}
 
       <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
         {/* Category */}
@@ -355,6 +358,19 @@ export default function ArticleDetailPage() {
             ))}
           </View>
         )}
+
+          <View style={styles.BannerContainer}>
+            <HomeBanner />
+          </View>
+
+          <View style={styles.adContainer}>
+            <HomeAdvertisement />
+          </View>
+
+<View style={styles.footer}>
+
+          <Footer  />
+</View>
       </ScrollView>
     </View>
   );
@@ -439,4 +455,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
+   adContainer: {
+    height: 300,
+    backgroundColor: '#fff',
+    marginVertical: 20,
+    borderWidth: 1,
+    borderColor: '#dddbdb',
+    justifyContent: 'center',
+    alignItems: 'center',
+    // marginHorizontal: 15,
+  },
+   BannerContainer: { marginHorizontal: 0 },
+  footer: {
+    marginHorizontal: -18
+  }
 });

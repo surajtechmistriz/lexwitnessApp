@@ -6,12 +6,17 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Dimensions, // ✅ Added this
+  Linking,    // ✅ Added for opening links
 } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
+// Get device height for calculations
+const { height: SCREEN_HEIGHT } = Dimensions.get('window'); // ✅ Defined height constant
+const DRAWER_MARGIN_TOP = 80;
 
 type Category = {
   id: number;
@@ -24,22 +29,26 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type Props = {
   categories: Category[];
   onClose: () => void;
-  navigation: NavigationProp; // ✅ passed from parent
+  navigation: NavigationProp;
 };
 
 const DrawerUI: React.FC<Props> = ({ categories, onClose, navigation }) => {
-  function openLink(arg0: string): void {
-    throw new Error('Function not implemented.');
-  }
+  
+  // Fixed the openLink function
+  const openLink = (url: string) => {
+    Linking.openURL(url).catch((err) => console.error("Couldn't load page", err));
+  };
 
   return (
     <View style={styles.drawer}>
       {/* HEADER */}
       <View style={styles.header}>
-       <Image
-  source={{ uri: 'https://lexwitness.com/wp-content/themes/lexwitness/images/favicon.png' }}
-  style={styles.logo}
-/>
+        <Image
+          source={{
+            uri: 'https://lexwitness.com/wp-content/themes/lexwitness/images/favicon.png',
+          }}
+          style={styles.logo}
+        />
 
         <TouchableOpacity onPress={onClose}>
           <Entypo name="cross" size={22} color="white" />
@@ -47,19 +56,19 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose, navigation }) => {
       </View>
 
       {/* MENU */}
-      <ScrollView style={styles.menuContainer}>
+      <ScrollView style={styles.menuContainer} showsVerticalScrollIndicator={false}>
         {categories?.length === 0 ? (
           <Text style={{ color: 'white', padding: 15 }}>Loading...</Text>
         ) : (
-          categories.map((item) => (
+          categories.map(item => (
             <TouchableOpacity
               key={item.id}
               style={styles.menuItem}
               onPress={() => {
                 navigation.navigate('CategoryScreen', {
-                  slug: item.slug, // ✅ correct slug
+                  slug: item.slug,
                 });
-                onClose(); // ✅ close drawer
+                onClose();
               }}
             >
               <Text style={styles.menuText}>{item.name}</Text>
@@ -69,34 +78,34 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose, navigation }) => {
       </ScrollView>
 
       {/* FOOTER */}
-   <View style={styles.footer}>
-  <View style={styles.footerRow}>
-    {/* LEFT SIDE */}
-    <View style={styles.footerLeft}>
-      <Entypo name="user" size={18} color="white" />
-      <Text style={styles.footerText}>Sign In</Text>
-    </View>
+      <View style={styles.footer}>
+        <View style={styles.footerRow}>
+          {/* LEFT SIDE */}
+          <View style={styles.footerLeft}>
+            <Entypo name="user" size={18} color="white" />
+            <Text style={styles.footerText}>Sign In</Text>
+          </View>
 
-    {/* RIGHT SIDE */}
-    <View style={styles.socialContainer}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={[styles.btn, styles.linkedin]}
-        onPress={() => openLink('https://www.linkedin.com/')}
-      >
-        <Icon name="linkedin-in" size={12} color="#fff" />
-      </TouchableOpacity>
+          {/* RIGHT SIDE */}
+          <View style={styles.socialContainer}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.btn, styles.linkedin]}
+              onPress={() => openLink('https://www.linkedin.com/')}
+            >
+              <Icon name="linkedin-in" size={12} color="#fff" />
+            </TouchableOpacity>
 
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={[styles.btn, styles.whatsapp]}
-        onPress={() => openLink('https://wa.me/')}
-      >
-        <Icon name="whatsapp" size={12} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  </View>
-</View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={[styles.btn, styles.whatsapp]}
+              onPress={() => openLink('https://wa.me/')}
+            >
+              <Icon name="whatsapp" size={12} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     </View>
   );
 };
@@ -106,8 +115,10 @@ export default DrawerUI;
 const styles = StyleSheet.create({
   drawer: {
     width: 260,
-    height: '100%',
+    //  Used the defined SCREEN_HEIGHT constant
+    height: SCREEN_HEIGHT - DRAWER_MARGIN_TOP, 
     backgroundColor: '#333',
+    marginTop: DRAWER_MARGIN_TOP,
   },
   header: {
     flexDirection: 'row',
@@ -135,22 +146,22 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
   },
-  footerRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between', //  pushes left & right
-  alignItems: 'center',
-},
   footer: {
     backgroundColor: '#545454',
     borderTopWidth: 1,
     borderColor: '#555',
     padding: 15,
+    paddingBottom: 25, // Added padding for better bottom clearance
+  },
+  footerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   footerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    // marginBottom: 10,
   },
   footerText: {
     color: 'white',
@@ -159,25 +170,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
   },
-  socialBox: {
-    width: 40,
-    height: 25,
-  },
-  
   btn: {
     width: 36,
     height: 26,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
   },
-
   linkedin: {
     backgroundColor: '#0A66C2',
     borderColor: '#0A66C2',
   },
-   whatsapp: {
+  whatsapp: {
     backgroundColor: '#25D366',
     borderColor: '#25D366',
   },

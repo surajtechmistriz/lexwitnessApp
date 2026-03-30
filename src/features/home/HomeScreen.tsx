@@ -83,8 +83,8 @@ const Home = ({ navigation }: Props) => {
   // ========================= MAIN UI =========================
   return (
     <View style={styles.container}>
-      <Header />
-      <Menubar />
+      {/* <Header /> */}
+      {/* <Menubar /> */}
 
       <ScrollView
         showsVerticalScrollIndicator={false}

@@ -140,8 +140,8 @@ useEffect(() => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header />
-      <TopMenu activeSlug={null} />
+      {/* <Header /> */}
+      {/* <TopMenu activeSlug={null} /> */}
       
       <Banner title={author?.name || slug?.replace(/-/g, ' ')} />
 

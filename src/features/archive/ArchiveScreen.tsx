@@ -28,6 +28,7 @@ import Footer from '../../components/common/Footer';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
+import MainLayout from '../../components/layout/MainLayout';
 
 export default function ArchiveScreen() {
   const route = useRoute<any>();
@@ -104,9 +105,11 @@ export default function ArchiveScreen() {
   const isSearchMode = route.params?.mode === 'search' || !!route.params?.search;
 
   return (
+    <MainLayout title="Archive">
+
     <SafeAreaView style={styles.safeArea}>
-      <Header />
-      <TopMenu activeSlug="archive" />
+      {/* <Header /> */}
+      {/* <TopMenu activeSlug="archive" /> */}
       <ScrollView ref={scrollRef} style={styles.container}>
         
         <View style={styles.filterSection}>
@@ -194,6 +197,7 @@ export default function ArchiveScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </MainLayout>
   );
 }
 
@@ -203,6 +207,7 @@ const styles = StyleSheet.create({
   filterSection: {
     paddingHorizontal: 15,
     paddingTop: 15,
+    marginBottom:30
   },
   /* Styling for SS 1 */
   searchBarWrapper: {
@@ -245,16 +250,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
     textTransform: 'uppercase',
+  
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#eee',
-    marginVertical: 15,
-    marginHorizontal: 15,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
+  // divider: {
+  //   height: 1,
+  //   backgroundColor: '#eee',
+  //   marginVertical: 15,
+  //   marginHorizontal: 15,
+  //   borderStyle: 'dashed',
+  //   borderWidth: 1,
+  //   borderColor: '#ddd',
+  // },
    adContainer: {
     height: 300,
     backgroundColor: '#fff',

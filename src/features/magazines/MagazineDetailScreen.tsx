@@ -73,10 +73,10 @@ export default function MagazineDetailScreen() {
   // console.log(magazine);
   return (
     <View style={{ flex: 1 }}>
-      <Header />
+      {/* <Header /> */}
 
       {/*  ADD THIS */}
-      <Menubar />
+      {/* <Menubar /> */}
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* SAME UI */}

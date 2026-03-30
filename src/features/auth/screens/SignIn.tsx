@@ -18,6 +18,7 @@ import Header from '../../../components/common/Header';
 import TopMenu from '../../../components/common/Menubar';
 import { AsyncStorage } from 'react-native';
 import Footer from '../../../components/common/Footer';
+import MainLayout from '../../../components/layout/MainLayout';
 // import Banner from '../components/Banner'; // Use the Banner we made
 // import { loginUser } from '../lib/auth/auth'; // Ensure path is correct
 
@@ -58,14 +59,16 @@ const SignInScreen = () => {
   };
 
   return (
+    <MainLayout title="Sign In">
+
   <SafeAreaView style={styles.container}>
     
-    {/* ✅ FIXED PART */}
-    <Header />
-    <TopMenu />
-    <DynamicBanner title="Signin" />
+    {/*  FIXED PART */}
+    {/* <Header /> */}
+    {/* <TopMenu /> */}
+    {/* <DynamicBanner title="Signin" /> */}
 
-    {/* ✅ SCROLLABLE PART */}
+    {/*  SCROLLABLE PART */}
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.content}>
         <Text style={styles.header}>SIGN IN YOURSELF</Text>
@@ -136,6 +139,7 @@ const SignInScreen = () => {
         <Footer />
     </ScrollView>
   </SafeAreaView>
+    </MainLayout>
 );
 };
 

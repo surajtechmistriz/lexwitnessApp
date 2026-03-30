@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Home from '../features/home/HomeScreen';
 import Register from '../features/auth/screens/Register';
@@ -14,6 +14,8 @@ import SubscriptionPage from '../features/auth/screens/Subscription';
 import FirstTimePopup from '../modal/RegisterPopup';
 import NoInternetPopup from '../modal/NoInternetPopup';
 import RegisterPopup from '../modal/RegisterPopup';
+import TopMenu from '../components/common/Menubar';
+import Header from '../components/common/Header';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -39,9 +41,25 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
 
+const navigationRef = useNavigationContainerRef();
 
+const [currentRoute, setCurrentRoute] = React.useState('');
+const [currentParams, setCurrentParams] = React.useState<any>({});
   return (
-    <NavigationContainer>
+ <NavigationContainer
+  ref={navigationRef}
+  onStateChange={() => {
+    const route = navigationRef.getCurrentRoute();
+    setCurrentRoute(route?.name || '');
+    setCurrentParams(route?.params || {});
+  }}
+>
+      <Header />
+       <TopMenu
+    activeRoute={currentRoute}
+    activeSlug={currentParams?.slug}   // PASS SLUG
+  />
+
       <RegisterPopup/>
       <NoInternetPopup/>
       <Stack.Navigator

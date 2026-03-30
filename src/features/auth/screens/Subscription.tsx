@@ -25,6 +25,7 @@ import TopMenu from '../../../components/common/Menubar';
 import Header from '../../../components/common/Header';
 import { latesteEdition } from '../../../services/api/latestedition';
 import Footer from '../../../components/common/Footer';
+import MainLayout from '../../../components/layout/MainLayout';
 
 export default function SubscriptionPage() {
   const [magazine, setMagazine] = useState<Magazine | null>(null);
@@ -67,9 +68,11 @@ export default function SubscriptionPage() {
     : 'https://via.placeholder.com/300x400';
 
   return (
+    <MainLayout title="Subscription">
+
     <SafeAreaView style={styles.safeArea}>
-      <Header />
-      <TopMenu />
+      {/* <Header />
+      <TopMenu /> */}
       
       <ScrollView ref={scrollRef} contentContainerStyle={styles.scrollContent}>
         
@@ -123,6 +126,7 @@ export default function SubscriptionPage() {
       <Footer/>
       </ScrollView>
     </SafeAreaView>
+    </MainLayout>
   );
 }
 

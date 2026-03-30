@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   button: {
-    backgroundColor: '#cc0000', // Bright red from image
+    backgroundColor: '#c9060a', // Bright red from image
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',

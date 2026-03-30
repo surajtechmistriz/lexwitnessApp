@@ -13,6 +13,7 @@ import Header from '../../../components/common/Header'; // Import your header
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import DynamicBanner from '../../../components/common/DynamicBanner';
 import TopMenu from '../../../components/common/Menubar';
+import MainLayout from '../../../components/layout/MainLayout';
 
 const Register = () => {
   const [selectedPlan, setSelectedPlan] = useState('1 Year Plan');
@@ -41,10 +42,12 @@ const Register = () => {
   ];
 
   return (
+    <MainLayout title="Register">
+
     <SafeAreaView style={styles.container}>
-        <Header />
-        <TopMenu/>
-      <DynamicBanner title='Register'/>
+        {/* <Header />
+        <TopMenu/> */}
+      {/* <DynamicBanner title='Register'/> */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.headerTitle}>REGISTER YOURSELF</Text>
         <Text style={styles.subText}>
@@ -160,6 +163,7 @@ const Register = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </MainLayout>
   );
 };
 

@@ -21,6 +21,7 @@ import { getYears } from '../../services/api/years';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import Pagination from '../../components/common/Pagination';
+import MainLayout from '../../components/layout/MainLayout';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;
@@ -38,17 +39,17 @@ const MagazinesScreen = () => {
   const [loading, setLoading] = useState(true);
 
   const [currentPage, setCurrentPage] = useState(1);
-const [lastPage, setLastPage] = useState(1);
-const [refreshing, setRefreshing] = useState(false);
+  const [lastPage, setLastPage] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch years
   useEffect(() => {
     const fetchYears = async () => {
       try {
         const res = await getYears();
-        const fetchedYears = res?.data?.map((y: any) =>
-          typeof y === 'number' ? y : y.year
-        ) ?? [];
+        const fetchedYears =
+          res?.data?.map((y: any) => (typeof y === 'number' ? y : y.year)) ??
+          [];
         setYears(fetchedYears.sort((a, b) => b - a));
       } catch (err) {
         console.error('Error fetching years', err);
@@ -58,33 +59,33 @@ const [refreshing, setRefreshing] = useState(false);
   }, []);
 
   // Fetch magazines
-const fetchMagazines = async (page = 1, year = selectedYear) => {
-  setLoading(true);
-  try {
-    const res = await getMagazines({
-      year: year ?? undefined,
-      page,
-      per_page: 10,
-    });
+  const fetchMagazines = async (page = 1, year = selectedYear) => {
+    setLoading(true);
+    try {
+      const res = await getMagazines({
+        year: year ?? undefined,
+        page,
+        per_page: 10,
+      });
 
-    setMagazines(res?.data ?? []);
-    setLastPage(res?.meta?.paging?.last_page ?? 1);
-    setCurrentPage(page);
-  } catch (err) {
-    console.error('Error fetching magazines', err);
-    setMagazines([]);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-useEffect(() => {
-  fetchMagazines(1, selectedYear);
-}, [selectedYear]);
+      setMagazines(res?.data ?? []);
+      setLastPage(res?.meta?.paging?.last_page ?? 1);
+      setCurrentPage(page);
+    } catch (err) {
+      console.error('Error fetching magazines', err);
+      setMagazines([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+  useEffect(() => {
+    fetchMagazines(1, selectedYear);
+  }, [selectedYear]);
 
-const handlePageChange = (page: number) => {
-  fetchMagazines(page, selectedYear);
-};
+  const handlePageChange = (page: number) => {
+    fetchMagazines(page, selectedYear);
+  };
 
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
@@ -94,7 +95,9 @@ const handlePageChange = (page: number) => {
       <View style={styles.imageWrapper}>
         <Image
           source={{
-            uri: item.image ? `${imgUrl}/${item.image}` : 'https://via.placeholder.com/300x400',
+            uri: item.image
+              ? `${imgUrl}/${item.image}`
+              : 'https://via.placeholder.com/300x400',
           }}
           style={styles.image}
           resizeMode="cover"
@@ -108,9 +111,11 @@ const handlePageChange = (page: number) => {
   );
 
   return (
+    <MainLayout title="Magazines">
+
     <View style={styles.container}>
-      <Header />
-      <Banner title="Magazines" />
+      {/* <Header /> */}
+      {/* <Banner title="Magazines" /> */}
 
       <View style={styles.content}>
         <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
@@ -120,16 +125,20 @@ const handlePageChange = (page: number) => {
           years={years}
           selectedYear={tempSelectedYear}
           onSelect={setTempSelectedYear}
-        onApply={() => {
-  setSelectedYear(tempSelectedYear);
-  setCurrentPage(1); // reset page
-}}
+          onApply={() => {
+            setSelectedYear(tempSelectedYear);
+            setCurrentPage(1); // reset page
+          }}
           disabled={loading}
         />
       </View>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#c9060a" style={{ marginTop: 50 }} />
+        <ActivityIndicator
+          size="large"
+          color="#c9060a"
+          style={{ marginTop: 50 }}
+        />
       ) : magazines.length === 0 ? (
         <Text style={styles.emptyText}>
           {selectedYear
@@ -137,35 +146,35 @@ const handlePageChange = (page: number) => {
             : 'No magazines found'}
         </Text>
       ) : (
-       <FlatList
-  data={magazines}
-  renderItem={renderItem}
-  keyExtractor={(item) => item.id.toString()}
-  numColumns={2}
-  columnWrapperStyle={{
-    justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    marginBottom: 15,
-  }}
-  showsVerticalScrollIndicator={false}
-  contentContainerStyle={{ paddingTop: 10 }}
-  
-  ListFooterComponent={
-    <>
-      {!loading && magazines.length > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          lastPage={lastPage}
-          onPageChange={handlePageChange}
-          loading={loading}
+        <FlatList
+          data={magazines}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          numColumns={2}
+          columnWrapperStyle={{
+            justifyContent: 'space-between',
+            paddingHorizontal: 15,
+            marginBottom: 15,
+          }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingTop: 10 }}
+          ListFooterComponent={
+            <>
+              {!loading && magazines.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  lastPage={lastPage}
+                  onPageChange={handlePageChange}
+                  loading={loading}
+                />
+              )}
+              <Footer />
+            </>
+          }
         />
       )}
-      <Footer />
-    </>
-  }
-/>
-      )}
     </View>
+    </MainLayout>
   );
 };
 
@@ -175,7 +184,13 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   content: { paddingHorizontal: 15, paddingTop: 15 },
   heading: { fontSize: 20, fontWeight: '600', color: '#333' },
-  underline: { width: 50, height: 5, backgroundColor: '#c9060a', marginTop: 5, marginBottom: 15 },
+  underline: {
+    width: 50,
+    height: 5,
+    backgroundColor: '#c9060a',
+    marginTop: 5,
+    marginBottom: 15,
+  },
 
   card: { width: ITEM_WIDTH },
   imageWrapper: { width: '100%', aspectRatio: 3 / 4, marginBottom: 5 },
@@ -184,7 +199,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 13, color: '#333', textAlign: 'center' },
   readMore: { color: '#c9060a', fontWeight: '500', marginTop: 4 },
 
-  emptyText: { textAlign: 'center', color: '#333', paddingVertical: 50, fontSize: 14 },
+  emptyText: {
+    textAlign: 'center',
+    color: '#333',
+    paddingVertical: 50,
+    fontSize: 14,
+  },
 
   footerWrapper: { marginHorizontal: -15, marginTop: 20 },
 });
