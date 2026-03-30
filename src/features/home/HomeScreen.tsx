@@ -149,7 +149,7 @@ export default Home;
 // ========================= STYLES =========================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
-  scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 40 },
+  scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 0 },
 
   listContainer: {
     borderWidth: 1,

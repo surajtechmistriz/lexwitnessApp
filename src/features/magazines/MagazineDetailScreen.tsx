@@ -16,6 +16,7 @@ import Header from '../../components/common/Header';
 import Menubar from '../../components/common/Menubar';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Footer from '../../components/common/Footer';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -128,39 +129,40 @@ export default function MagazineDetailScreen() {
           <Text style={styles.articlesHeading}>ARTICLES</Text>
           <View style={styles.redUnderline} />
 
-         {magazine.posts?.map((post: any) => (
-  <TouchableOpacity 
-    key={post.id} 
-    style={styles.articleCard}
-    activeOpacity={0.8}
-    onPress={() => {
-      navigation.navigate('ArticleDetail', { 
-        slug: post.slug, 
-        category: post.category?.slug || 'general' 
-      });
-    }}
-  >
-    <Image
-      source={{
-        uri: post.image
-          ? `${imgUrl2}/${post.image}`
-          : 'https://via.placeholder.com/150',
-      }}
-      style={styles.articleImage}
-    />
+          {magazine.posts?.map((post: any) => (
+            <TouchableOpacity
+              key={post.id}
+              style={styles.articleCard}
+              activeOpacity={0.8}
+              onPress={() => {
+                navigation.navigate('ArticleDetail', {
+                  slug: post.slug,
+                  category: post.category?.slug || 'general',
+                });
+              }}
+            >
+              <Image
+                source={{
+                  uri: post.image
+                    ? `${imgUrl2}/${post.image}`
+                    : 'https://via.placeholder.com/150',
+                }}
+                style={styles.articleImage}
+              />
 
-    <View style={styles.articleInfo}>
-      <Text style={styles.articleTitle}>{post.title}</Text>
-      <Text style={styles.articleCategory}>
-        {post.category?.name || 'Uncategorized'}
-      </Text>
-    </View>
-  </TouchableOpacity>
-))}
+              <View style={styles.articleInfo}>
+                <Text style={styles.articleTitle}>{post.title}</Text>
+                <Text style={styles.articleCategory}>
+                  {post.category?.name || 'Uncategorized'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/*  LATEST EDITIONS (works correctly now) */}
         {magazine?.id && <LatestEditions skipId={magazine.id} />}
+        <Footer/>
       </ScrollView>
     </View>
   );

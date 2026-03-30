@@ -11,6 +11,9 @@ import ArticleDetail from '../features/article/ArticleScreen';
 import AuthorScreen from '../features/author/AuthorScreen';
 import ArchiveScreen from '../features/archive/ArchiveScreen';
 import SubscriptionPage from '../features/auth/screens/Subscription';
+import FirstTimePopup from '../modal/RegisterPopup';
+import NoInternetPopup from '../modal/NoInternetPopup';
+import RegisterPopup from '../modal/RegisterPopup';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -39,6 +42,8 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
+      <RegisterPopup/>
+      <NoInternetPopup/>
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{ headerShown: false }}

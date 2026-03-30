@@ -18,4 +18,32 @@ buildscript {
     }
 }
 
+// ... keep your existing buildscript and apply plugin blocks at the top
+
+allprojects {
+    repositories {
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url("$rootDir/../node_modules/react-native/android")
+        }
+        maven {
+            // Android SDK is installed locally with the Android SDK Manager
+            url("$rootDir/../node_modules/jsc-android/dist")
+        }
+        
+        // --- ADD THESE TWO MAVEN BLOCKS FOR ASYNC STORAGE ---
+        maven {
+            url = uri("$rootDir/../node_modules/@react-native-async-storage/async-storage/android/local_repo")
+        }
+        maven {
+             url = uri(project(":react-native-async-storage_async-storage").file("local_repo"))
+        }
+        // ----------------------------------------------------
+
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"

@@ -16,6 +16,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import DynamicBanner from '../../../components/common/DynamicBanner';
 import Header from '../../../components/common/Header';
 import TopMenu from '../../../components/common/Menubar';
+import { AsyncStorage } from 'react-native';
+import Footer from '../../../components/common/Footer';
 // import Banner from '../components/Banner'; // Use the Banner we made
 // import { loginUser } from '../lib/auth/auth'; // Ensure path is correct
 
@@ -39,7 +41,7 @@ const SignInScreen = () => {
     setLoading(true);
 
     try {
-      const res = await loginUser(email.trim(), password);
+      const res = loginUser(email.trim(), password);
 
       // Mobile equivalent of localStorage
       await AsyncStorage.setItem("token", res.data.token);
@@ -56,90 +58,90 @@ const SignInScreen = () => {
   };
 
   return (
-      <SafeAreaView style={styles.container}>
-      <ScrollView>
-        <Header/>
-        <TopMenu/>
-        <DynamicBanner title='Signin'/>
+  <SafeAreaView style={styles.container}>
+    
+    {/* ✅ FIXED PART */}
+    <Header />
+    <TopMenu />
+    <DynamicBanner title="Signin" />
 
-        <View style={styles.content}>
-          <Text style={styles.header}>SIGN IN YOURSELF</Text>
-          <Text style={styles.subText}>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit
-            tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
-          </Text>
-          <View style={styles.redDivider} />
+    {/* ✅ SCROLLABLE PART */}
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <View style={styles.content}>
+        <Text style={styles.header}>SIGN IN YOURSELF</Text>
+        <Text style={styles.subText}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        </Text>
+        <View style={styles.redDivider} />
 
-          {/* Login Card */}
-          <View style={styles.card}>
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <View style={styles.card}>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              editable={!loading}
-              style={[styles.input, loading && styles.disabledInput]}
-              placeholder="Enter email"
-            />
+          <Text style={styles.label}>Email Address</Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+            style={[styles.input, loading && styles.disabledInput]}
+            placeholder="Enter email"
+          />
 
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              editable={!loading}
-              style={[styles.input, loading && styles.disabledInput]}
-              placeholder="Enter password"
-            />
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            editable={!loading}
+            style={[styles.input, loading && styles.disabledInput]}
+            placeholder="Enter password"
+          />
 
-            {/* Checkbox */}
-            <TouchableOpacity 
-              style={styles.checkboxRow} 
-              onPress={() => setRememberMe(!rememberMe)}
-              disabled={loading}
-            >
-              <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                {rememberMe && <Ionicons name="checkmark" size={12} color="#fff" />}
-              </View>
-              <Text style={styles.checkboxText}>Remember Me</Text>
-            </TouchableOpacity>
-
-            {/* Submit Button */}
-            <TouchableOpacity 
-              style={[styles.loginBtn, loading && styles.disabledBtn]} 
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.loginBtnText}>Log In</Text>
-              )}
-            </TouchableOpacity>
-
-            {/* Footer Links */}
-            <View style={styles.footerLinks}>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.redLink}>Register</Text>
-              </TouchableOpacity>
-              <Text style={styles.separator}> | </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('PasswordReset')}>
-                <Text style={styles.redLink}>Lost your password?</Text>
-              </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.checkboxRow} 
+            onPress={() => setRememberMe(!rememberMe)}
+            disabled={loading}
+          >
+            <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+              {rememberMe && <Ionicons name="checkmark" size={12} color="#fff" />}
             </View>
+            <Text style={styles.checkboxText}>Remember Me</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.loginBtn, loading && styles.disabledBtn]} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.loginBtnText}>Log In</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.footerLinks}>
+            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+              <Text style={styles.redLink}>Register</Text>
+            </TouchableOpacity>
+            <Text style={styles.separator}> | </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('PasswordReset')}>
+              <Text style={styles.redLink}>Lost your password?</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+
+      </View>
+        <Footer />
+    </ScrollView>
+  </SafeAreaView>
+);
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20, alignItems: 'center' },
+  content: { padding: 20, alignItems: 'center' , paddingTop:80, paddingBottom:140},
   header: { fontSize: 22, fontWeight: 'bold', letterSpacing: 1 },
   subText: { textAlign: 'center', fontSize: 13, color: '#333', marginVertical: 10, paddingHorizontal: 10 },
   redDivider: { width: 45, height: 4, backgroundColor: '#c9060a', marginBottom: 25 },
@@ -194,3 +196,7 @@ const styles = StyleSheet.create({
 });
 
 export default SignInScreen;
+
+function loginUser(arg0: string, password: string) {
+  throw new Error('Function not implemented.');
+}

@@ -20,6 +20,7 @@ import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import Pagination from '../../components/common/Pagination';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;
@@ -35,6 +36,10 @@ const MagazinesScreen = () => {
   const [tempSelectedYear, setTempSelectedYear] = useState<number | null>(null);
   const [magazines, setMagazines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [currentPage, setCurrentPage] = useState(1);
+const [lastPage, setLastPage] = useState(1);
+const [refreshing, setRefreshing] = useState(false);
 
   // Fetch years
   useEffect(() => {
@@ -53,24 +58,33 @@ const MagazinesScreen = () => {
   }, []);
 
   // Fetch magazines
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const res = await getMagazines({
-          year: selectedYear ?? undefined,
-          limit: 1000,
-        });
-        setMagazines(res?.data ?? []);
-      } catch (err) {
-        console.error('Error fetching magazines', err);
-        setMagazines([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [selectedYear]);
+const fetchMagazines = async (page = 1, year = selectedYear) => {
+  setLoading(true);
+  try {
+    const res = await getMagazines({
+      year: year ?? undefined,
+      page,
+      per_page: 10,
+    });
+
+    setMagazines(res?.data ?? []);
+    setLastPage(res?.meta?.paging?.last_page ?? 1);
+    setCurrentPage(page);
+  } catch (err) {
+    console.error('Error fetching magazines', err);
+    setMagazines([]);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
+useEffect(() => {
+  fetchMagazines(1, selectedYear);
+}, [selectedYear]);
+
+const handlePageChange = (page: number) => {
+  fetchMagazines(page, selectedYear);
+};
 
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
@@ -106,7 +120,10 @@ const MagazinesScreen = () => {
           years={years}
           selectedYear={tempSelectedYear}
           onSelect={setTempSelectedYear}
-          onApply={() => setSelectedYear(tempSelectedYear)}
+        onApply={() => {
+  setSelectedYear(tempSelectedYear);
+  setCurrentPage(1); // reset page
+}}
           disabled={loading}
         />
       </View>
@@ -120,20 +137,33 @@ const MagazinesScreen = () => {
             : 'No magazines found'}
         </Text>
       ) : (
-        <FlatList
-          data={magazines}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={{
-            justifyContent: 'space-between',
-            paddingHorizontal: 15,
-            marginBottom: 15,
-          }}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: 10, paddingBottom: 20 }}
-          ListFooterComponent={<Footer />}
+       <FlatList
+  data={magazines}
+  renderItem={renderItem}
+  keyExtractor={(item) => item.id.toString()}
+  numColumns={2}
+  columnWrapperStyle={{
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  }}
+  showsVerticalScrollIndicator={false}
+  contentContainerStyle={{ paddingTop: 10 }}
+  
+  ListFooterComponent={
+    <>
+      {!loading && magazines.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          lastPage={lastPage}
+          onPageChange={handlePageChange}
+          loading={loading}
         />
+      )}
+      <Footer />
+    </>
+  }
+/>
       )}
     </View>
   );
