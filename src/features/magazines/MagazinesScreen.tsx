@@ -12,16 +12,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import Config from 'react-native-config';
 
-import Header from '../../components/common/Header';
-import Banner from '../../components/common/DynamicBanner';
 import YearFilter from '../../components/common/YearFilter';
-import Footer from '../../components/common/Footer';
 import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import Pagination from '../../components/common/Pagination';
 import MainLayout from '../../components/layout/MainLayout';
+import Footer from '../../components/common/Footer';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;
@@ -41,6 +39,7 @@ const MagazinesScreen = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   // Fetch years
   useEffect(() => {
@@ -79,6 +78,7 @@ const MagazinesScreen = () => {
       setRefreshing(false);
     }
   };
+
   useEffect(() => {
     fetchMagazines(1, selectedYear);
   }, [selectedYear]);
@@ -111,69 +111,67 @@ const MagazinesScreen = () => {
   );
 
   return (
-    <MainLayout title="Magazines">
+    <MainLayout 
+      title="Magazines"
+      // 1. Move YearFilter here to put it in the Banner
+     renderFilter={(close) => (
+  <YearFilter
+    years={years}
+    selectedYear={tempSelectedYear}
+    onSelect={setTempSelectedYear}
+    onApply={() => {
+      setSelectedYear(tempSelectedYear);
+      setCurrentPage(1);
+      close(); // ✅ CLOSE MODAL (same as CategoryScreen)
+    }}
+    disabled={loading}
+  />
+)}
+    >
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
+          <View style={styles.underline} />
+          {/* 2. Extra Filter removed from here */}
+        </View>
 
-    <View style={styles.container}>
-      {/* <Header /> */}
-      {/* <Banner title="Magazines" /> */}
-
-      <View style={styles.content}>
-        <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
-        <View style={styles.underline} />
-
-        <YearFilter
-          years={years}
-          selectedYear={tempSelectedYear}
-          onSelect={setTempSelectedYear}
-          onApply={() => {
-            setSelectedYear(tempSelectedYear);
-            setCurrentPage(1); // reset page
-          }}
-          disabled={loading}
-        />
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color="#c9060a"
+            style={{ marginTop: 50 }}
+          />
+        ) : magazines.length === 0 ? (
+          <Text style={styles.emptyText}>
+            {selectedYear
+              ? `No magazines found for ${selectedYear}`
+              : 'No magazines found'}
+          </Text>
+        ) : (
+          <FlatList
+            data={magazines}
+            renderItem={renderItem}
+            keyExtractor={item => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.flatListContent}
+            ListFooterComponent={
+              <View style={styles.footerWrapper}>
+                {!loading && magazines.length > 0 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    lastPage={lastPage}
+                    onPageChange={handlePageChange}
+                    loading={loading}
+                  />
+                )}
+                <Footer />
+              </View>
+            }
+          />
+        )}
       </View>
-
-      {loading ? (
-        <ActivityIndicator
-          size="large"
-          color="#c9060a"
-          style={{ marginTop: 50 }}
-        />
-      ) : magazines.length === 0 ? (
-        <Text style={styles.emptyText}>
-          {selectedYear
-            ? `No magazines found for ${selectedYear}`
-            : 'No magazines found'}
-        </Text>
-      ) : (
-        <FlatList
-          data={magazines}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          numColumns={2}
-          columnWrapperStyle={{
-            justifyContent: 'space-between',
-            paddingHorizontal: 15,
-            marginBottom: 15,
-          }}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: 10 }}
-          ListFooterComponent={
-            <>
-              {!loading && magazines.length > 0 && (
-                <Pagination
-                  currentPage={currentPage}
-                  lastPage={lastPage}
-                  onPageChange={handlePageChange}
-                  loading={loading}
-                />
-              )}
-              <Footer />
-            </>
-          }
-        />
-      )}
-    </View>
     </MainLayout>
   );
 };
@@ -191,20 +189,23 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 15,
   },
-
+  columnWrapper: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  flatListContent: { paddingTop: 10 },
   card: { width: ITEM_WIDTH },
   imageWrapper: { width: '100%', aspectRatio: 3 / 4, marginBottom: 5 },
   image: { width: '100%', height: '100%' },
   cardContent: { alignItems: 'center', paddingVertical: 5 },
   title: { fontSize: 13, color: '#333', textAlign: 'center' },
   readMore: { color: '#c9060a', fontWeight: '500', marginTop: 4 },
-
   emptyText: {
     textAlign: 'center',
     color: '#333',
     paddingVertical: 50,
     fontSize: 14,
   },
-
-  footerWrapper: { marginHorizontal: -15, marginTop: 20 },
+  footerWrapper: { marginTop: 20 },
 });

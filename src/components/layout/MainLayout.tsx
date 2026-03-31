@@ -2,17 +2,23 @@ import React from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import Banner from '../common/DynamicBanner';
 
-const MainLayout = ({ children, title }: any) => {
+// Add renderFilter to the props interface
+interface MainLayoutProps {
+  children: React.ReactNode;
+  title: string;
+  renderFilter?: (close: () => void) => React.ReactNode; // ✅
+  showFilter?: boolean
+}
+
+const MainLayout = ({ children, title, renderFilter, showFilter = true }: MainLayoutProps) => {
   return (
     <SafeAreaView style={styles.container}>
-      
-      {/* Only Banner stays */}
-      <Banner title={title} />
+      {/* Pass renderFilter down to the Banner */}
+      <Banner title={title} renderFilter={renderFilter} showFilter={showFilter}/>
 
       <View style={styles.content}>
         {children}
       </View>
-
     </SafeAreaView>
   );
 };

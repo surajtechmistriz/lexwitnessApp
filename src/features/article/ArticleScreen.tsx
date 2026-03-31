@@ -23,6 +23,7 @@ import Icon from 'react-native-vector-icons/FontAwesome6';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import Footer from '../../components/common/Footer';
 import HomeBanner from '../home/components/HomeBanner';
+import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -358,19 +359,20 @@ export default function ArticleDetailPage() {
             ))}
           </View>
         )}
-
-          <View style={styles.BannerContainer}>
-            <HomeBanner />
-          </View>
-
-          <View style={styles.adContainer}>
-            <HomeAdvertisement />
-          </View>
-
-<View style={styles.footer}>
-
-          <Footer  />
+<View>
+  <LatestEditionImageOnly/>
 </View>
+        <View style={styles.BannerContainer}>
+          <HomeBanner />
+        </View>
+
+        <View style={styles.adContainer}>
+          <HomeAdvertisement />
+        </View>
+
+        <View style={styles.footer}>
+          <Footer />
+        </View>
       </ScrollView>
     </View>
   );
@@ -455,7 +457,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
-   adContainer: {
+  adContainer: {
     height: 300,
     backgroundColor: '#fff',
     marginVertical: 20,
@@ -465,8 +467,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     // marginHorizontal: 15,
   },
-   BannerContainer: { marginHorizontal: 0 },
+  BannerContainer: { marginHorizontal: 0 },
   footer: {
-    marginHorizontal: -18
-  }
+    marginHorizontal: -18,
+  },
 });

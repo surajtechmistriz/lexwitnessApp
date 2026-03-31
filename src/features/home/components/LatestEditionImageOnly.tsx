@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginTop: 30,
-    marginLeft: 16,
+    // marginLeft: 16,
   },
 
   redUnderline: {
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#D80000',
     marginTop: 4,
-    marginBottom: 20,
-    marginLeft: 18,
+    // marginBottom: 10,
+    // marginLeft: 14,
   },
 });

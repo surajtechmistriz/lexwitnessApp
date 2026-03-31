@@ -14,6 +14,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import DynamicBanner from '../../../components/common/DynamicBanner';
 import TopMenu from '../../../components/common/Menubar';
 import MainLayout from '../../../components/layout/MainLayout';
+import Footer from '../../../components/common/Footer';
 
 const Register = () => {
   const [selectedPlan, setSelectedPlan] = useState('1 Year Plan');
@@ -160,6 +161,10 @@ const Register = () => {
           <TouchableOpacity style={styles.regBtn}>
             <Text style={styles.regBtnText}>Register</Text>
           </TouchableOpacity>
+        </View>
+        <View style={{marginHorizontal:-16, marginTop:20, marginBottom:-10}}>
+
+        <Footer />
         </View>
       </ScrollView>
     </SafeAreaView>

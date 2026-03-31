@@ -132,26 +132,30 @@ export default function CategoryScreen() {
   };
 
   return (
-    <MainLayout title={slug?.replace(/-/g, ' ')} activeSlug={slug}>
-
+  <MainLayout 
+    activeSlug={slug}
+    title={slug?.replace(/-/g, ' ')}
+    // PASS THE FILTER COMPONENT HERE
+   renderFilter={(close) => (
+  <YearFilter
+    years={years}
+    selectedYear={selectedYear}
+    onSelect={setSelectedYear}
+    onApply={() => {
+      handleApplyFilter();
+      close(); // now works
+    }}
+  />
+)}
+  >
     <SafeAreaView style={styles.safeArea}>
-      {/* <Header />
-      <TopMenu   activeSlug={slug}/>
-      <Banner title={slug?.replace(/-/g, ' ') || 'Category'} /> */}
-
-      <View style={styles.filterButton} pointerEvents="box-none">
-        <YearFilter
-          years={years}
-          selectedYear={selectedYear}
-          onSelect={setSelectedYear}
-          onApply={handleApplyFilter}
-        />
-      </View>
-
       <ScrollView
         ref={scrollRef}
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
+         nestedScrollEnabled={true}   // ✅ ADD THIS
+  keyboardShouldPersistTaps="handled" // ✅ CHANGE THIS
+
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -159,19 +163,14 @@ export default function CategoryScreen() {
             colors={['#c9060a']}
           />
         }
-        keyboardShouldPersistTaps="always"
-        nestedScrollEnabled={true}
+        // keyboardShouldPersistTaps="always"
       >
         <View style={styles.content}>
           <PostList
             posts={posts}
             loading={loading && !refreshing}
             postBaseUrl={postBaseUrl}
-            emptyMessage={
-              appliedYear
-                ? `No posts for ${appliedYear}`
-                : 'No posts available'
-            }
+            emptyMessage={appliedYear ? `No posts for ${appliedYear}` : 'No posts available'}
           />
 
           {!loading && posts.length > 0 && (
@@ -185,23 +184,15 @@ export default function CategoryScreen() {
         </View>
 
         <View style={styles.footerContainer}>
-          <View style={styles.magazine}>
-            <LatestEditionImageOnly />
-          </View>
-
-          <View style={styles.BannerContainer}>
-            <HomeBanner />
-          </View>
-
-          <View style={styles.adContainer}>
-            <HomeAdvertisement />
-          </View>
-
+          <View style={styles.magazine}><LatestEditionImageOnly /></View>
+          <View style={styles.BannerContainer}><HomeBanner /></View>
+          <View style={styles.adContainer}><HomeAdvertisement /></View>
           <Footer />
         </View>
       </ScrollView>
     </SafeAreaView>
-    </MainLayout>
+  </MainLayout>
+
   );
 }
 
@@ -235,5 +226,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 15,
   },
-  magazine: { marginBottom: 20 },
+  magazine: { marginBottom: 20, marginHorizontal:15 },
 });

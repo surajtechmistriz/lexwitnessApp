@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  FlatList,
   StyleSheet,
-  Animated,
+  Modal,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
@@ -14,7 +14,6 @@ interface YearFilterProps {
   selectedYear: number | null;
   onSelect: (year: number | null) => void;
   onApply: () => void;
-  disabled?: boolean;
 }
 
 const YearFilter: React.FC<YearFilterProps> = ({
@@ -22,83 +21,71 @@ const YearFilter: React.FC<YearFilterProps> = ({
   selectedYear,
   onSelect,
   onApply,
-  disabled = false,
 }) => {
-  const [yearOpen, setYearOpen] = useState(false);
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-
-  // Arrow rotation animation
-  const toggleDropdown = () => {
-    setYearOpen(!yearOpen);
-    Animated.timing(rotateAnim, {
-      toValue: yearOpen ? 0 : 1,
-      duration: 200,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const rotate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'],
-  });
+  const [open, setOpen] = useState(false);
 
   return (
     <View style={styles.container}>
-      {/* Dropdown */}
-      <View style={styles.dropdownContainer}>
+      
+      {/* row layout */}
+      <View style={styles.row}>
+
+        {/* dropdown button */}
         <TouchableOpacity
-          style={[styles.dropdownBtn, disabled && styles.disabledBtn]}
-          onPress={toggleDropdown}
-          disabled={disabled}
+          style={styles.dropdownBtn}
+          onPress={() => setOpen(true)}
         >
-          <Text style={styles.dropdownText}>
-            {selectedYear ?? 'Select Year'}
-          </Text>
-          <Animated.View style={{ transform: [{ rotate }] }}>
-            <Ionicons name="chevron-down" size={20} />
-          </Animated.View>
+          <Text>{selectedYear ?? 'Select Year'}</Text>
+          <Ionicons name="chevron-down" size={20} />
         </TouchableOpacity>
 
-        {yearOpen && (
-          <ScrollView
-            style={styles.dropdownList}
-            nestedScrollEnabled
-            showsVerticalScrollIndicator={true}
-          >
-            <TouchableOpacity
-              onPress={() => {
-                onSelect(null);
-                setYearOpen(false);
-              }}
-              style={styles.dropdownItem}
-            >
-              <Text>All Years</Text>
-            </TouchableOpacity>
+        {/* filter button */}
+        <TouchableOpacity
+  style={styles.filterBtn}
+  onPress={() => {
+    onApply();       // apply filter
+    setOpen(false);  //  close dropdown
+  }}
+>
+  <Text style={styles.filterText}>Filter</Text>
+</TouchableOpacity>
 
-            {years.map((year) => (
-              <TouchableOpacity
-                key={year}
-                onPress={() => {
-                  onSelect(year);
-                  setYearOpen(false);
-                }}
-                style={styles.dropdownItem}
-              >
-                <Text>{year}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
       </View>
 
-      {/* Filter Button */}
-      <TouchableOpacity
-        style={[styles.filterBtn, disabled && styles.disabledBtn]}
-        onPress={onApply}
-        disabled={disabled}
-      >
-        <Text style={styles.filterText}>Filter</Text>
-      </TouchableOpacity>
+      {/* modal dropdown */}
+      <Modal visible={open} transparent animationType="fade">
+        
+        {/* overlay close */}
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={() => setOpen(false)}
+        >
+          {/* dropdown box */}
+          <View style={styles.dropdownBox}>
+            <FlatList
+              data={[null, ...years]}
+              keyExtractor={(item, index) => index.toString()}
+              showsVerticalScrollIndicator
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.item}
+                  onPress={() => {
+                    onSelect(item);
+                    setOpen(false);
+                  }}
+                >
+                  <Text>
+                    {item === null ? 'All Years' : item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+
+      </Modal>
+
     </View>
   );
 };
@@ -106,58 +93,63 @@ const YearFilter: React.FC<YearFilterProps> = ({
 export default YearFilter;
 
 const styles = StyleSheet.create({
-container: {
-  flexDirection: 'column',
-  gap: 10,
-  marginVertical: 10,
-},
-dropdownContainer: {
-  position: 'relative',
-  width: '100%',
-   //  important
-},
+  container: {
+    width: '100%',
+  },
+
+  // row layout
+  row: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+
+  // dropdown button
   dropdownBtn: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ccc',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: '#fff',
+    padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  dropdownText: {
-    marginLeft: 5,
-  },
-  dropdownList: {
-    position: 'absolute',
-    top: 38,
-    width: '100%',
-    maxHeight: 200,
-    borderWidth: 1,
-    borderColor: '#ccc',
     backgroundColor: '#fff',
-    zIndex: 100,
   },
-  dropdownItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+
+  // filter button
+  filterBtn: {
+    backgroundColor: '#c9060a',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
- filterBtn: {
-  backgroundColor: '#c9060a',
-  paddingVertical: 12,
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: '100%', // 🔥 important
-},
 
   filterText: {
     color: '#fff',
     fontWeight: 'bold',
   },
-  disabledBtn: {
-    opacity: 0.5,
+
+  // modal overlay
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'center',
+    paddingLeft: 15,
+    paddingRight:91,
+        paddingBottom:40
+  },
+
+  // dropdown box
+  dropdownBox: {
+    backgroundColor: '#fff',
+    // borderRadius: 6,
+    maxHeight: 300,
+  },
+
+  // item
+  item: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
   },
 });

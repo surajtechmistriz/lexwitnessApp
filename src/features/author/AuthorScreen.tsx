@@ -142,17 +142,21 @@ useEffect(() => {
     <SafeAreaView style={styles.safeArea}>
       {/* <Header /> */}
       {/* <TopMenu activeSlug={null} /> */}
-      
-      <Banner title={author?.name || slug?.replace(/-/g, ' ')} />
 
-      <View style={styles.filterButton} pointerEvents="box-none">
-        <YearFilter
-          years={years}
-          selectedYear={selectedYear}
-          onSelect={setSelectedYear}
-          onApply={handleApplyFilter}
-        />
-      </View>
+     <Banner
+  title={author?.name || slug?.replace(/-/g, ' ')}
+  renderFilter={(close) => (
+    <YearFilter
+      years={years}
+      selectedYear={selectedYear}
+      onSelect={setSelectedYear}
+      onApply={() => {
+        handleApplyFilter();
+        close(); // ✅ CLOSE MODAL
+      }}
+    />
+  )}
+/>
 
       <ScrollView
         ref={scrollRef}
@@ -217,5 +221,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 15,
   },
-  magazine: { marginBottom: 20 },
+   magazine: { marginBottom: 20, marginHorizontal:15 },
 });

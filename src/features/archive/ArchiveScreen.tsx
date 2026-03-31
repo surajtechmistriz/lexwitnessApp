@@ -105,7 +105,7 @@ export default function ArchiveScreen() {
   const isSearchMode = route.params?.mode === 'search' || !!route.params?.search;
 
   return (
-    <MainLayout title="Archive">
+    <MainLayout title="Archive" showFilter={false}>
 
     <SafeAreaView style={styles.safeArea}>
       {/* <Header /> */}
@@ -272,6 +272,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 15,
   },
    BannerContainer: { marginHorizontal: 15 },
-   magazine: { marginBottom: 20 },
+     magazine: { marginBottom: 20, marginHorizontal:15 },
+
      footerContainer: { marginTop: 'auto', width: '100%' },
 });

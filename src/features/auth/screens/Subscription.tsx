@@ -68,7 +68,7 @@ export default function SubscriptionPage() {
     : 'https://via.placeholder.com/300x400';
 
   return (
-    <MainLayout title="Subscription">
+    <MainLayout title="Subscription" showFilter={false}>
 
     <SafeAreaView style={styles.safeArea}>
       {/* <Header />

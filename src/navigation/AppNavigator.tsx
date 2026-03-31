@@ -55,10 +55,10 @@ const [currentParams, setCurrentParams] = React.useState<any>({});
   }}
 >
       <Header />
-       <TopMenu
+       {/* <TopMenu
     activeRoute={currentRoute}
     activeSlug={currentParams?.slug}   // PASS SLUG
-  />
+  /> */}
 
       <RegisterPopup/>
       <NoInternetPopup/>

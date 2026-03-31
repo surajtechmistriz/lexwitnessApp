@@ -174,9 +174,9 @@ const styles = StyleSheet.create({
 
   mainImage: {
     width: '100%',
-    height: 500,
+    height: 430,
     backgroundColor: '#f9f9f9',
-    marginTop: 30,
+    marginTop: 20,
   },
 
   detailsContainer: {

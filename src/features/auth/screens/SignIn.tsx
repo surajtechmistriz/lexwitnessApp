@@ -59,7 +59,7 @@ const SignInScreen = () => {
   };
 
   return (
-    <MainLayout title="Sign In">
+    <MainLayout title="Sign In" showFilter={false}>
 
   <SafeAreaView style={styles.container}>
     

@@ -16,7 +16,7 @@ import Icon from 'react-native-vector-icons/FontAwesome6';
 
 // Get device height for calculations
 const { height: SCREEN_HEIGHT } = Dimensions.get('window'); // ✅ Defined height constant
-const DRAWER_MARGIN_TOP = 80;
+const DRAWER_MARGIN_TOP = 70;
 
 type Category = {
   id: number;

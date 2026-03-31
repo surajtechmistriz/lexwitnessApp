@@ -107,7 +107,7 @@ const Header = () => {
 // ===================== STYLES =====================
 const styles = StyleSheet.create({
   container: {
-    height: 80,
+    height: 65,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
