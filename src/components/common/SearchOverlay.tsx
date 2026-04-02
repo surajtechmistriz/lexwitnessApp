@@ -8,6 +8,7 @@ import {
   Text,
   Keyboard,
   Platform,
+  BackHandler,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
@@ -23,32 +24,24 @@ type Category = { id: number; name: string };
 
 type Props = {
   visible: boolean;
-  onClose: () => void;
+  onClose?: () => void; // ✅ made optional (safe)
 };
 
-
 const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
-  
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
   const [searchText, setSearchText] = useState('');
-
-
-  // Picker states
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedAuthor, setSelectedAuthor] = useState<string>('');
 
-  // Data states
   const [years, setYears] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-
-
-
-  // Fetch initial data
+  // ================= FETCH DATA =================
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -67,7 +60,7 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     fetchData();
   }, []);
 
-  // Keyboard listeners
+  // ================= KEYBOARD =================
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () =>
       setKeyboardVisible(true)
@@ -75,129 +68,170 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     const hideSub = Keyboard.addListener('keyboardDidHide', () =>
       setKeyboardVisible(false)
     );
+
     return () => {
       showSub.remove();
       hideSub.remove();
     };
   }, []);
 
-const handleSearch = () => {
-  const params: any = {
-    page: 1, // always reset
+  // ================= BACK BUTTON =================
+  useEffect(() => {
+    const backAction = () => {
+      if (visible) {
+        onClose && onClose();
+        return true;
+      }
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [visible]);
+
+  // ================= SEARCH =================
+  const handleSearch = () => {
+    const params: any = { page: 1 };
+
+    if (searchText.trim()) {
+      params.search = searchText.trim();
+      params.mode = 'search';
+
+      if (/^\d{4}$/.test(searchText.trim())) {
+        params.year = searchText.trim();
+      }
+    }
+
+    if (selectedYear) params.year = selectedYear;
+    if (selectedCategory) params.category_id = selectedCategory;
+    if (selectedAuthor) params.author_id = selectedAuthor;
+
+    onClose && onClose();
+    navigation.navigate('Archive', params);
   };
 
-  if (searchText.trim()) {
-    params.search = searchText.trim();
-    params.mode = 'search';
-
-    // auto detect year
-    if (/^\d{4}$/.test(searchText.trim())) {
-      params.year = searchText.trim();
-    }
-  }
-
-  if (selectedYear) params.year = selectedYear;
-  if (selectedCategory) params.category_id = selectedCategory;
-  if (selectedAuthor) params.author_id = selectedAuthor;
-
-  onClose();
-  navigation.navigate('Archive', params);
-};
-
+  // ================= UI =================
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      transparent={true}
-      statusBarTranslucent={true} // Important for Android
+      animationType="fade"
+      transparent
+      statusBarTranslucent
+      onRequestClose={() => onClose && onClose()}
     >
       <View style={styles.overlayContainer}>
-        {/* Close Button */}
-        {!keyboardVisible && (
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Ionicons name="close" size={35} color="white" />
-          </TouchableOpacity>
-        )}
+        
+        {/* BACKGROUND CLICK */}
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={() => {
+            Keyboard.dismiss();
+            onClose && onClose();
+          }}
+        />
 
-        <View style={styles.formContainer}>
-          {/* Search Input */}
-         <View style={styles.searchBar}>
-            <TextInput
-              style={styles.input}
-              placeholder="Search here..."
-              placeholderTextColor="#ccc"
-              value={searchText}
-              onChangeText={setSearchText}
-              onSubmitEditing={handleSearch}
-            />
-            <TouchableOpacity onPress={handleSearch}>
-              <Ionicons name="search" size={24} color="white" />
+        {/* CONTENT */}
+        <View style={styles.contentWrapper}>
+          
+          {!keyboardVisible && (
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => onClose && onClose()}
+            >
+              <Ionicons name="close" size={35} color="white" />
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.formContainer}>
+            {/* SEARCH INPUT */}
+            <View style={styles.searchBar}>
+              <TextInput
+                style={styles.input}
+                placeholder="Search here..."
+                placeholderTextColor="#ccc"
+                value={searchText}
+                onChangeText={setSearchText}
+                onSubmitEditing={handleSearch}
+              />
+              <TouchableOpacity onPress={handleSearch}>
+                <Ionicons name="search" size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.orText}>or</Text>
+
+            {/* YEAR */}
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedYear}
+                style={styles.picker}
+                dropdownIconColor="white"
+                onValueChange={value => setSelectedYear(String(value))}
+              >
+                <Picker.Item label="Select Year" value="" color="#000" />
+                {years.map(y => (
+                  <Picker.Item key={y} label={String(y)} value={String(y)} color="#000" />
+                ))}
+              </Picker>
+            </View>
+
+            {/* CATEGORY */}
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedCategory}
+                style={styles.picker}
+                dropdownIconColor="white"
+                onValueChange={value => setSelectedCategory(String(value))}
+              >
+                <Picker.Item label="Select Category" value="" color="#000" />
+                {categories.map(c => (
+                  <Picker.Item key={c.id} label={c.name} value={String(c.id)} color="#000" />
+                ))}
+              </Picker>
+            </View>
+
+            {/* AUTHOR */}
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedAuthor}
+                style={styles.picker}
+                dropdownIconColor="white"
+                onValueChange={value => setSelectedAuthor(String(value))}
+              >
+                <Picker.Item label="Select Author" value="" color="#000" />
+                {authors.map(a => (
+                  <Picker.Item key={a.id} label={a.name} value={String(a.id)} color="#000" />
+                ))}
+              </Picker>
+            </View>
+
+            {/* BUTTON */}
+            <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+              <Text style={styles.searchBtnText}>SEARCH</Text>
             </TouchableOpacity>
           </View>
-
-          <Text style={styles.orText}>or</Text>
-
-          {/* Year Picker */}
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={selectedYear}
-              style={styles.picker}
-              dropdownIconColor="white"
-              onValueChange={value => setSelectedYear(String(value))}
-            >
-              <Picker.Item label="Select Year" value="" color="#000" />
-              {years.map(y => (
-                <Picker.Item key={y} label={String(y)} value={String(y)} color="#000" />
-              ))}
-            </Picker>
-          </View>
-
-          {/* Category Picker */}
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={selectedCategory}
-              style={styles.picker}
-              dropdownIconColor="white"
-              onValueChange={value => setSelectedCategory(String(value))}
-            >
-              <Picker.Item label="Select Category" value="" color="#000" />
-              {categories.map(c => (
-                <Picker.Item key={c.id} label={c.name} value={String(c.id)} color="#000" />
-              ))}
-            </Picker>
-          </View>
-
-          {/* Author Picker */}
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={selectedAuthor}
-              style={styles.picker}
-              dropdownIconColor="white"
-              onValueChange={value => setSelectedAuthor(String(value))}
-            >
-              <Picker.Item label="Select Author" value="" color="#000" />
-              {authors.map(a => (
-                <Picker.Item key={a.id} label={a.name} value={String(a.id)} color="#000" />
-              ))}
-            </Picker>
-          </View>
-
-          {/* Search Button */}
-          <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
-            <Text style={styles.searchBtnText}>SEARCH</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </Modal>
   );
 };
 
+// ================= STYLES =================
 const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
     backgroundColor: 'rgba(38,37,37,0.95)',
     justifyContent: 'center',
     padding: 20,
+  },
+  contentWrapper: {
+    flex: 1,
+    justifyContent: 'center',
   },
   closeButton: {
     position: 'absolute',

@@ -4,116 +4,90 @@ import {
   View,
   Text,
   Image,
-  FlatList,
   Dimensions,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { getLatestMagazines } from "../api/home.api";
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../../navigation/AppNavigator';
+import Carousel, { Pagination } from 'react-native-reanimated-carousel';
+import { useSharedValue } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 40) / 2;
+
+// We use 0.47 to show 2 items + a tiny "peek" of the 3rd one
+const ITEM_WIDTH = width * 0.47; 
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
-//  TYPE
-type MagazineItem = {
-  id: number;
-  slug?: string;
-  title: string;
-  image?: string;
-};
-
 const LatestEditions = ({ skipId }: { skipId?: number }) => {
-  const [editions, setEditions] = useState<MagazineItem[]>([]);
+  const [editions, setEditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-
-  //  FETCH
-  const fetchEditions = async () => {
-    if (skipId === undefined || skipId === null) return; //  FIXED
-
-    try {
-      const response = await getLatestMagazines({
-        skipId,
-        limit: 5,
-      });
-
-      setEditions(response || []);
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Could not fetch latest editions.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const progressValue = useSharedValue<number>(0); 
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
-    if (skipId !== undefined && skipId !== null) {
-      fetchEditions();
-    }
+    const fetchEditions = async () => {
+      try {
+        const response = await getLatestMagazines({ skipId, limit: 5 });
+        setEditions(response || []);
+      } catch (error) {
+        console.error("Fetch Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  // RENDER ITEM
-  const renderItem = ({ item }: { item: MagazineItem }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => {
-        console.log("Clicked:", item.slug, item.id);
-
-        navigation.navigate("MagazineDetail", {
-          slug: item.slug ?? String(item.id), //  SAFE
-        });
-      }}
-    >
-      <Image
-        source={{
-          uri: item.image
-            ? `${imgUrl}/${item.image}`
-            : "https://via.placeholder.com/300x400", //  fallback
-        }}
-        style={styles.coverImage}
-        resizeMode="contain"
-      />
-
-      <View style={styles.dateContainer}>
-        <Text style={styles.dateText}>{item.title}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  // LOADING
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#d32f2f" />
-      </View>
-    );
-  }
+  if (loading) return <ActivityIndicator style={{ margin: 50 }} color="#d32f2f" />;
+  if (editions.length === 0) return null;
 
   return (
     <View style={styles.container}>
       <Text style={styles.headerTitle}>LATEST EDITIONS</Text>
       <View style={styles.underline} />
 
-      <FlatList
+      <Carousel
+        loop={false}
+        width={ITEM_WIDTH}
+        height={320}
+        style={{ width: width }}
         data={editions}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={styles.listPadding}
-        columnWrapperStyle={styles.row}
-        showsVerticalScrollIndicator={false}
+        onProgressChange={(_, absoluteProgress) =>
+          (progressValue.value = absoluteProgress)
+        }
+        renderItem={({ item }) => (
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => navigation.navigate("MagazineDetail", { slug: item.slug })}
+          >
+            <Image 
+              source={{ uri: item.image ? `${imgUrl}/${item.image}` : "https://via.placeholder.com/300x400" }} 
+              style={styles.coverImage} 
+              resizeMode="cover"
+            />
+            <View style={styles.titleContainer}>
+              <Text style={styles.titleText} numberOfLines={2}>{item.title}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
       />
 
-      <TouchableOpacity
+      {/* FIXED PAGINATION: Removed the .map loop */}
+      {editions.length > 0 && (
+        <Pagination.Basic
+          progress={progressValue}
+          data={editions}
+          dotStyle={styles.dot}
+          activeDotStyle={styles.activeDot}
+          containerStyle={styles.paginationContainer}
+        />
+      )}
+
+      <TouchableOpacity 
         style={styles.button}
         onPress={() => navigation.navigate("MagazinesScreen")}
       >
@@ -123,89 +97,50 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
   );
 };
 
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 20,
-     marginRight:2,
-  },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    textAlign: 'center',
-    color: '#1a2a3a',
-    letterSpacing: 1,
-  },
-  underline: {
-    height: 3,
-    width: 35,
-    backgroundColor: '#d32f2f',
-    alignSelf: 'center',
-    marginTop: 6,
-    marginBottom: 20,
-  },
-  listPadding: {
-    paddingHorizontal: 15,
-    paddingBottom: 20,
-  },
-  row: {
-    // justifyContent: 'space-between',
-    gap:10,
-    
-  },
+  container: { backgroundColor: '#fff', paddingVertical: 20 },
+  headerTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', color: '#1a2a3a' },
+  underline: { height: 3, width: 35, backgroundColor: '#d32f2f', alignSelf: 'center', marginTop: 6, marginBottom: 20 },
   card: {
-    width: COLUMN_WIDTH,
-    // width:"50%",
+    width: ITEM_WIDTH - 15, 
+    marginHorizontal: 7.5,
     backgroundColor: '#fff',
-    marginBottom: 15,
-   
-    // borderRadius: 6,
-    elevation: 3,
-    shadowColor: '#000',
-    // shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    // shadowRadius: 3,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
-    overflow: 'hidden', // Ensures image corners respect border radius
+    borderColor: '#eee',
   },
-  coverImage: {
-    width: '100%',
-    height: 243,
-  },
-  dateContainer: {
-    paddingVertical: 12,
+  coverImage: { width: '100%', height: 220 },
+  titleContainer: { padding: 10, height: 60, justifyContent: 'center' },
+  titleText: { fontSize: 13, fontWeight: '600', textAlign: 'center', color: '#333' },
+  button: {
+    backgroundColor: '#c9060a',
+    paddingVertical: 15,
+    width: 250,
+    alignSelf: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    marginTop: 20,
+    marginBottom: 20
   },
-  dateText: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
-    textAlign: 'center',
-    paddingHorizontal: 5,
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  paginationContainer: {
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 15,
   },
- button: {
-  backgroundColor: '#c9060a',
-  paddingVertical: 15,
-  width: 250,
-  
-  // This is the "Margin Auto" equivalent for a single element
-  alignSelf: 'center', 
-  
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginBottom: 40,
-},
-    buttonText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
-
+  dot: {
+    backgroundColor: 'rgba(0,0,0,0.15)',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop:-30
+  },
+  activeDot: {
+    backgroundColor: '#d32f2f',
+    width: 20, // Makes the active dot a "pill" shape so it stands out
+    height: 8,
+    borderRadius: 4,
+  }
 });
 
 export default LatestEditions;

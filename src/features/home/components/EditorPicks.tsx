@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   titleText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#222',
     lineHeight: 22,

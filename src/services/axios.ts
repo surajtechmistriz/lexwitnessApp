@@ -40,7 +40,7 @@ const api: AxiosInstance = axios.create({
 // Response interceptor
 // api.interceptors.response.use(
 //   (response) => {
-//     console.log('✅ Response:', response.config.url, response.data);
+//     console.log('Response:', response.config.url, response.data);
 //     return response;
 //   },
 //   async (error) => {

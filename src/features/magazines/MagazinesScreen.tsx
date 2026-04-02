@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -27,8 +27,32 @@ const imgUrl = Config.MAGAZINES_BASE_URL;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const MagazinesScreen = () => {
+const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const navigation = useNavigation<NavigationProp>();
+  
+  // 2. Add a ref to track the last scroll position
+  const scrollOffset = useRef(0);
+
+  // 3. Create the handleScroll function
+  const handleScroll = (event: any) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    
+    // Check if user scrolled down or up
+    const dif = currentOffset - scrollOffset.current;
+
+    if (currentOffset <= 0) {
+      // At the very top
+      onScrollUp?.();
+    } else if (dif > 10) {
+      // Scrolling Down
+      onScrollDown?.();
+    } else if (dif < -10) {
+      // Scrolling Up
+      onScrollUp?.();
+    }
+
+    scrollOffset.current = currentOffset;
+  };
 
   const [years, setYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -111,42 +135,25 @@ const MagazinesScreen = () => {
   );
 
   return (
-    <MainLayout 
+   <MainLayout 
       title="Magazines"
-      // 1. Move YearFilter here to put it in the Banner
-     renderFilter={(close) => (
-  <YearFilter
-    years={years}
-    selectedYear={tempSelectedYear}
-    onSelect={setTempSelectedYear}
-    onApply={() => {
-      setSelectedYear(tempSelectedYear);
-      setCurrentPage(1);
-      close(); // ✅ CLOSE MODAL (same as CategoryScreen)
-    }}
-    disabled={loading}
-  />
-)}
+      renderFilter={(close) => (
+        <YearFilter
+          years={years}
+          selectedYear={tempSelectedYear}
+          onSelect={setTempSelectedYear}
+          onApply={() => {
+            setSelectedYear(tempSelectedYear);
+            setCurrentPage(1);
+            close();
+          }}
+          disabled={loading}
+        />
+      )}
     >
       <View style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
-          <View style={styles.underline} />
-          {/* 2. Extra Filter removed from here */}
-        </View>
-
         {loading ? (
-          <ActivityIndicator
-            size="large"
-            color="#c9060a"
-            style={{ marginTop: 50 }}
-          />
-        ) : magazines.length === 0 ? (
-          <Text style={styles.emptyText}>
-            {selectedYear
-              ? `No magazines found for ${selectedYear}`
-              : 'No magazines found'}
-          </Text>
+          <ActivityIndicator size="large" color="#c9060a" style={{ marginTop: 50 }} />
         ) : (
           <FlatList
             data={magazines}
@@ -156,6 +163,17 @@ const MagazinesScreen = () => {
             columnWrapperStyle={styles.columnWrapper}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.flatListContent}
+            
+            // 4. Attach the scroll listener here
+            onScroll={handleScroll}
+            scrollEventThrottle={16} 
+
+            ListHeaderComponent={
+              <View style={styles.content}>
+                <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
+                <View style={styles.underline} />
+              </View>
+            }
             ListFooterComponent={
               <View style={styles.footerWrapper}>
                 {!loading && magazines.length > 0 && (
@@ -166,7 +184,6 @@ const MagazinesScreen = () => {
                     loading={loading}
                   />
                 )}
-                <Footer />
               </View>
             }
           />

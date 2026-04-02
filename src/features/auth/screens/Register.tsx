@@ -43,7 +43,7 @@ const Register = () => {
   ];
 
   return (
-    <MainLayout title="Register">
+    <MainLayout title="Register" showFilter={false}>
 
     <SafeAreaView style={styles.container}>
         {/* <Header />

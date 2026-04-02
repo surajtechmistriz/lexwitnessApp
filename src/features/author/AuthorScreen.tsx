@@ -152,7 +152,7 @@ useEffect(() => {
       onSelect={setSelectedYear}
       onApply={() => {
         handleApplyFilter();
-        close(); // ✅ CLOSE MODAL
+        close(); //  CLOSE MODAL
       }}
     />
   )}

@@ -214,7 +214,10 @@ export default function ArticleDetailPage() {
         </View>
 
         {/* Share */}
-        <SocialShare />
+        <View style={{}}>
+
+        <SocialShare  title={''} url={''} />
+        </View>
 
         {/* Image */}
         {article.image && (
@@ -397,10 +400,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     backgroundColor: '#c9060a',
-    marginVertical: 8,
+    // marginVertical: 4,
+    marginBottom:4
   },
 
-  meta: { flexDirection: 'row', marginBottom: 16 },
+  meta: { flexDirection: 'row', marginBottom: 12 },
   author: { color: '#c9060a' },
   sep: { marginHorizontal: 8 },
   date: { color: '#666' },

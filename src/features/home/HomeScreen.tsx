@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -17,6 +17,10 @@ import Footer from '../../components/common/Footer';
 import { getHeroPost } from '../../services/api/heroCard';
 import { getEditorPick } from '../../services/api/editorpicks';
 import Config from 'react-native-config';
+import Carousel from 'react-native-reanimated-carousel';
+import { Dimensions } from "react-native";
+import HeroCard from './components/HeroCard';
+const { width } = Dimensions.get("window");
 
 type RootStackParamList = {
   Home: undefined;
@@ -27,11 +31,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
 
-const Home = ({ navigation }: Props) => {
+const Home = ({ navigation, onScrollDown, onScrollUp }: any) => {
   const [articles, setArticles] = useState<any[]>([]);
   const [editorPicks, setEditorPicks] = useState<any[]>([]);
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  //  ADD THIS
+  const lastOffset = useRef(0);
 
   // ========================= API CALLS =========================
   useEffect(() => {
@@ -53,14 +60,8 @@ const Home = ({ navigation }: Props) => {
   }, []);
 
   // ========================= DATA DERIVATION =========================
-  const { firstCard, nextTwoCards, remainingCards } = useMemo(
-    () => ({
-      firstCard: articles?.[0] || null,
-      nextTwoCards: articles?.slice(1, 3) || [],
-      remainingCards: articles?.slice(3) || [],
-    }),
-    [articles],
-  );
+  const sliderData = useMemo(() => articles?.slice(0, 3) || [], [articles]);
+  const remainingCards = useMemo(() => articles?.slice(3) || [], [articles]);
 
   // ========================= HELPERS =========================
   const formatDate = (item: any) => {
@@ -71,7 +72,7 @@ const Home = ({ navigation }: Props) => {
 
   const getImage = (img: string) => `${IMAGE_BASE_URL}/${img}`;
 
-  // ========================= LOADING STATE =========================
+  // ========================= LOADING =========================
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -83,22 +84,60 @@ const Home = ({ navigation }: Props) => {
   // ========================= MAIN UI =========================
   return (
     <View style={styles.container}>
-      {/* <Header /> */}
-      {/* <Menubar /> */}
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        scrollEventThrottle={16}
+
+        // 🔥 ADDED LOGIC (NO UI CHANGE)
+       onScroll={(e) => {
+  const currentOffset = e.nativeEvent.contentOffset.y;
+
+  //  Always show when near top
+  if (currentOffset <= 0) {
+    onScrollUp && onScrollUp();
+    lastOffset.current = 0;
+    return;
+  }
+
+  const diff = currentOffset - lastOffset.current;
+
+  //  Add threshold to avoid jitter
+  if (Math.abs(diff) < 5) return;
+
+  if (diff > 0) {
+    // ⬇️ scrolling down → hide
+    onScrollDown && onScrollDown();
+  } else {
+    // ⬆️ scrolling up → show
+    onScrollUp && onScrollUp();
+  }
+
+  lastOffset.current = currentOffset;
+}}
       >
+
         {/* ================= HERO SECTION ================= */}
-        <HeroSection
-          firstCard={firstCard}
-          nextTwoCards={nextTwoCards}
-          formatDate={formatDate}
-          getImage={getImage}
+        <Carousel
+          loop
+          width={width - 24}
+          height={280}
+          autoPlay={true}
+          autoPlayInterval={1000}
+          data={sliderData}
+          renderItem={({ item }) => (
+            <HeroCard
+              category={item.category}
+              title={item.title}
+              slug={item.slug}
+              date={formatDate(item)}
+              image={getImage(item.image)}
+              height={280}
+            />
+          )}
         />
 
-        {/* ================= LIST SECTION ================= */}
+        {/* ================= LIST ================= */}
         <View style={styles.listContainer}>
           {remainingCards.map((item, index) => (
             <ListCard
@@ -112,17 +151,18 @@ const Home = ({ navigation }: Props) => {
           ))}
         </View>
 
-        {/* ================= ADVERTISEMENT ================= */}
+        {/* ================= AD ================= */}
         <View style={styles.graySectionWrapper}>
           <HomeAdvertisement />
         </View>
+
         {/* ================= EDITOR PICKS ================= */}
         <EditorPicksSection data={editorPicks} getImage={getImage} />
 
-        {/* ================= SUBSCRIPTION BANNER ================= */}
+        {/* ================= BANNER ================= */}
         <HomeBanner />
 
-        {/* ================= LATEST EDITION ================= */}
+        {/* ================= LATEST ================= */}
         <View style={styles.fullWidth}>
           <LatestEdition onData={setLatestEditionData} />
         </View>
@@ -130,15 +170,11 @@ const Home = ({ navigation }: Props) => {
         {/* ================= EDITORIAL ================= */}
         <EditorialCard />
 
-        {/* ================= LATEST 5 EDITIONS ================= */}
+        {/* ================= MORE EDITIONS ================= */}
         <View style={styles.fullWidth}>
           <LatestEditions skipId={latestEditionData?.magazine?.id} />
         </View>
 
-        {/* ================= FOOTER ================= */}
-        <View style={styles.fullWidth}>
-          <Footer />
-        </View>
       </ScrollView>
     </View>
   );

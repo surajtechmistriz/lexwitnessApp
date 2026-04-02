@@ -16,7 +16,6 @@ interface PostListProps {
   postBaseUrl?: string;
   loading?: boolean;
   emptyMessage?: string;
-  onPressPost?: (post: any) => void;
 }
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -26,14 +25,20 @@ export default function PostList({
   postBaseUrl = '',
   loading = false,
   emptyMessage = 'No posts available.',
-  onPressPost,
 }: PostListProps) {
+  const navigation = useNavigation<NavigationProp>();
+
   const getImageUrl = (image?: string) => {
     if (!image) return null;
     return image.startsWith('http') ? image : `${postBaseUrl}/${image}`;
   };
 
-  const navigation = useNavigation<NavigationProp>();
+  const handleNavigateDetail = (article: any) => {
+    navigation.navigate('ArticleDetail', {
+      slug: article.slug,
+      category: article.category?.slug || 'general',
+    });
+  };
 
   if (loading) {
     return (
@@ -58,6 +63,7 @@ export default function PostList({
           key={article.id || index}
           style={[
             styles.articleItem,
+            styles.row,
             index === posts.length - 1 && styles.noBorder,
           ]}
         >
@@ -65,12 +71,7 @@ export default function PostList({
           <TouchableOpacity
             style={styles.imageContainer}
             activeOpacity={0.8}
-            onPress={() => {
-              navigation.navigate('ArticleDetail', {
-                slug: article.slug,
-                category: article.category?.slug || 'general',
-              });
-            }}
+            onPress={() => handleNavigateDetail(article)}
           >
             {article.image ? (
               <Image
@@ -80,7 +81,7 @@ export default function PostList({
               />
             ) : (
               <View style={styles.placeholderContainer}>
-                <Text style={{ color: '#999' }}>Img</Text>
+                <Text style={{ color: '#999', fontSize: 12 }}>Img</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -90,66 +91,44 @@ export default function PostList({
             {/* TITLE */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={() => {
-                navigation.navigate('ArticleDetail', {
-                  slug: article.slug,
-                  category: article.category?.slug || 'general',
-                });
-              }}
+              onPress={() => handleNavigateDetail(article)}
             >
               <Text style={styles.title} numberOfLines={2}>
                 {article.title}
               </Text>
             </TouchableOpacity>
 
+            {/* META: AUTHOR | DATE (ONE ROW FIX) */}
+            <View style={styles.metaText}>
+              <View style={styles.authorWrapper}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (article.author?.slug) {
+                      navigation.navigate('AuthorScreen', {
+                        slug: article.author.slug,
+                      });
+                    }
+                  }}
+                >
+                  <Text style={styles.authorText} numberOfLines={1}>
+                    {typeof article.author === 'string'
+                      ? article.author
+                      : article.author?.name || 'Unknown'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-{/* <TouchableOpacity
-  onPress={() =>
-    navigation.navigate('AuthorScreen', {
-      author: item.author?.slug, // ✅ pass slug
-    })
-  }
->
-  <Text>{item.author?.name}</Text>
-</TouchableOpacity> */}
-
-          <View style={styles.metaText}>
-  <TouchableOpacity
-    onPress={() => {
-      if (article.author?.slug) {
-        navigation.navigate('AuthorScreen', {
-          slug: article.author.slug,
-        });
-      }
-    }}
-  >
-    <Text style={styles.authorText}>
-      {typeof article.author === 'string'
-        ? article.author
-        : article.author?.name || 'Unknown'}
-    </Text>
-  </TouchableOpacity>
-
-  <Text style={styles.date}>
-    {' | '}
-    {article.magazine?.month?.name} {article.magazine?.year}
-  </Text>
-</View>
-
-            <Text style={styles.description} numberOfLines={2}>
-              {article.short_description || 'No description available'}
-            </Text>
+              <Text style={styles.date} numberOfLines={1}>
+                {' | '}
+                {article.magazine?.month?.name} {article.magazine?.year}
+              </Text>
+            </View>
 
             {/* READ MORE */}
             <TouchableOpacity
               style={styles.readMoreContainer}
               activeOpacity={0.8}
-              onPress={() => {
-                navigation.navigate('ArticleDetail', {
-                  slug: article.slug,
-                  category: article.category?.slug || 'general',
-                });
-              }}
+              onPress={() => handleNavigateDetail(article)}
             >
               <Text style={styles.readMoreText}>Read More</Text>
             </TouchableOpacity>
@@ -161,9 +140,8 @@ export default function PostList({
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 15 },
-  loaderContainer: { py: 40, alignItems: 'center' },
-  topDivider: { height: 1, backgroundColor: '#eee', marginBottom: 20 },
+  container: { paddingHorizontal: 15, marginTop:10 },
+  loaderContainer: { paddingVertical: 40, alignItems: 'center' },
   emptyContainer: {
     padding: 40,
     backgroundColor: '#f9f9f9',
@@ -174,6 +152,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: { color: '#666' },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
   articleItem: {
     marginBottom: 20,
     paddingBottom: 20,
@@ -183,11 +166,9 @@ const styles = StyleSheet.create({
   },
   noBorder: { borderBottomWidth: 0 },
   imageContainer: {
-    width: '100%',
-    height: 200,
-    borderRadius: 4,
+    width: 90,
+    height: 90,
     overflow: 'hidden',
-    marginBottom: 12,
   },
   image: { width: '100%', height: '100%' },
   placeholderContainer: {
@@ -199,30 +180,33 @@ const styles = StyleSheet.create({
   },
   contentContainer: { flex: 1 },
   title: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
     color: '#333',
     lineHeight: 22,
-    marginBottom: 8,
+    marginBottom: 6,
+    marginTop: -4,
   },
   metaText: {
-    flexDirection:'row',
-    fontSize: 14,
-    color: '#333',
+    flexDirection: 'row', // Force single row
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
     paddingBottom: 8,
     marginBottom: 8,
   },
-  authorText: { color: '#c9060a', fontWeight: '500' },
-date: {
-  // color:'#666'
-},
-  description: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-    marginBottom: 10,
+  authorWrapper: {
+    flexShrink: 1, //  Allows author name to truncate if space is tight
+  },
+  authorText: { 
+    color: '#c9060a', 
+    fontWeight: '500', 
+    fontSize: 13,
+  },
+  date: {
+    fontSize: 13, 
+    color: '#333',
+    flexShrink: 0, //  Ensures date never gets compressed or hidden
   },
   readMoreContainer: { flexDirection: 'row', alignItems: 'center' },
   readMoreText: { color: '#c9060a', fontSize: 14, fontWeight: '500' },

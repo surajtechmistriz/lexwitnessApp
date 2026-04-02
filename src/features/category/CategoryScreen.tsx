@@ -153,8 +153,8 @@ export default function CategoryScreen() {
         ref={scrollRef}
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
-         nestedScrollEnabled={true}   // ✅ ADD THIS
-  keyboardShouldPersistTaps="handled" // ✅ CHANGE THIS
+         nestedScrollEnabled={true}   //  ADD THIS
+  keyboardShouldPersistTaps="handled" //  CHANGE THIS
 
         refreshControl={
           <RefreshControl

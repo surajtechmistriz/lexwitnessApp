@@ -86,11 +86,11 @@ const HeroCard = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginBottom: 10,
-    backgroundColor: '#000',
+    paddingBottom: 10,
   },
   image: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
   },
   gradient: {
     flex: 1,
@@ -100,29 +100,28 @@ const styles = StyleSheet.create({
   badge: {
     backgroundColor: '#C9060a',
     alignSelf: 'flex-start',
-    // These ensure it sticks to the very top-left
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingHorizontal: 10, // Reduced from 15
+    paddingVertical: 4,
   },
   badgeText: {
     color: '#FFF',
-    fontSize: 16, // Slightly larger to match the reference
+    fontSize: 12, // Reduced from 16
     fontWeight: 'bold',
-    textTransform: 'uppercase', // Matches "ACADEMIA" in screenshot
+    textTransform: 'uppercase',
   },
   bottomContent: {
-    padding: 20, // Keep padding only for the text at the bottom
+    padding: 12, // Reduced from 20
   },
   title: {
     color: '#FFF',
-    fontSize: 22,
-    fontWeight: '400',
-    lineHeight: 29,
-    marginBottom: 8,
+    fontSize: 16, // Reduced from 22
+    fontWeight: '600',
+    lineHeight: 20, // Adjusted for smaller font
+    marginBottom: 4,
   },
   dateText: {
     color: '#E0E0E0',
-    fontSize: 14,
+    fontSize: 11, // Reduced from 14
     fontWeight: '500',
   },
 });

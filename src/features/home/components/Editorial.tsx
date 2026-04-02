@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { getEditorial } from '../api/home.api';
 import Config from 'react-native-config';
-
+import { useNavigation } from '@react-navigation/native'; // 1. Import Navigation
 
 interface EditorialData {
   image: any;
@@ -11,20 +11,21 @@ interface EditorialData {
   company_name: string;
   place: string;
   description: string;
-  image_url?: string; // Optional, in case  service provides the avatar
 }
 
-const imgUrl = Config.EDITORIAL_IMAGE_URL
+const imgUrl = Config.EDITORIAL_IMAGE_URL;
 
 const EditorialCard: React.FC = () => {
   const [data, setData] = useState<EditorialData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // 2. Initialize Navigation
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await getEditorial();
-        // console.log("Editorial", result.data);
         setData(result.data);
       } catch (error) {
         console.error("Error fetching editorial:", error);
@@ -35,7 +36,9 @@ const EditorialCard: React.FC = () => {
     fetchData();
   }, []);
 
-  // Guard clause to prevent rendering 'undefined' properties
+  // Helper to strip HTML tags if the description contains them
+  const stripHtml = (html: string) => html?.replace(/<[^>]*>?/gm, '') || "";
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -48,13 +51,11 @@ const EditorialCard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header Section */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerText}>EDITORIAL</Text>
         <View style={styles.redLine} />
       </View>
 
-      {/* Main Card */}
       <View style={styles.card}>
         <View style={styles.profileSection}>
           <Image
@@ -69,12 +70,16 @@ const EditorialCard: React.FC = () => {
           </View>
         </View>
 
-        {/* Using numberOfLines if you want to truncate long text like the screenshot */}
-        <Text style={styles.bodyText} >
-          {data.description}
+        {/* 3. Added numberOfLines to truncate the preview */}
+        <Text style={styles.bodyText} numberOfLines={6}>
+          {stripHtml(data.description)}
         </Text>
 
-        <TouchableOpacity activeOpacity={0.7}>
+        {/* 4. Navigate to the Detail screen on press */}
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          onPress={() => navigation.navigate('EditorialDetail', { editorialData: data })}
+        >
           <Text style={styles.readMore}>Read More</Text>
         </TouchableOpacity>
       </View>
@@ -82,9 +87,11 @@ const EditorialCard: React.FC = () => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    // padding: 20,
+    marginTop:30,
     backgroundColor: '#fff',
   },
   center: {
@@ -107,6 +114,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#C41E3A',
     marginTop: 5,
+    marginLeft:1
   },
   card: {
     borderWidth: 1,

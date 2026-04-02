@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +9,11 @@ import SearchOverlay from './SearchOverlay';
 import DrawerUI from './Drawer';
 import { getMenu } from '../../services/api/category';
 
-const Header = () => {
+type HeaderProps = {
+  onSearchPress: () => void;
+};
+
+const Header = ({ onSearchPress }: HeaderProps) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
@@ -49,22 +47,22 @@ const Header = () => {
           {/* SEARCH ICON */}
           <TouchableOpacity
             style={styles.icon}
-            onPress={() => setIsSearchVisible(true)}
+           onPress={() => navigation.navigate("SearchScreen")} // ✅ USE GLOBAL FUNCTION
           >
-            <Ionicons name="search" size={20} />
+            {/* <Ionicons name="search" size={20} /> */}
           </TouchableOpacity>
         </View>
 
         {/* LOGO */}
-<View style={styles.center}>
-  <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-    <Image
-      source={require('../../assets/main-logo.png')}
-      style={styles.logoImage}
-      resizeMode="contain"
-    />
-  </TouchableOpacity>
-</View>
+        <View style={styles.center}>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
+            <Image
+              source={require('../../assets/main-logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
+        </View>
 
         {/* RIGHT ICONS */}
         <View style={styles.right}>
@@ -79,10 +77,10 @@ const Header = () => {
       </View>
 
       {/* ========== SEARCH OVERLAY MODAL ========== */}
-      <SearchOverlay
+      {/* <SearchOverlay
         visible={isSearchVisible}
         onClose={() => setIsSearchVisible(false)}
-      />
+      /> */}
 
       {/* ========== DRAWER ========== */}
       {drawerVisible && (
@@ -95,7 +93,7 @@ const Header = () => {
             <DrawerUI
               categories={categories}
               onClose={() => setDrawerVisible(false)}
-                navigation={navigation}
+              navigation={navigation}
             />
           </View>
         </>

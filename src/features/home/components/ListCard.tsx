@@ -49,7 +49,7 @@ const ListCard = ({
           onPress={() =>
             navigation.navigate('CategoryScreen', {
               slug: categorySlug,
-              category: categorySlug, // ✅ required param
+              category: categorySlug, //  required param
             })
           }
         >
@@ -84,6 +84,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
     paddingHorizontal: 16,
+    
   },
   content: {
     paddingVertical: 14,
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: '#333',
-    fontSize: 17,
+    fontSize: 15,
     lineHeight: 24,
     fontWeight: '400',
     marginBottom: 4,

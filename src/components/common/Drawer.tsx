@@ -6,8 +6,8 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Dimensions, // ✅ Added this
-  Linking,    // ✅ Added for opening links
+  Dimensions, //  Added this
+  Linking,    //  Added for opening links
 } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,8 +15,8 @@ import { RootStackParamList } from '../../navigation/AppNavigator';
 import Icon from 'react-native-vector-icons/FontAwesome6';
 
 // Get device height for calculations
-const { height: SCREEN_HEIGHT } = Dimensions.get('window'); // ✅ Defined height constant
-const DRAWER_MARGIN_TOP = 70;
+const { height: SCREEN_HEIGHT } = Dimensions.get('window'); //  Defined height constant
+const DRAWER_MARGIN_TOP = 65;
 
 type Category = {
   id: number;

@@ -151,45 +151,45 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
       </TouchableOpacity>
 
       {/* posts list */}
-      {data.posts?.map((item) => (
-        <View key={item.id} style={styles.feedbackSection}>
-          {/* post image */}
-          <View style={styles.content}>
-            <View style={styles.smallImgContainer}>
-              <TouchableOpacity onPress={() => goToArticle(item)}>
-                <Image
-                  source={{ uri: `${PostimgUrl}/${item.image}` }}
-                  style={styles.smallImg}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
+     {data.posts?.map((item) => (
+  <View key={item.id} style={styles.feedbackSection}>
+    
+    <View style={styles.row}>
+      
+      {/* LEFT: IMAGE */}
+      <TouchableOpacity onPress={() => goToArticle(item)}>
+        <Image
+          source={{ uri: `${PostimgUrl}/${item.image}` }}
+          style={styles.smallImg}
+          resizeMode="cover"
+        />
+      </TouchableOpacity>
 
-          {/* post title */}
-          <TouchableOpacity onPress={() => goToArticle(item)}>
-            <Text style={styles.feedbackTitle}>{item.title}</Text>
-          </TouchableOpacity>
+      {/* RIGHT: CONTENT */}
+      <View style={styles.rightContent}>
+        
+        <TouchableOpacity onPress={() => goToArticle(item)}>
+          <Text numberOfLines={1} style={styles.feedbackTitle}>{item.title}</Text>
+        </TouchableOpacity>
 
-          <View style={styles.divider} />
+        <Text
+          style={styles.feedbackDescription}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
+          {item.short_description}
+        </Text>
 
-          {/* post description */}
-          <Text
-            style={styles.feedbackDescription}
-            numberOfLines={3}
-            ellipsizeMode="tail"
-          >
-            {item.short_description}
-          </Text>
+        <TouchableOpacity onPress={() => goToArticle(item)}>
+          <Text style={styles.readMore}>Read More</Text>
+        </TouchableOpacity>
 
-          {/* read more */}
-          <TouchableOpacity onPress={() => goToArticle(item)}>
-            <Text style={styles.readMore}>Read More</Text>
-          </TouchableOpacity>
+      </View>
+    </View>
 
-          <View style={styles.dottedLine} />
-        </View>
-      ))}
+    <View style={styles.dottedLine} />
+  </View>
+))}
     </View>
   );
 };
@@ -260,27 +260,28 @@ const styles = StyleSheet.create({
   },
 
   /* feedback */
-  feedbackSection: { marginTop: 20 },
+  feedbackSection: { marginTop: 20, flexDirection:'column' },
 
   smallImgContainer: {
     alignItems: 'center',
     marginBottom: 15,
   },
-
   smallImg: {
-    width: 335,
-    height: 240,
+    width: 100,
+    height: 80,
+    // borderRadius: 6,
   },
 
   feedbackTitle: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#000',
     marginHorizontal: 16,
+    marginTop:-5
   },
 
   feedbackDescription: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#555',
     lineHeight: 22,
     marginHorizontal: 16,
@@ -288,9 +289,9 @@ const styles = StyleSheet.create({
 
   readMore: {
     color: '#D80000',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    marginTop: 10,
+    marginTop: 2,
     marginHorizontal: 16,
   },
 
@@ -306,6 +307,19 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 12,
   },
+
+  row: {
+  flexDirection: 'row',
+  paddingHorizontal: 16,
+  gap: 12,
+  alignItems: 'flex-start',
+},
+
+rightContent: {
+  flex: 1,
+  justifyContent: 'flex-start',
+},
+
 });
 
 export default LatestEdition;
