@@ -17,6 +17,7 @@ import EditorialCard from './components/Editorial';
 import { getHeroPost } from '../../services/api/heroCard';
 import { getEditorPick } from '../../services/api/editorpicks';
 import Footer from '../../components/common/Footer';
+import HomeSkeleton from '../../skeleton/HomeSkeleton';
 
 const { width } = Dimensions.get('window');
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
@@ -58,11 +59,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
   const getImage = (img: string) => `${IMAGE_BASE_URL}/${img}`;
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    return  <HomeSkeleton />;
   }
 
   return (
@@ -92,7 +89,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
             width={width - 24}
             height={280}
             autoPlay={true}
-            autoPlayInterval={3000} // Set to 3s for better UX
+            autoPlayInterval={1000} // Set to 3s for better UX
             data={sliderData}
             // FIX: Prevents vertical scroll interference
             panGestureHandlerProps={{

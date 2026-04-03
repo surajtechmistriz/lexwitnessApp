@@ -49,7 +49,7 @@ const SignInScreen = () => {
       await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
 
       // Redirect to Home
-      navigation.replace("Home"); 
+      navigation.replace("HomeTab"); 
     } catch (err: any) {
       setError(err?.message || "Login failed");
       Alert.alert("Error", err?.message || "Login failed");

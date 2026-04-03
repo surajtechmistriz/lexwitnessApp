@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Home from '../features/home/HomeScreen';
@@ -17,26 +17,31 @@ import Header from '../components/common/Header';
 import BottomTabs from '../BotttomTabs/BottomTabs';
 import SearchOverlay from '../components/common/SearchOverlay';
 import EditorialDetail from '../features/editorial/EditorialDetail';
+import RegisterPopup from '../modal/RegisterPopup';
 
 const Stack = createNativeStackNavigator();
+
+//  1. EXPORT THIS REF (Essential for the Popup)
+export const navigationRef = createNavigationContainerRef();
 
 const AppNavigator = () => {
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
 
   return (
-    <NavigationContainer>
-      {/* ✅ GLOBAL HEADER */}
+    //  2. ATTACH THE REF HERE
+    <NavigationContainer ref={navigationRef}>
+      {/*  GLOBAL HEADER */}
       <Header onSearchPress={() => setIsSearchVisible(true)} />
 
-      {/* ✅ GLOBAL SEARCH */}
+      {/*  GLOBAL SEARCH */}
       <SearchOverlay
         visible={isSearchVisible}
         onClose={() => setIsSearchVisible(false)}
       />
 
-      {/* ✅ NAVIGATOR */}
+      {/*  NAVIGATOR */}
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home">
+        <Stack.Screen name="HomeTab">
           {props => (
             <BottomTabs
               {...props}
@@ -48,7 +53,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Subscription" component={SubscriptionPage} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="SignIn" component={SignInScreen} />
-        <Stack.Screen name="MagazinesScreen" component={MagazinesScreen} />
+        {/* <Stack.Screen name="MagazinesScreen" component={MagazinesScreen} /> */}
         <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
         <Stack.Screen name="CategoryScreen" component={CategoryScreen} />
         <Stack.Screen name="AuthorScreen" component={AuthorScreen} />
@@ -61,10 +66,10 @@ const AppNavigator = () => {
           options={{ title: 'Editorial Profile' }}
         />
       </Stack.Navigator>
-      <SearchOverlay
-        visible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
-      />
+
+      {/*  REGISTER POPUP (Now safe from crashing) */}
+      <RegisterPopup />
+      
     </NavigationContainer>
   );
 };

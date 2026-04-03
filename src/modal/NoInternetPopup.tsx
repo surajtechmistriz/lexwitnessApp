@@ -21,7 +21,7 @@ const NoInternetPopup = () => {
       useNativeDriver: true,
       friction: 8,
     }).start();
-  }, [isConnected]);
+  }, [isConnected, slideAnim]);
 
   return (
     <Animated.View 

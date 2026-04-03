@@ -86,7 +86,7 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
 
       <TouchableOpacity 
         style={styles.button}
-        onPress={() => navigation.navigate("MagazinesScreen")}
+        onPress={() => navigation.navigate("MagazinesTab")}
       >
         <Text style={styles.buttonText}>VIEW ALL EDITIONS</Text>
       </TouchableOpacity>

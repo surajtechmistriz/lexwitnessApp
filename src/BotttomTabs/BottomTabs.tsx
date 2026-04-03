@@ -78,7 +78,7 @@ const BottomTabs = ({ onSearchPress }: any) => {
           return <Ionicons name={iconName} size={22} color={color} />;
         },
       })}
-      // ✅ ANIMATED TAB BAR
+      //  ANIMATED TAB BAR
       tabBar={props => (
         <Animated.View
           style={{

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import Banner from '../common/DynamicBanner';
+import RegisterPopup from '../../modal/RegisterPopup';
 
 // Add renderFilter to the props interface
 interface MainLayoutProps {
@@ -18,6 +19,7 @@ const MainLayout = ({ children, title, renderFilter, showFilter = true }: MainLa
 
       <View style={styles.content}>
         {children}
+        <RegisterPopup />
       </View>
     </SafeAreaView>
   );

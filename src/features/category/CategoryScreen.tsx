@@ -24,7 +24,7 @@ import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import MainLayout from '../../components/layout/MainLayout';
-import ArticleSkeleton from '../../components/common/ArticleSkeleton';
+import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -205,6 +205,9 @@ const styles = StyleSheet.create({
     minHeight: SCREEN_HEIGHT * 0.6,
   },
 
+    skeletonListWrapper: {
+    // paddingHorizontal: 05,
+  },
 
 
   footerContainer: { marginTop: 20, width: '100%' },

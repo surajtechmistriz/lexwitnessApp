@@ -22,7 +22,7 @@ import Banner from '../../components/common/DynamicBanner';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
-import ArticleSkeleton from '../../components/common/ArticleSkeleton'; // IMPORT SKELETON
+import ArticleSkeleton from '../../skeleton/ArticleSkeleton'; // IMPORT SKELETON
 import { getAuthorBySlug } from './api/authorarticle';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
