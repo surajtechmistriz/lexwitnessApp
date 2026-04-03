@@ -1,38 +1,79 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 
 const NoInternetPopup = () => {
-  const [isConnected, setIsConnected] = useState(true);
-  const slideAnim = useRef(new Animated.Value(100)).current; // Start off-screen (bottom)
+  const [status, setStatus] = useState<'online' | 'offline'>('online');
+
+  const translateY = useRef(new Animated.Value(100)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      setIsConnected(state.isConnected ?? true);
+      const connected = state.isConnected ?? true;
+
+      if (!connected) {
+        setStatus('offline');
+        showToast();
+      } else {
+        setStatus('online');
+        showToast();
+
+        // Auto hide after 2 sec when back online
+        setTimeout(hideToast, 2000);
+      }
     });
 
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    // Animate in when disconnected, animate out when reconnected
-    Animated.spring(slideAnim, {
-      toValue: isConnected ? 100 : 0, // 0 is the "visible" resting position
-      useNativeDriver: true,
-      friction: 8,
-    }).start();
-  }, [isConnected, slideAnim]);
+  const showToast = () => {
+    Animated.parallel([
+      Animated.spring(translateY, {
+        toValue: 0,
+        useNativeDriver: true,
+        friction: 7,
+      }),
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const hideToast = () => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: 100,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const isOffline = status === 'offline';
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
-        styles.container, 
-        { transform: [{ translateY: slideAnim }] }
+        styles.container,
+        {
+          transform: [{ translateY }],
+          opacity,
+        },
       ]}
     >
-      <View style={styles.toast}>
-        <View style={styles.indicator} />
-        <Text style={styles.text}>No Internet Connection</Text>
+      <View style={[styles.toast, isOffline ? styles.offline : styles.online]}>
+        <View style={[styles.dot, isOffline ? styles.dotOffline : styles.dotOnline]} />
+        <Text style={styles.text}>
+          {isOffline ? 'No Internet Connection' : 'Back Online'}
+        </Text>
       </View>
     </Animated.View>
   );
@@ -41,7 +82,7 @@ const NoInternetPopup = () => {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 40, // Distance from the bottom of the screen
+    top: 80,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -50,29 +91,47 @@ const styles = StyleSheet.create({
   toast: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f1f1f', // Dark "Sonner" aesthetic
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 16,
     width: '90%',
-    maxWidth: 400,
+    maxWidth: 420,
+
+    // Glassy modern look
+    backgroundColor: 'rgba(30,30,30,0.9)',
+    backdropFilter: 'blur(10px)', // ignored on RN but ok
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 10,
   },
-  indicator: {
+  offline: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#ff3b30',
+  },
+  online: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#34c759',
+  },
+  dot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#c9060a', // Red dot
     marginRight: 12,
+  },
+  dotOffline: {
+    backgroundColor: '#ff3b30',
+  },
+  dotOnline: {
+    backgroundColor: '#34c759',
   },
   text: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });
 

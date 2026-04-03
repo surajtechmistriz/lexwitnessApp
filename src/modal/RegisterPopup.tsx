@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, Modal, TextInput, TouchableOpacity, 
-  StyleSheet, KeyboardAvoidingView, Platform, Alert, 
-  DeviceEventEmitter
+  StyleSheet, KeyboardAvoidingView, Platform, Alert 
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigationRef } from '../navigation/AppNavigator'; 
+import { useAuth } from '../context/AuthContext';
+import NetInfo from '@react-native-community/netinfo';
 
 const RegisterPopup = () => {
   const [visible, setVisible] = useState(false);
-  
-  // 1. Initial state setup
+  const [isConnected, setIsConnected] = useState(true);
+
+  const { isLoggedIn, login } = useAuth();
+
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -18,52 +20,58 @@ const RegisterPopup = () => {
     phone: "",
   });
 
+  // ✅ Network listener
   useEffect(() => {
-    checkStatus();
-    const unsubscribe = navigationRef.addListener('state', () => {
-      checkStatus();
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected ?? true);
     });
+
     return unsubscribe;
   }, []);
 
-  const checkStatus = async () => {
-    if (!navigationRef.isReady()) return;
-    try {
+  // ✅ Main logic (single source)
+  useEffect(() => {
+    const checkStatus = () => {
+      if (!navigationRef.isReady()) return;
+
       const currentRouteName = navigationRef.getCurrentRoute()?.name;
       const authScreens = ['SignIn', 'Register', 'Subscription'];
-      
+
+      // ❌ Hide on auth screens
       if (currentRouteName && authScreens.includes(currentRouteName)) {
         setVisible(false);
         return;
       }
 
-      const isFirst = await AsyncStorage.getItem('alreadyLaunched');
-      const userToken = await AsyncStorage.getItem('userToken');
-
-      if (isFirst === null && !userToken) {
-        setVisible(true);
-      } else {
+      // 🔥 Priority: No internet → hide register popup
+      if (!isConnected) {
         setVisible(false);
+        return;
       }
-    } catch (e) {
-      console.log('Status check error:', e);
-    }
-  };
+
+      // ✅ Show only if not logged in
+      setVisible(!isLoggedIn);
+    };
+
+    checkStatus();
+
+    const unsubscribeNav = navigationRef.addListener('state', checkStatus);
+
+    return unsubscribeNav;
+  }, [isLoggedIn, isConnected]); // 🔥 correct dependencies
 
   const handleRegister = async () => {
-    if (!form.firstName || !form.lastName || !form.email || !form.phone) {
+    const { firstName, lastName, email, phone } = form;
+
+    if (!firstName || !lastName || !email || !phone) {
       Alert.alert("Required", "Please fill in all details to register.");
       return;
     }
 
-    await AsyncStorage.setItem('alreadyLaunched', 'true');
-  await AsyncStorage.setItem('userData', JSON.stringify(form));
-  await AsyncStorage.setItem('userToken', 'some_token');
+    await login(form);
 
-  DeviceEventEmitter.emit('AUTH_CHANGE');
-  
     setVisible(false);
-    
+
     if (navigationRef.isReady()) {
       navigationRef.navigate('Subscription' as never);
     }
@@ -87,20 +95,19 @@ const RegisterPopup = () => {
           <Text style={styles.subtitle}>Fill your details to register</Text>
 
           <View style={styles.form}>
-            {/* 2. Added 'value' prop to ensure text is visible while typing */}
             <TextInput
               style={styles.input}
               placeholder="First Name"
               placeholderTextColor="#999"
-              value={form.firstName} 
-              onChangeText={(v) => setForm({...form, firstName: v})}
+              value={form.firstName}
+              onChangeText={(v) => setForm({ ...form, firstName: v })}
             />
             <TextInput
               style={styles.input}
               placeholder="Last Name"
               placeholderTextColor="#999"
               value={form.lastName}
-              onChangeText={(v) => setForm({...form, lastName: v})}
+              onChangeText={(v) => setForm({ ...form, lastName: v })}
             />
             <TextInput
               style={styles.input}
@@ -109,7 +116,7 @@ const RegisterPopup = () => {
               keyboardType="email-address"
               autoCapitalize="none"
               value={form.email}
-              onChangeText={(v) => setForm({...form, email: v})}
+              onChangeText={(v) => setForm({ ...form, email: v })}
             />
             <TextInput
               style={styles.input}
@@ -117,7 +124,7 @@ const RegisterPopup = () => {
               placeholderTextColor="#999"
               keyboardType="phone-pad"
               value={form.phone}
-              onChangeText={(v) => setForm({...form, phone: v})}
+              onChangeText={(v) => setForm({ ...form, phone: v })}
             />
 
             <TouchableOpacity style={styles.button} onPress={handleRegister}>
@@ -136,6 +143,7 @@ const RegisterPopup = () => {
     </Modal>
   );
 };
+
 
 const styles = StyleSheet.create({
   overlay: {

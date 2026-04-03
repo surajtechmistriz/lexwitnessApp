@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import Config from 'react-native-config';
+import NetInfo from '@react-native-community/netinfo'; // Import NetInfo
 
 // Components
 import HeroCard from './components/HeroCard';
@@ -16,7 +17,6 @@ import EditorialCard from './components/Editorial';
 // API
 import { getHeroPost } from '../../services/api/heroCard';
 import { getEditorPick } from '../../services/api/editorpicks';
-import Footer from '../../components/common/Footer';
 import HomeSkeleton from '../../skeleton/HomeSkeleton';
 
 const { width } = Dimensions.get('window');
@@ -27,10 +27,28 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
   const [editorPicks, setEditorPicks] = useState<any[]>([]);
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState<boolean | null>(true);
+  
   const lastOffset = useRef(0);
 
+  // 1. Listen for Network Changes
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsConnected(state.isConnected);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 2. Fetch Data (Triggers on mount AND when isConnected changes to true)
   useEffect(() => {
     const fetchData = async () => {
+      // If we know we are offline, show skeleton and don't even try the API
+      if (isConnected === false) {
+        setLoading(true);
+        return;
+      }
+
+      setLoading(true);
       try {
         const [heroRes, editorRes] = await Promise.all([
           getHeroPost(),
@@ -44,8 +62,9 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, [isConnected]); // Re-run when connection status changes
 
   const sliderData = useMemo(() => articles?.slice(0, 3) || [], [articles]);
   const remainingCards = useMemo(() => articles?.slice(3) || [], [articles]);
@@ -58,8 +77,9 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
 
   const getImage = (img: string) => `${IMAGE_BASE_URL}/${img}`;
 
-  if (loading) {
-    return  <HomeSkeleton />;
+  // 3. Show Skeleton if loading OR if there's no internet
+  if (loading || isConnected === false) {
+    return <HomeSkeleton />;
   }
 
   return (
@@ -82,16 +102,14 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
           lastOffset.current = currentOffset;
         }}
       >
-        {/* ================= HERO CAROUSEL ================= */}
         <View style={styles.carouselWrapper}>
           <Carousel
             loop
             width={width - 24}
             height={280}
             autoPlay={true}
-            autoPlayInterval={1000} // Set to 3s for better UX
+            autoPlayInterval={3000} 
             data={sliderData}
-            // FIX: Prevents vertical scroll interference
             panGestureHandlerProps={{
               activeOffsetX: [-10, 10],
             }}
@@ -108,61 +126,36 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
           />
         </View>
 
-        {/* ================= LIST SECTION ================= */}
-        {/* <View style={styles.listContainer}>
-          {remainingCards.map((item, index) => (
+        <View style={styles.gridContainer}>
+          {remainingCards.map((item) => (
             <ListCard
-              key={item.id || index}
+              key={item.id}
               category={item?.category}
               title={item.title}
               date={formatDate(item)}
-              isLast={index === remainingCards.length - 1}
+              image={getImage(item.image)}
               slug={item.slug}
             />
           ))}
-        </View> */}
+        </View>
 
- {/* 2x2 Grid Container */}
-<View style={styles.gridContainer}>
-  {remainingCards.map((item) => (
-    <ListCard
-      key={item.id}
-      category={item?.category}
-      title={item.title}
-      date={formatDate(item)}
-      image={getImage(item.image)}
-      slug={item.slug}
-    />
-  ))}
-</View>
-
-
-
-
-
-        {/* ================= ADVERTISEMENT ================= */}
         <View style={styles.graySectionWrapper}>
           <HomeAdvertisement />
         </View>
 
-        {/* ================= EDITOR PICKS (Horizontal) ================= */}
         <EditorPicksSection data={editorPicks} getImage={getImage} />
 
         <HomeBanner />
 
-        {/* ================= LATEST EDITION ================= */}
         <View style={styles.fullWidth}>
           <LatestEdition onData={setLatestEditionData} />
         </View>
 
         <EditorialCard />
 
-        {/* ================= LATEST 5 EDITIONS (Horizontal) ================= */}
         <View style={styles.fullWidth}>
           <LatestEditions skipId={latestEditionData?.magazine?.id} />
         </View>
-        
-        {/* <Footer /> */}
       </ScrollView>
     </View>
   );
@@ -171,30 +164,15 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#ffffff' },
   scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 20 },
-  carouselWrapper: {
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  listContainer: {
-    borderWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fff',
-    marginBottom: 20,
-  },
+  carouselWrapper: { marginBottom: 20, alignItems: 'center' },
   fullWidth: { marginHorizontal: -12 },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingTop: 20,
+    backgroundColor: '#fff',
   },
-gridContainer: {
-  flexDirection: 'row',
-  flexWrap: 'wrap',
-  justifyContent: 'space-between',
-  // Remove paddingHorizontal here because scrollContent already has it
-  paddingTop: 20,
-  backgroundColor: '#fff',
-},
   graySectionWrapper: {
     backgroundColor: '#f8f8f8',
     paddingVertical: 30,
@@ -202,7 +180,7 @@ gridContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
-    marginHorizontal: -12, // Stretch to edges
+    marginHorizontal: -12,
   },
 });
 
