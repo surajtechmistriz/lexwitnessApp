@@ -112,7 +112,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
         </View>
 
         {/* ================= LIST SECTION ================= */}
-        <View style={styles.listContainer}>
+        {/* <View style={styles.listContainer}>
           {remainingCards.map((item, index) => (
             <ListCard
               key={item.id || index}
@@ -123,7 +123,25 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
               slug={item.slug}
             />
           ))}
-        </View>
+        </View> */}
+
+ {/* 2x2 Grid Container */}
+<View style={styles.gridContainer}>
+  {remainingCards.map((item) => (
+    <ListCard
+      key={item.id}
+      category={item?.category}
+      title={item.title}
+      date={formatDate(item)}
+      image={getImage(item.image)}
+      slug={item.slug}
+    />
+  ))}
+</View>
+
+
+
+
 
         {/* ================= ADVERTISEMENT ================= */}
         <View style={styles.graySectionWrapper}>
@@ -172,6 +190,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+gridContainer: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  // Remove paddingHorizontal here because scrollContent already has it
+  paddingTop: 20,
+  backgroundColor: '#fff',
+},
   graySectionWrapper: {
     backgroundColor: '#f8f8f8',
     paddingVertical: 30,
