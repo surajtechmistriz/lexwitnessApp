@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Image, Text, Modal, Pressable } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/AppNavigator';
 import DrawerUI from './Drawer';
 import { getMenu } from '../../services/api/category';
+import { useAuth } from '../../context/AuthContext';
 
 type HeaderProps = {
   onSearchPress: () => void;
@@ -14,29 +13,20 @@ type HeaderProps = {
 
 const Header = ({ onSearchPress }: HeaderProps) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  
+  const { isLoggedIn, userData, logout } = useAuth();
 
   const [categories, setCategories] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   
   // Auth States
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // const [userData, setUserData] = useState<any>(null);
   const [menuVisible, setMenuVisible] = useState(false);
 
   useEffect(() => {
-    checkAuth();
     fetchCategories();
   }, []);
-
-  const checkAuth = async () => {
-    const data = await AsyncStorage.getItem('userData');
-    if (data) {
-      setIsLoggedIn(true);
-      setUserData(JSON.parse(data));
-    } else {
-      setIsLoggedIn(false);
-    }
-  };
 
   const fetchCategories = async () => {
     try {
@@ -47,13 +37,18 @@ const Header = ({ onSearchPress }: HeaderProps) => {
     }
   };
 
-  const handleLogout = async () => {
-    await AsyncStorage.removeItem('userData');
-    await AsyncStorage.removeItem('userToken'); // remove token too if you use one
-    setIsLoggedIn(false);
-    setMenuVisible(false);
-    navigation.navigate('HomeTab');
-  };
+
+const handleLogout = async () => {
+   console.log('🔴 Logout button clicked');
+
+  await logout(); //  centralized
+
+    console.log('✅ Logout completed');
+
+  setMenuVisible(false);
+  navigation.navigate('HomeTab');
+};
+
 
   const getInitials = () => {
     if (!userData?.firstName) return 'U';
@@ -83,49 +78,75 @@ const Header = ({ onSearchPress }: HeaderProps) => {
 
         {/* RIGHT CONTENT (CONDITIONAL) */}
       <View style={styles.right}>
-  {isLoggedIn ? (
-    <View>
-      <TouchableOpacity 
-        style={styles.avatarCircle} 
-        onPress={() => setMenuVisible(!menuVisible)}
-      >
-        <Text style={styles.avatarText}>{getInitials()}</Text>
-      </TouchableOpacity>
+ {isLoggedIn ? (
+  <View>
+    <TouchableOpacity 
+      style={styles.avatarCircle} 
+      onPress={() => setMenuVisible(!menuVisible)}
+    >
+      <Text style={styles.avatarText}>{getInitials()}</Text>
+    </TouchableOpacity>
 
-      {/* DROPDOWN MENU */}
-      {menuVisible && (
+    {menuVisible && (
+      <>
+        {/* 👇 BACKDROP FIRST */}
+        <Pressable 
+          style={styles.invisibleClose} 
+          onPress={() => setMenuVisible(false)} 
+        />
+
+        {/* 👇 DROPDOWN AFTER (so it's on top) */}
         <View style={styles.dropdown}>
-          {/*  USER INFO SECTION AT TOP */}
+          
           <View style={styles.userInfoHeader}>
             <Text style={styles.userNameText} numberOfLines={1}>
               {userData?.firstName} {userData?.lastName}
             </Text>
             {userData?.email && (
-               <Text style={styles.userEmailText} numberOfLines={1}>
-                 {userData.email}
-               </Text>
+              <Text style={styles.userEmailText} numberOfLines={1}>
+                {userData.email}
+              </Text>
             )}
           </View>
-          
+
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); navigation.navigate('Subscription'); }}>
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => { 
+              setMenuVisible(false); 
+              navigation.navigate('Subscription'); 
+            }}
+          >
             <Text style={styles.menuText}>My Plan</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem} onPress={() => { setMenuVisible(false); /* navigation.navigate('Profile'); */ }}>
+
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => setMenuVisible(false)}
+          >
             <Text style={styles.menuText}>Profile</Text>
           </TouchableOpacity>
-          
+
           <View style={styles.divider} />
-          
-          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
-            <Text style={[styles.menuText, { color: '#c9060a' }]}>Logout</Text>
+
+          <TouchableOpacity 
+            style={styles.menuItem} 
+            onPress={() => {
+              console.log('🔥 Logout pressed'); // DEBUG
+              handleLogout();
+            }}
+          >
+            <Text style={[styles.menuText, { color: '#c9060a' }]}>
+              Logout
+            </Text>
           </TouchableOpacity>
+
         </View>
-      )}
-    </View>
-  ) :  (
+      </>
+    )}
+  </View>
+) : (
             <View style={styles.rightIcons}>
               <TouchableOpacity onPress={() => navigation.navigate('Subscription')}>
                 <Entypo name="text-document" size={18} color="black" />
@@ -253,7 +274,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    zIndex: 105, // Sit just below dropdown, above header
+    zIndex: 1, // Sit just below dropdown, above header
   },
   userInfoHeader: {
     paddingHorizontal: 15,
@@ -280,13 +301,15 @@ const styles = StyleSheet.create({
     width: 180, // Slightly wider to accommodate full name
     borderRadius: 8,
     paddingVertical: 0, // Changed to 0 so header touches the top
-    elevation: 5,
+    // elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     borderWidth: 1,
     borderColor: '#f0f0f0',
+     zIndex: 999, 
+  elevation: 10,
   },
 
 });
