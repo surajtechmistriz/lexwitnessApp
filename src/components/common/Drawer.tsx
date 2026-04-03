@@ -44,9 +44,7 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose, navigation }) => {
       {/* HEADER */}
       <View style={styles.header}>
         <Image
-          source={{
-            uri: 'https://lexwitness.com/wp-content/themes/lexwitness/images/favicon.png',
-          }}
+         source={require('../../assets/drawer.png')}
           style={styles.logo}
         />
 

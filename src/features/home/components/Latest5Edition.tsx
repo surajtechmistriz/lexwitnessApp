@@ -15,10 +15,7 @@ import Carousel, { Pagination } from 'react-native-reanimated-carousel';
 import { useSharedValue } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
-
-// We use 0.47 to show 2 items + a tiny "peek" of the 3rd one
 const ITEM_WIDTH = width * 0.47; 
-
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
 const LatestEditions = ({ skipId }: { skipId?: number }) => {
@@ -42,7 +39,7 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
     if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  if (loading) return <ActivityIndicator style={{ margin: 50 }} color="#d32f2f" />;
+  if (loading) return <ActivityIndicator style={styles.loader} color="#d32f2f" />;
   if (editions.length === 0) return null;
 
   return (
@@ -56,12 +53,15 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
         height={320}
         style={{ width: width }}
         data={editions}
-        onProgressChange={(_, absoluteProgress) =>
-          (progressValue.value = absoluteProgress)
-        }
+        /* FIX: Prevents the whole page from scrolling vertically when swiping horizontally */
+        panGestureHandlerProps={{
+          activeOffsetX: [-10, 10],
+        }}
+        onProgressChange={(_, absoluteProgress) => (progressValue.value = absoluteProgress)}
         renderItem={({ item }) => (
           <TouchableOpacity 
             style={styles.card}
+            activeOpacity={0.9}
             onPress={() => navigation.navigate("MagazineDetail", { slug: item.slug })}
           >
             <Image 
@@ -76,16 +76,13 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
         )}
       />
 
-      {/* FIXED PAGINATION: Removed the .map loop */}
-      {editions.length > 0 && (
-        <Pagination.Basic
-          progress={progressValue}
-          data={editions}
-          dotStyle={styles.dot}
-          activeDotStyle={styles.activeDot}
-          containerStyle={styles.paginationContainer}
-        />
-      )}
+      <Pagination.Basic
+        progress={progressValue}
+        data={editions}
+        dotStyle={styles.dot}
+        activeDotStyle={styles.activeDot}
+        containerStyle={styles.paginationContainer}
+      />
 
       <TouchableOpacity 
         style={styles.button}
@@ -99,8 +96,16 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
 
 const styles = StyleSheet.create({
   container: { backgroundColor: '#fff', paddingVertical: 20 },
+  loader: { margin: 50 },
   headerTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', color: '#1a2a3a' },
-  underline: { height: 3, width: 35, backgroundColor: '#d32f2f', alignSelf: 'center', marginTop: 6, marginBottom: 20 },
+  underline: { 
+    height: 3, 
+    width: 35, 
+    backgroundColor: '#d32f2f', 
+    alignSelf: 'center', 
+    marginTop: 6, 
+    marginBottom: 20 
+  },
   card: {
     width: ITEM_WIDTH - 15, 
     marginHorizontal: 7.5,
@@ -118,29 +123,28 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     marginTop: 20,
-    marginBottom: 20
+    marginBottom: 10
   },
   buttonText: { color: '#fff', fontWeight: 'bold' },
-  paginationContainer: {
+  paginationContainer: { 
     flexDirection: 'row',
-    width: '100%',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 15,
+    gap: 5, 
+    marginBottom: 25,
+    marginTop: -10, // Adjusted to match your desired spacing
+    justifyContent: 'center' 
   },
-  dot: {
-    backgroundColor: 'rgba(0,0,0,0.15)',
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop:-30
+  dot: { 
+    backgroundColor: '#e0e0e0', 
+    width: 12, 
+    height: 4, 
+    borderRadius: 2 
   },
-  activeDot: {
-    backgroundColor: '#d32f2f',
-    width: 20, // Makes the active dot a "pill" shape so it stands out
-    height: 8,
-    borderRadius: 4,
-  }
+  activeDot: { 
+    backgroundColor: '#d32f2f', 
+    width: 35, 
+    height: 4, 
+    borderRadius: 2 
+  },
 });
 
 export default LatestEditions;

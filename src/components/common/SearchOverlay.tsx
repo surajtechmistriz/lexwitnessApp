@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   Modal,
   View,
@@ -9,6 +9,7 @@ import {
   Keyboard,
   Platform,
   BackHandler,
+  Animated, // 1. Import Animated
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
@@ -24,11 +25,15 @@ type Category = { id: number; name: string };
 
 type Props = {
   visible: boolean;
-  onClose?: () => void; // ✅ made optional (safe)
+  onClose?: () => void;
 };
 
 const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  
+  // 2. Animation Values
+  const fadeAnim = useRef(new Animated.Value(0)).current; 
+  const scaleAnim = useRef(new Animated.Value(0.8)).current; 
 
   const [searchText, setSearchText] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('');
@@ -38,10 +43,43 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const [years, setYears] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
-
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  // ================= FETCH DATA =================
+  // 3. Trigger Animation on visibility change
+  useEffect(() => {
+    if (visible) {
+      // Opening: Fade in and Scale to 1
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      // Closing: Fade out and Scale back down
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.8,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [visible]);
+
+  // Fetch Data logic remains same...
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -60,22 +98,13 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     fetchData();
   }, []);
 
-  // ================= KEYBOARD =================
+  // Keyboard and BackHandler logic remains same...
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () =>
-      setKeyboardVisible(true)
-    );
-    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
-      setKeyboardVisible(false)
-    );
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { showSub.remove(); hideSub.remove(); };
   }, []);
 
-  // ================= BACK BUTTON =================
   useEffect(() => {
     const backAction = () => {
       if (visible) {
@@ -84,28 +113,17 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
       }
       return false;
     };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
     return () => backHandler.remove();
   }, [visible]);
 
-  // ================= SEARCH =================
   const handleSearch = () => {
     const params: any = { page: 1 };
-
     if (searchText.trim()) {
       params.search = searchText.trim();
       params.mode = 'search';
-
-      if (/^\d{4}$/.test(searchText.trim())) {
-        params.year = searchText.trim();
-      }
+      if (/^\d{4}$/.test(searchText.trim())) params.year = searchText.trim();
     }
-
     if (selectedYear) params.year = selectedYear;
     if (selectedCategory) params.category_id = selectedCategory;
     if (selectedAuthor) params.author_id = selectedAuthor;
@@ -114,18 +132,16 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     navigation.navigate('Archive', params);
   };
 
-  // ================= UI =================
   return (
     <Modal
       visible={visible}
-      animationType="fade"
       transparent
       statusBarTranslucent
       onRequestClose={() => onClose && onClose()}
     >
-      <View style={styles.overlayContainer}>
+      {/* 4. Use Animated.View for the Overlay Background */}
+      <Animated.View style={[styles.overlayContainer, { opacity: fadeAnim }]}>
         
-        {/* BACKGROUND CLICK */}
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
@@ -135,9 +151,13 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
           }}
         />
 
-        {/* CONTENT */}
-        <View style={styles.contentWrapper}>
-          
+        {/* 5. Use Animated.View for Content Scaling */}
+        <Animated.View 
+            style={[
+                styles.contentWrapper, 
+                { transform: [{ scale: scaleAnim }] }
+            ]}
+        >
           {!keyboardVisible && (
             <TouchableOpacity
               style={styles.closeButton}
@@ -148,7 +168,6 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
           )}
 
           <View style={styles.formContainer}>
-            {/* SEARCH INPUT */}
             <View style={styles.searchBar}>
               <TextInput
                 style={styles.input}
@@ -165,7 +184,6 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 
             <Text style={styles.orText}>or</Text>
 
-            {/* YEAR */}
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={selectedYear}
@@ -180,7 +198,6 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               </Picker>
             </View>
 
-            {/* CATEGORY */}
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={selectedCategory}
@@ -195,7 +212,6 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               </Picker>
             </View>
 
-            {/* AUTHOR */}
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={selectedAuthor}
@@ -210,22 +226,20 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               </Picker>
             </View>
 
-            {/* BUTTON */}
             <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
               <Text style={styles.searchBtnText}>SEARCH</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 };
 
-// ================= STYLES =================
 const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
-    backgroundColor: 'rgba(38,37,37,0.95)',
+    backgroundColor: 'rgba(38,37,37,0.98)', // Slightly darker for focus
     justifyContent: 'center',
     padding: 20,
   },
@@ -235,8 +249,8 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
-    right: 20,
+    top: Platform.OS === 'ios' ? 40 : 20, // Adjusted for internal wrapper
+    right: 0,
     zIndex: 10,
   },
   formContainer: {

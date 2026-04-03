@@ -43,7 +43,7 @@ const BottomTabs = ({ onSearchPress }: any) => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#000',
+        tabBarActiveTintColor: '#c9060a',
         tabBarInactiveTintColor: '#999',
 
         tabBarStyle: {
