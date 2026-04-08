@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import Menubar from '../../components/common/Menubar';
 import { RootStackParamList } from '../../navigation/AppNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Footer from '../../components/common/Footer';
+import { useTabBar } from '../../BotttomTabs/TabBarContext';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -24,6 +25,28 @@ const imgUrl2 = Config.POSTS_BASE_URL;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function MagazineDetailScreen() {
+
+    const lastOffset = useRef(0);
+    const { hideTabBar, showTabBar } = useTabBar();
+  
+  const scrollOffset = useRef(0);
+  
+  const handleScroll = (event: any) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    const diff = currentOffset - scrollOffset.current;
+  
+    if (currentOffset <= 0) {
+      showTabBar();
+    } else if (diff > 10) {
+      hideTabBar();
+    } else if (diff < -10) {
+      showTabBar();
+    }
+  
+    scrollOffset.current = currentOffset;
+  };
+
+
   const route = useRoute<any>();
   const { slug } = route.params;
 
@@ -69,7 +92,8 @@ export default function MagazineDetailScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false}  onScroll={handleScroll}
+  scrollEventThrottle={16}>
 
         {/* COVER */}
         <View style={styles.wrapper}>
@@ -140,7 +164,10 @@ export default function MagazineDetailScreen() {
         </View>
 
         {/* MORE EDITIONS */}
+        <View style={{marginBottom:60}}>
+
         {magazine?.id && <LatestEditions skipId={magazine.id} />}
+        </View>
 
         {/* <Footer /> */}
       </ScrollView>

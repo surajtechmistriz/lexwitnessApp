@@ -49,7 +49,7 @@ const SignInScreen = () => {
       await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
 
       // Redirect to Home
-      navigation.replace("HomeTab"); 
+      navigation.replace("Home"); 
     } catch (err: any) {
       setError(err?.message || "Login failed");
       Alert.alert("Error", err?.message || "Login failed");
@@ -145,7 +145,7 @@ const SignInScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20, alignItems: 'center' , paddingTop:80, paddingBottom:140},
+  content: { padding: 20, alignItems: 'center' , paddingTop:40, paddingBottom:140},
   header: { fontSize: 22, fontWeight: 'bold', letterSpacing: 1 },
   subText: { textAlign: 'center', fontSize: 13, color: '#333', marginVertical: 10, paddingHorizontal: 10 },
   redDivider: { width: 45, height: 4, backgroundColor: '#c9060a', marginBottom: 25 },

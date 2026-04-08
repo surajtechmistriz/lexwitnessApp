@@ -29,14 +29,14 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const navigation = useNavigation<NavigationProp>();
-  
+
   // 2. Add a ref to track the last scroll position
   const scrollOffset = useRef(0);
 
   // 3. Create the handleScroll function
   const handleScroll = (event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
-    
+
     // Check if user scrolled down or up
     const dif = currentOffset - scrollOffset.current;
 
@@ -114,7 +114,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('MagazineDetail', { slug: item.slug })}
+      onPress={() => navigation.navigate('MagazineDetail', { slug: item?.slug })}
     >
       <View style={styles.imageWrapper}>
         <Image
@@ -135,9 +135,10 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   );
 
   return (
-   <MainLayout 
+    <MainLayout
       title="Magazines"
-      renderFilter={(close) => (
+       routeName="MagazineScreen" 
+      renderFilter={close => (
         <YearFilter
           years={years}
           selectedYear={tempSelectedYear}
@@ -153,7 +154,11 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     >
       <View style={styles.container}>
         {loading ? (
-          <ActivityIndicator size="large" color="#c9060a" style={{ marginTop: 50 }} />
+          <ActivityIndicator
+            size="large"
+            color="#c9060a"
+            style={{ marginTop: 50 }}
+          />
         ) : (
           <FlatList
             data={magazines}
@@ -163,11 +168,9 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
             columnWrapperStyle={styles.columnWrapper}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.flatListContent}
-            
             // 4. Attach the scroll listener here
             onScroll={handleScroll}
-            scrollEventThrottle={16} 
-
+            scrollEventThrottle={16}
             ListHeaderComponent={
               <View style={styles.content}>
                 <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>

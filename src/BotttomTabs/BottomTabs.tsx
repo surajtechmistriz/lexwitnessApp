@@ -10,6 +10,7 @@ import MagazinesScreen from '../features/magazines/MagazinesScreen';
 import CategoryList from '../components/common/CategoryList';
 import TabBarContext from './TabBarContext';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { MagazineStack } from './MagazineStack';
 
 const Tab = createBottomTabNavigator();
 
@@ -66,7 +67,7 @@ const BottomTabs = () => {
       focused && !isInnerScreen ? 'home' : 'home-outline';
   } else if (route.name === 'CategoriesTab') {
     iconName = focused ? 'grid' : 'grid-outline';
-  } else if (route.name === 'MagazinesTab') {
+  } else if (route.name === 'MagazineScreen') {
     iconName = focused ? 'book' : 'book-outline';
   } else if (route.name === 'ProfileTab') {
     iconName = focused ? 'person' : 'person-outline';
@@ -81,7 +82,7 @@ const BottomTabs = () => {
         </Animated.View>
       )}
     >
-      {/* ✅ Stack inside tab */}
+      {/*  Stack inside tab */}
       <Tab.Screen name="HomeTab" options={{ title: 'Home' }}>
         {(props) => (
           <MainStack
@@ -98,15 +99,15 @@ const BottomTabs = () => {
         options={{ title: 'Categories' }}
       />
 
-      <Tab.Screen name="MagazinesTab" options={{ title: 'Magazines' }}>
-        {(props) => (
-          <MagazinesScreen
-            {...props}
-            onScrollDown={hideTabBar}
-            onScrollUp={showTabBar}
-          />
-        )}
-      </Tab.Screen>
+      <Tab.Screen name="MagazineScreen" options={{ title: 'Magazines' }}>
+  {(props) => (
+    <MagazineStack
+      {...props}
+      onScrollDown={hideTabBar}
+      onScrollUp={showTabBar}
+    />
+  )}
+</Tab.Screen>
 
       <Tab.Screen
         name="ProfileTab"

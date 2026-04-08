@@ -13,6 +13,14 @@ const RegisterPopup = () => {
 
   const { isLoggedIn, login } = useAuth();
 
+  // Initial form state
+  const initialFormState = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+  };
+  
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -20,7 +28,14 @@ const RegisterPopup = () => {
     phone: "",
   });
 
-  // ✅ Network listener
+  //  Clear form when user logs out
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setForm(initialFormState);
+    }
+  }, [isLoggedIn]);
+
+  // Network listener
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected ?? true);
@@ -29,7 +44,7 @@ const RegisterPopup = () => {
     return unsubscribe;
   }, []);
 
-  // ✅ Main logic (single source)
+  // Main logic (single source)
   useEffect(() => {
     const checkStatus = () => {
       if (!navigationRef.isReady()) return;
@@ -37,19 +52,19 @@ const RegisterPopup = () => {
       const currentRouteName = navigationRef.getCurrentRoute()?.name;
       const authScreens = ['SignIn', 'Register', 'Subscription'];
 
-      // ❌ Hide on auth screens
+      //  Hide on auth screens
       if (currentRouteName && authScreens.includes(currentRouteName)) {
         setVisible(false);
         return;
       }
 
-      // 🔥 Priority: No internet → hide register popup
+      //  Priority: No internet → hide register popup
       if (!isConnected) {
         setVisible(false);
         return;
       }
 
-      // ✅ Show only if not logged in
+      //  Show only if not logged in
       setVisible(!isLoggedIn);
     };
 
@@ -77,12 +92,13 @@ const RegisterPopup = () => {
     }
   };
 
-  const handleGoToSignIn = () => {
-    setVisible(false);
-    if (navigationRef.isReady()) {
-      navigationRef.navigate('SignIn' as never);
-    }
-  };
+ const handleGoToSignIn = () => {
+  setVisible(false);
+  if (navigationRef.isReady()) {
+    // Navigate globally to the SignIn screen inside the HomeTab stack
+    navigationRef.navigate('HomeTab', { screen: 'SignIn' });
+  }
+};
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>

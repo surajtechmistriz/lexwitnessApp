@@ -98,10 +98,10 @@ const styles = StyleSheet.create({
     maxWidth: 420,
 
     // Glassy modern look
-    backgroundColor: 'rgba(30,30,30,0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     backdropFilter: 'blur(10px)', // ignored on RN but ok
 
-    shadowColor: '#000',
+    shadowColor: '#ffffff',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#34c759',
   },
   text: {
-    color: '#fff',
+    color: '#c9060a',
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,

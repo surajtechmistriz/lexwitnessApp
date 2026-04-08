@@ -9,24 +9,43 @@ interface MainLayoutProps {
   children: React.ReactNode;
   title: string;
   renderFilter?: (close: () => void) => React.ReactNode; // ✅
-  showFilter?: boolean
+  showFilter?: boolean;
+    activeSlug?: string;
+      routeName?: string;
 }
 
-const MainLayout = ({ children, title, renderFilter, showFilter = true }: MainLayoutProps) => {
+const MainLayout = ({
+  children,
+  title,
+  renderFilter,
+  showFilter = true,
+  activeSlug,
+  routeName,
+}: MainLayoutProps) => {
+
+  const hiddenScreens = ['MagazineScreen', 'Subscription', 'Register']; 
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Pass renderFilter down to the Banner */}
-      <TopMenu/>
-      <Banner title={title} renderFilter={renderFilter} showFilter={showFilter}/>
+      
+     {!hiddenScreens.includes(routeName || '') && (
+  <TopMenu activeSlug={activeSlug} />
+)}
+
+      <Banner
+        title={title}
+        renderFilter={renderFilter}
+        showFilter={showFilter}
+      />
 
       <View style={styles.content}>
         {children}
         <RegisterPopup />
       </View>
+
     </SafeAreaView>
   );
 };
-
 export default MainLayout;
 
 const styles = StyleSheet.create({

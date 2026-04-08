@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
-
+import { navigationRef } from '../navigation/AppNavigator';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -42,6 +42,11 @@ console.log("logout")
   setIsLoggedIn(false);
 
   DeviceEventEmitter.emit('AUTH_CHANGE'); // trigger update
+
+  if (navigationRef.isReady()) {
+      // Navigate to the 'Home' screen inside your BottomTabs
+      navigationRef.navigate('Home');
+    }
 };
 
   return (

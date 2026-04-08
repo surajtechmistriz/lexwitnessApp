@@ -5,22 +5,19 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 // Screens
 import Register from '../features/auth/screens/Register';
 import SignInScreen from '../features/auth/screens/SignIn';
-import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
-import CategoryScreen from '../features/category/CategoryScreen';
-import ArticleDetail from '../features/article/ArticleScreen';
-import AuthorScreen from '../features/author/AuthorScreen';
-import ArchiveScreen from '../features/archive/ArchiveScreen';
 import SubscriptionPage from '../features/auth/screens/Subscription';
-import EditorialDetail from '../features/editorial/EditorialDetail';
+import MagazinesScreen from '../features/magazines/MagazinesScreen';
 
 // Components
 import Header from '../components/common/Header';
-import BottomTabs from '../BotttomTabs/BottomTabs';
 import SearchOverlay from '../components/common/SearchOverlay';
 import RegisterPopup from '../modal/RegisterPopup';
+import AppDrawer from '../components/drawer/AppDrawer';
+import CategoryScreen from '../features/category/CategoryScreen';
 
-const Stack = createNativeStackNavigator();
+// Stack definition
 export const navigationRef = createNavigationContainerRef();
+const RootStack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
@@ -28,14 +25,20 @@ const AppNavigator = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       <Header onSearchPress={() => setIsSearchVisible(true)} />
+      
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {/* Main App (Drawer & Tabs) */}
+        <RootStack.Screen name="AppMain" component={AppDrawer} />
 
-      <SearchOverlay
-        visible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
-      />
+        {/* Global Screens - Now reachable from anywhere directly! */}
+        <RootStack.Screen name="CategoryScreen" component={CategoryScreen} />
+        <RootStack.Screen name="SignIn" component={SignInScreen} />
+        <RootStack.Screen name="Register" component={Register} />
+        <RootStack.Screen name="Subscription" component={SubscriptionPage} />
+        <RootStack.Screen name="Magazines" component={MagazinesScreen} />
+      </RootStack.Navigator>
 
-      <BottomTabs onSearchPress={() => setIsSearchVisible(true)} />
-
+      <SearchOverlay visible={isSearchVisible} onClose={() => setIsSearchVisible(false)} />
       <RegisterPopup />
     </NavigationContainer>
   );

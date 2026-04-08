@@ -7,6 +7,7 @@ import ArchiveScreen from "../features/archive/ArchiveScreen";
 import ArticleDetailPage from "../features/article/ArticleScreen";
 import EditorialDetail from "../features/editorial/EditorialDetail";
 
+
 const Stack = createNativeStackNavigator();
 
 export const MainStack = ({ onScrollDown, onScrollUp }) => {
@@ -59,10 +60,9 @@ export const MainStack = ({ onScrollDown, onScrollUp }) => {
           />
         )}
       </Stack.Screen>
-      {/* <Stack.Screen name="AuthorScreen" component={AuthorScreen} />
-      <Stack.Screen name="Archive" component={ArchiveScreen} />
-      <Stack.Screen name="ArticleDetail" component={ArticleDetailPage} />
-      <Stack.Screen name="EditorialDetail" component={EditorialDetail} /> */}
+    
+      {/* <Stack.Screen name="ArticleDetail" component={ArticleDetailPage} /> */}
+      {/* <Stack.Screen name="EditorialDetail" component={EditorialDetail} /> */}
     </Stack.Navigator>
   );
 };

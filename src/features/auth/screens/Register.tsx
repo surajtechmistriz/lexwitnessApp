@@ -43,7 +43,7 @@ const Register = () => {
   ];
 
   return (
-    <MainLayout title="Register" showFilter={false}>
+    <MainLayout title="Register" showFilter={false} routeName='Register'>
 
     <SafeAreaView style={styles.container}>
         {/* <Header />
@@ -173,7 +173,7 @@ const Register = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingBottom:70 },
   scrollContent: { padding: 15, alignItems: 'center' },
   headerTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 10 },
   subText: {

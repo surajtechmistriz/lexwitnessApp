@@ -13,7 +13,7 @@ import HomeBanner from './components/HomeBanner';
 import LatestEdition from './components/LatestEdition';
 import LatestEditions from './components/Latest5Edition';
 import EditorialCard from './components/Editorial';
-
+import { useTabBar } from '../../BotttomTabs/TabBarContext';
 // API
 import { getHeroPost } from '../../services/api/heroCard';
 import { getEditorPick } from '../../services/api/editorpicks';
@@ -31,6 +31,24 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
 
   const lastOffset = useRef(0);
+  const { hideTabBar, showTabBar } = useTabBar();
+
+const scrollOffset = useRef(0);
+
+const handleScroll = (event: any) => {
+  const currentOffset = event.nativeEvent.contentOffset.y;
+  const diff = currentOffset - scrollOffset.current;
+
+  if (currentOffset <= 0) {
+    showTabBar();
+  } else if (diff > 10) {
+    hideTabBar();
+  } else if (diff < -10) {
+    showTabBar();
+  }
+
+  scrollOffset.current = currentOffset;
+};
 
   // 1. Listen for Network Changes
   useEffect(() => {
@@ -89,20 +107,8 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        scrollEventThrottle={16}
-        onScroll={e => {
-          const currentOffset = e.nativeEvent.contentOffset.y;
-          if (currentOffset <= 0) {
-            onScrollUp?.();
-            lastOffset.current = 0;
-            return;
-          }
-          const diff = currentOffset - lastOffset.current;
-          if (Math.abs(diff) < 5) return;
-          if (diff > 0) onScrollDown?.();
-          else onScrollUp?.();
-          lastOffset.current = currentOffset;
-        }}
+        onScroll={handleScroll}
+  scrollEventThrottle={16}
       >
         <View style={styles.carouselWrapper}>
           <Carousel
@@ -116,6 +122,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
               activeOffsetX: [-10, 10],
             }}
             renderItem={({ item }) => (
+                <View style={{ paddingHorizontal: 2 }}>
               <HeroCard
                 category={item.category}
                 title={item.title}
@@ -124,6 +131,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
                 image={getImage(item.image)}
                 height={280}
               />
+                </View>
             )}
           />
         </View>
@@ -165,7 +173,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff', paddingBottom: 40 },
+  container: { flex: 1, backgroundColor: '#ffffff',},
   scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 20 },
   carouselWrapper: { marginBottom: 20, alignItems: 'center' },
   fullWidth: { marginHorizontal: -12 },

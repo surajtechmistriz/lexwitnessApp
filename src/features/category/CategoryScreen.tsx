@@ -26,6 +26,7 @@ import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import MainLayout from '../../components/layout/MainLayout';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 import { useTabBar } from '../../BotttomTabs/TabBarContext';
+import TopMenu from '../../components/common/Menubar';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -138,9 +139,11 @@ const handleScroll = (event: any) => {
   };
 
   return (
+
     <MainLayout
       activeSlug={slug}
       title={slug?.replace(/-/g, ' ')}
+      routeName="CategoryScreen"
       renderFilter={(close) => (
         <YearFilter
           years={years}

@@ -40,10 +40,7 @@ const TopMenu = ({
   }>({});
 
   // Get current active slug (priority: prop > route)
- const currentSlug =
-  activeSlug ||
-  (activeRoute === 'CategoryScreen' ? navigation?.getState()?.routes?.slice(-1)[0]?.params?.slug : '') ||
-  '';
+ const currentSlug = activeSlug || '';
 
   /**
    * Fetch menu data
