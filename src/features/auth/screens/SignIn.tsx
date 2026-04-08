@@ -136,7 +136,7 @@ const SignInScreen = () => {
         </View>
 
       </View>
-        <Footer />
+        {/* <Footer /> */}
     </ScrollView>
   </SafeAreaView>
     </MainLayout>

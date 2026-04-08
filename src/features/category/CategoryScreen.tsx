@@ -25,11 +25,31 @@ import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import MainLayout from '../../components/layout/MainLayout';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
+import { useTabBar } from '../../BotttomTabs/TabBarContext';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 
 export default function CategoryScreen() {
+
+   const { hideTabBar, showTabBar } = useTabBar();
+
+const scrollOffset = useRef(0);
+
+const handleScroll = (event: any) => {
+  const currentOffset = event.nativeEvent.contentOffset.y;
+  const diff = currentOffset - scrollOffset.current;
+
+  if (currentOffset <= 0) {
+    showTabBar(); // top reached
+  } else if (diff > 10) {
+    hideTabBar(); // scrolling down
+  } else if (diff < -10) {
+    showTabBar(); // scrolling up
+  }
+
+  scrollOffset.current = currentOffset;
+};
   const route = useRoute<any>();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -139,6 +159,8 @@ export default function CategoryScreen() {
           style={styles.container}
           contentContainerStyle={styles.scrollContent}
           nestedScrollEnabled={true}
+               onScroll={handleScroll}
+            scrollEventThrottle={16} 
           keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl
@@ -186,7 +208,7 @@ export default function CategoryScreen() {
             <View style={styles.adContainer}>
               <HomeAdvertisement />
             </View>
-            <Footer />
+            {/* <Footer /> */}
           </View>
         </ScrollView>
       </SafeAreaView>

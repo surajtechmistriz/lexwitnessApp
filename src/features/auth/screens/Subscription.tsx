@@ -123,7 +123,7 @@ export default function SubscriptionPage() {
           <PricingCard />
         </View>
         
-      <Footer/>
+      {/* <Footer/> */}
       </ScrollView>
     </SafeAreaView>
     </MainLayout>

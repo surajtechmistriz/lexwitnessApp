@@ -29,8 +29,28 @@ import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import MainLayout from '../../components/layout/MainLayout';
+import { useTabBar } from '../../BotttomTabs/TabBarContext';
 
 export default function ArchiveScreen() {
+
+   const { hideTabBar, showTabBar } = useTabBar();
+  const scrollOffset = useRef(0);
+
+  const handleScroll = (event: any) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    const diff = currentOffset - scrollOffset.current;
+
+    if (currentOffset <= 0) {
+      showTabBar();
+    } else if (diff > 10) {
+      hideTabBar();
+    } else if (diff < -10) {
+      showTabBar();
+    }
+    scrollOffset.current = currentOffset;
+  };
+
+  
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
@@ -110,7 +130,8 @@ export default function ArchiveScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* <Header /> */}
       {/* <TopMenu activeSlug="archive" /> */}
-      <ScrollView ref={scrollRef} style={styles.container}>
+      <ScrollView ref={scrollRef} style={styles.container}    onScroll={handleScroll}
+            scrollEventThrottle={16} >
         
         <View style={styles.filterSection}>
           {isSearchMode ? (
@@ -193,7 +214,7 @@ export default function ArchiveScreen() {
           <View style={styles.magazine}><LatestEditionImageOnly /></View>
           <View style={styles.BannerContainer}><HomeBanner /></View>
           <View style={styles.adContainer}><HomeAdvertisement /></View>
-          <Footer />
+          {/* <Footer /> */}
         </View>
       </ScrollView>
     </SafeAreaView>

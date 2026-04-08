@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Linking,
+  Share,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Config from 'react-native-config';
@@ -24,12 +25,31 @@ import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import Footer from '../../components/common/Footer';
 import HomeBanner from '../home/components/HomeBanner';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
+import { useTabBar } from '../../BotttomTabs/TabBarContext';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
 type Route = RouteProp<RootStackParamList, 'ArticleDetail'>;
 
 export default function ArticleDetailPage() {
+
+   const { hideTabBar, showTabBar } = useTabBar();
+  const scrollOffset = useRef(0);
+
+  const handleScroll = (event: any) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    const diff = currentOffset - scrollOffset.current;
+
+    if (currentOffset <= 0) {
+      showTabBar();
+    } else if (diff > 10) {
+      hideTabBar();
+    } else if (diff < -10) {
+      showTabBar();
+    }
+    scrollOffset.current = currentOffset;
+  };
+
   const route = useRoute<Route>();
   const navigation = useNavigation<any>();
   const { slug } = route.params;
@@ -159,12 +179,27 @@ export default function ArticleDetailPage() {
     Linking.openURL(link);
   };
 
+
+  const shareArticle = async () => {
+  try {
+    await Share.open({
+      title: article.title,
+      message: `${article.title}\nhttps://yourwebsite.com/articles/${article.slug}`,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
+
   return (
     <View style={{ flex: 1 }}>
       {/* <Header /> */}
       {/* <TopMenu /> */}
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.pad}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.pad}    onScroll={handleScroll}
+            scrollEventThrottle={16} >
         {/* Category */}
         <TouchableOpacity
           onPress={() =>
@@ -215,8 +250,7 @@ export default function ArticleDetailPage() {
 
         {/* Share */}
         <View style={{}}>
-
-        <SocialShare  title={''} url={''} />
+          <SocialShare title={article.title} url={articleUrl} />
         </View>
 
         {/* Image */}
@@ -362,9 +396,9 @@ export default function ArticleDetailPage() {
             ))}
           </View>
         )}
-<View>
-  <LatestEditionImageOnly/>
-</View>
+        <View>
+          <LatestEditionImageOnly />
+        </View>
         <View style={styles.BannerContainer}>
           <HomeBanner />
         </View>
@@ -373,9 +407,9 @@ export default function ArticleDetailPage() {
           <HomeAdvertisement />
         </View>
 
-        <View style={styles.footer}>
+        {/* <View style={styles.}>
           <Footer />
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );
@@ -401,7 +435,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#c9060a',
     // marginVertical: 4,
-    marginBottom:4
+    marginBottom: 4,
   },
 
   meta: { flexDirection: 'row', marginBottom: 12 },

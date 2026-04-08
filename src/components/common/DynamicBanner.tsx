@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
-    height: 80,
+    height: 60,
   },
 
   modalContainer: {

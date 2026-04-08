@@ -2,62 +2,49 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-nativ
 import React, { useState } from 'react';
 
 const HomeBanner = () => {
-  // form state
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    mobile: '',
-  });
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
 
-  // submit handler
   const handleSubmit = () => {
-    console.log('Form Submitted:', formData);
+    console.log('Subscribed:', email);
   };
 
   return (
-    <View style={styles.container}>
-      {/* header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>SUBSCRIBE US</Text>
-        <View style={styles.redLine} />
+    <View style={styles.wrapper}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Subscribe Us</Text>
+
+        <Text style={styles.subtitle}>
+          Get the latest articles & editions directly in your inbox
+        </Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your name.."
+          placeholderTextColor="#999"
+          value={name}
+          onChangeText={setName}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your email"
+          placeholderTextColor="#999"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your number.."
+          placeholderTextColor="#999"
+          value={contact}
+          onChangeText={setContact}
+        />
+
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>SUBMIT</Text>
+        </TouchableOpacity>
       </View>
-
-      {/* name input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Your Name"
-        placeholderTextColor="#999"
-        onChangeText={(val) =>
-          setFormData({ ...formData, name: val }) // update name
-        }
-      />
-
-      {/* email input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Your Email Address"
-        placeholderTextColor="#999"
-        keyboardType="email-address"
-        onChangeText={(val) =>
-          setFormData({ ...formData, email: val }) // update email
-        }
-      />
-
-      {/* mobile input */}
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Your Mobile No."
-        placeholderTextColor="#999"
-        keyboardType="phone-pad"
-        onChangeText={(val) =>
-          setFormData({ ...formData, mobile: val }) //  fixed
-        }
-      />
-
-      {/* submit button */}
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitText}>SUBMIT</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -67,59 +54,51 @@ export default HomeBanner;
 /* ---------- styles ---------- */
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#333333',
-    padding: 30,
-    width: '100%',
-    alignItems: 'center',
+  wrapper: {
+    marginVertical: 20,
+    // paddingHorizontal: 12,
   },
 
-  headerContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
+  card: {
+    backgroundColor: '#111',
+    borderRadius: 8,
+    padding: 20,
   },
 
-  headerText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 8,
+  title: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 6,
   },
 
-  redLine: {
-    height: 6,
-    width: 60,
-    backgroundColor: '#C62828',
+  subtitle: {
+    color: '#bbb',
+    fontSize: 13,
+    marginBottom: 16,
+    lineHeight: 18,
   },
 
   input: {
-    backgroundColor: '#FFFFFF',
-    width: '100%',
-    height: 55,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    marginBottom: 20,
-    color: '#000',
-    borderWidth: 1,
-    borderColor: '#ccc',
+    backgroundColor: '#222',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 48,
+    color: '#fff',
+    marginBottom: 12,
   },
 
-  submitButton: {
-    backgroundColor: '#C62828',
-    width: '60%',
-    height: 50,
+  button: {
+    backgroundColor: '#c9060a',
+    height: 48,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
   },
 
-  submitText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-    letterSpacing: 1,
+  buttonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

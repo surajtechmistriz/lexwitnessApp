@@ -13,6 +13,7 @@ import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
 import Carousel, { Pagination } from 'react-native-reanimated-carousel';
 import { useSharedValue } from 'react-native-reanimated';
+import { COLORS } from '../../../theme/colors';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width * 0.47; 
@@ -39,111 +40,158 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
     if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  if (loading) return <ActivityIndicator style={styles.loader} color="#d32f2f" />;
+  if (loading) return <ActivityIndicator style={styles.loader} color={COLORS.primary}/>;
   if (editions.length === 0) return null;
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.headerTitle}>LATEST EDITIONS</Text>
-      <View style={styles.underline} />
+return (
+  <View style={styles.wrapper}>
+    {/* Header */}
+    <Text style={styles.heading}>More Editions</Text>
+     <View style={styles.redLine} />
 
-      <Carousel
-        loop={false}
-        width={ITEM_WIDTH}
-        height={320}
-        style={{ width: width }}
-        data={editions}
-        /* FIX: Prevents the whole page from scrolling vertically when swiping horizontally */
-        panGestureHandlerProps={{
-          activeOffsetX: [-10, 10],
-        }}
-        onProgressChange={(_, absoluteProgress) => (progressValue.value = absoluteProgress)}
-        renderItem={({ item }) => (
-          <TouchableOpacity 
-            style={styles.card}
-            activeOpacity={0.9}
-            onPress={() => navigation.navigate("MagazineDetail", { slug: item.slug })}
-          >
-            <Image 
+    <Carousel
+      loop={false}
+      width={ITEM_WIDTH}
+      height={260}
+      style={{ width }}
+      data={editions}
+      panGestureHandlerProps={{
+        activeOffsetX: [-10, 10],
+      }}
+      onProgressChange={(_, absoluteProgress) =>
+        (progressValue.value = absoluteProgress)
+      }
+      renderItem={({ item }) => (
+        <TouchableOpacity
+          style={styles.card}
+          activeOpacity={0.9}
+          onPress={() =>
+            navigation.navigate('MagazineDetail', {
+              slug: item.slug,
+            })
+          }
+        >
+          <Image 
               source={{ uri: item.image ? `${imgUrl}/${item.image}` : "https://via.placeholder.com/300x400" }} 
-              style={styles.coverImage} 
-              resizeMode="cover"
+              style={styles.image} 
+              resizeMode="contain"
             />
-            <View style={styles.titleContainer}>
-              <Text style={styles.titleText} numberOfLines={2}>{item.title}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
 
-      <Pagination.Basic
-        progress={progressValue}
-        data={editions}
-        dotStyle={styles.dot}
-        activeDotStyle={styles.activeDot}
-        containerStyle={styles.paginationContainer}
-      />
+          {/* <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text> */}
+        </TouchableOpacity>
+      )}
+    />
 
-      <TouchableOpacity 
-        style={styles.button}
-        onPress={() => navigation.navigate("MagazinesTab")}
-      >
-        <Text style={styles.buttonText}>VIEW ALL EDITIONS</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    {/* Pagination */}
+    <Pagination.Basic
+      progress={progressValue}
+      data={editions}
+      dotStyle={styles.dot}
+      activeDotStyle={styles.activeDot}
+      containerStyle={styles.pagination}
+    />
+
+    {/* CTA */}
+    <TouchableOpacity
+      style={styles.cta}
+      onPress={() => navigation.navigate('MagazinesTab')}
+    >
+      <Text style={styles.ctaText}>View All Editions</Text>
+    </TouchableOpacity>
+  </View>
+);
 };
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: '#fff', paddingVertical: 20 },
-  loader: { margin: 50 },
-  headerTitle: { fontSize: 20, fontWeight: '800', textAlign: 'center', color: '#1a2a3a' },
-  underline: { 
-    height: 3, 
-    width: 35, 
-    backgroundColor: '#d32f2f', 
-    alignSelf: 'center', 
-    marginTop: 6, 
-    marginBottom: 20 
-  },
-  card: {
-    width: ITEM_WIDTH - 15, 
-    marginHorizontal: 7.5,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#eee',
-  },
-  coverImage: { width: '100%', height: 220 },
-  titleContainer: { padding: 10, height: 60, justifyContent: 'center' },
-  titleText: { fontSize: 13, fontWeight: '600', textAlign: 'center', color: '#333' },
-  button: {
-    backgroundColor: '#c9060a',
-    paddingVertical: 15,
-    width: 250,
-    alignSelf: 'center',
-    alignItems: 'center',
+  wrapper: {
     marginTop: 20,
-    marginBottom: 10
+    paddingBottom: 10,
   },
-  buttonText: { color: '#fff', fontWeight: 'bold' },
-  paginationContainer: { 
-    flexDirection: 'row',
-    gap: 5, 
-    marginBottom: 25,
-    marginTop: -10, // Adjusted to match your desired spacing
-    justifyContent: 'center' 
+
+  heading: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111',
+    
+    alignSelf:'center',
+    paddingHorizontal: 12,
   },
-  dot: { 
-    backgroundColor: '#e0e0e0', 
-    width: 12, 
-    height: 4, 
-    borderRadius: 2 
+    redLine: {
+    width: 60,
+    height: 4,
+    backgroundColor: COLORS.primary,
+    marginTop: 5,
+    marginLeft:1,
+    alignSelf:'center',
+    marginBottom: 18,
   },
-  activeDot: { 
-    backgroundColor: '#d32f2f', 
-    width: 35, 
-    height: 4, 
-    borderRadius: 2 
+
+  card: {
+    width: ITEM_WIDTH - 12,
+    marginLeft: 12,
+
+    // borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  image: {
+    width: '100%',
+    height: 240,
+  },
+
+  title: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111',
+    padding: 10,
+    lineHeight: 18,
+  },
+
+  pagination: {
+    marginTop: 10,
+    marginBottom: 16,
+    justifyContent: 'center',
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#ddd',
+    marginHorizontal: 3,
+    marginTop:-15,
+    marginBottom:15
+  },
+
+  activeDot: {
+    width: 16,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.primary,
+    marginHorizontal: 3,
+  },
+
+  cta: {
+    alignSelf: 'center',
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom:15
+  },
+
+  ctaText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
 });
 

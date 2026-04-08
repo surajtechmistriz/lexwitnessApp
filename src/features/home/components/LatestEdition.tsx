@@ -14,6 +14,7 @@ import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { COLORS } from '../../../theme/colors';
 
 /* ---------- TYPES ---------- */
 
@@ -87,7 +88,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
     return (
       <ActivityIndicator
         size="large"
-        color="#D80000"
+        color={COLORS.primary}
         style={{ marginTop: 50 }}
       />
     );
@@ -115,211 +116,165 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   /* ---------- UI ---------- */
 
   return (
-    <View style={styles.container}>
-      {/* header */}
-      <Text style={styles.headerText}>LATEST EDITION</Text>
-      <View style={styles.redUnderline} />
+  <View style={styles.wrapper}>
+    {/* Header */}
+    <Text style={styles.heading}>Latest Edition</Text>
+     <View style={styles.redLine} />
 
-      {/* magazine image */}
-      <TouchableOpacity onPress={goToMagazine}>
-        <Image
-          source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
-          style={styles.bigImg}
-          resizeMode="contain"
-        />
-      </TouchableOpacity>
+    {/* Magazine Card */}
+    <TouchableOpacity style={styles.magCard} onPress={goToMagazine}>
+      <Image
+        source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
+        style={styles.magImage}
+      />
 
-      {/* magazine info */}
-      <View style={styles.content}>
-        <View style={styles.textContainer}>
-          <Text style={styles.titleText}>{data.magazine?.title}</Text>
-          <View style={styles.divider} />
-          <Text style={styles.subTitleText}>
-            {data.magazine?.magazine_name}
-          </Text>
-        </View>
-      </View>
-
-      {/* subscribe button */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() =>
-          data.magazine?.link && Linking.openURL(data.magazine.link)
-        }
-      >
-        <Text style={styles.buttonText}>SUBSCRIBE NOW!</Text>
-      </TouchableOpacity>
-
-      {/* posts list */}
-     {data.posts?.map((item) => (
-  <View key={item.id} style={styles.feedbackSection}>
-    
-    <View style={styles.row}>
-      
-      {/* LEFT: IMAGE */}
-      <TouchableOpacity onPress={() => goToArticle(item)}>
-        <Image
-          source={{ uri: `${PostimgUrl}/${item.image}` }}
-          style={styles.smallImg}
-          resizeMode="cover"
-        />
-      </TouchableOpacity>
-
-      {/* RIGHT: CONTENT */}
-      <View style={styles.rightContent}>
-        
-        <TouchableOpacity onPress={() => goToArticle(item)}>
-          <Text numberOfLines={1} style={styles.feedbackTitle}>{item.title}</Text>
-        </TouchableOpacity>
-
-        <Text
-          style={styles.feedbackDescription}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {item.short_description}
+      <View style={styles.magContent}>
+        <Text style={styles.magTitle}>{data.magazine?.title}</Text>
+        <Text style={styles.magSubtitle}>
+          {data.magazine?.magazine_name}
         </Text>
-
-        <TouchableOpacity onPress={() => goToArticle(item)}>
-          <Text style={styles.readMore}>Read More</Text>
-        </TouchableOpacity>
-
       </View>
-    </View>
+    </TouchableOpacity>
 
-    <View style={styles.dottedLine} />
-  </View>
-))}
+    {/* Subscribe */}
+    <TouchableOpacity
+      style={styles.subscribeBtn}
+      onPress={() =>
+        data.magazine?.link && Linking.openURL(data.magazine.link)
+      }
+    >
+      <Text style={styles.subscribeText}>Subscribe Now</Text>
+    </TouchableOpacity>
+
+    {/* Articles */}
+    <View style={styles.articleList}>
+      {data.posts?.slice(0, 3).map((item) => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.articleRow}
+          onPress={() => goToArticle(item)}
+        >
+          <Image
+            source={{ uri: `${PostimgUrl}/${item.image}` }}
+            style={styles.articleImage}
+          />
+
+          <View style={{ flex: 1 }}>
+            <Text numberOfLines={2} style={styles.articleTitle}>
+              {item.title}
+            </Text>
+
+            <Text numberOfLines={2} style={styles.articleDesc}>
+              {item.short_description}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ))}
     </View>
-  );
+  </View>
+);
 };
 
 /* ---------- STYLES ---------- */
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 30,
-    marginLeft: 16,
+  wrapper: {
+    paddingHorizontal: 12,
+    marginTop: 20,
   },
 
-  redUnderline: {
-    width: 60,
-    height: 4,
-    backgroundColor: '#D80000',
-    marginTop: 4,
-    marginBottom: 20,
-    marginLeft: 18,
-  },
-
-  bigImg: {
-    width: '93%',
-    height: 500,
-    marginBottom: 15,
-    marginHorizontal: 11,
-  },
-
-  textContainer: { marginVertical: 10 },
-
-  titleText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#000',
-    marginLeft: 4,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 10,
-    marginHorizontal: 16,
-  },
-
-  subTitleText: {
-    fontSize: 16,
-    color: '#444',
-    marginLeft: 4,
-  },
-
-  button: {
-    backgroundColor: '#c9060a',
-    paddingVertical: 15,
-    marginHorizontal: 16,
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-
-  buttonText: {
-    color: '#fff',
+  heading: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#111',
+  },
+    redLine: {
+    width: 40,
+    height: 4,
+    backgroundColor: COLORS.primary,
+    marginTop: -10,
+    marginLeft:1,
+    marginBottom:10
   },
 
-  /* feedback */
-  feedbackSection: { marginTop: 20, flexDirection:'column' },
+  /* Magazine Card */
+  magCard: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 12,
 
-  smallImgContainer: {
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  magImage: {
+    width: '100%',
+    height: 220, // reduced from 500 
+  },
+
+  magContent: {
+    padding: 12,
+  },
+
+  magTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+  },
+
+  magSubtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 4,
+  },
+
+  /* Subscribe */
+  subscribeBtn: {
+     backgroundColor:COLORS.primary,
+    borderRadius: 8,
+    height: 44,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 16,
   },
-  smallImg: {
-    width: 100,
+
+  subscribeText: {
+    color: '#fff',
+    fontWeight: '600',
+  
+  },
+
+  /* Articles */
+  articleList: {
+    gap: 12,
+  },
+
+  articleRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+
+  articleImage: {
+    width: 90,
     height: 80,
-    // borderRadius: 6,
+    borderRadius: 6,
   },
 
-  feedbackTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#000',
-    marginHorizontal: 16,
-    marginTop:-5
-  },
-
-  feedbackDescription: {
-    fontSize: 12,
-    color: '#555',
-    lineHeight: 22,
-    marginHorizontal: 16,
-  },
-
-  readMore: {
-    color: '#D80000',
+  articleTitle: {
     fontSize: 14,
     fontWeight: '600',
-    marginTop: 2,
-    marginHorizontal: 16,
+    color: '#111',
+    marginBottom: 4,
   },
 
-  dottedLine: {
-    borderStyle: 'dotted',
-    borderWidth: 1,
-    borderColor: '#CCC',
-    marginTop: 25,
-    height: 0,
-    marginHorizontal: 15,
+  articleDesc: {
+    fontSize: 12,
+    color: '#777',
   },
-
-  content: {
-    paddingHorizontal: 12,
-  },
-
-  row: {
-  flexDirection: 'row',
-  paddingHorizontal: 16,
-  gap: 12,
-  alignItems: 'flex-start',
-},
-
-rightContent: {
-  flex: 1,
-  justifyContent: 'flex-start',
-},
-
 });
 
 export default LatestEdition;

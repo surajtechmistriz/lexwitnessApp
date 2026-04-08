@@ -1,25 +1,25 @@
 import React, { useRef } from 'react';
 import { Animated, View } from 'react-native';
-import {
-  BottomTabBar,
-  createBottomTabNavigator,
-} from '@react-navigation/bottom-tabs';
+import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import Home from '../features/home/HomeScreen';
+// Import your stack
+import { MainStack } from './MainStack';
+
 import MagazinesScreen from '../features/magazines/MagazinesScreen';
+import CategoryList from '../components/common/CategoryList';
+import TabBarContext from './TabBarContext';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 
 const Tab = createBottomTabNavigator();
 
-const BottomTabs = ({ onSearchPress }: any) => {
+const BottomTabs = () => {
   const translateY = useRef(new Animated.Value(0)).current;
   const isHidden = useRef(false);
 
   const hideTabBar = () => {
     if (isHidden.current) return;
-
     isHidden.current = true;
-
     Animated.timing(translateY, {
       toValue: 80,
       duration: 250,
@@ -29,9 +29,7 @@ const BottomTabs = ({ onSearchPress }: any) => {
 
   const showTabBar = () => {
     if (!isHidden.current) return;
-
     isHidden.current = false;
-
     Animated.timing(translateY, {
       toValue: 0,
       duration: 250,
@@ -40,84 +38,68 @@ const BottomTabs = ({ onSearchPress }: any) => {
   };
 
   return (
+      <TabBarContext.Provider value={{ hideTabBar, showTabBar }}>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: '#c9060a',
         tabBarInactiveTintColor: '#999',
-
         tabBarStyle: {
           height: 60,
           paddingBottom: 5,
           position: 'absolute',
           backgroundColor: '#fff',
-
           marginHorizontal: 16,
           marginBottom: 10,
           borderRadius: 20,
-
           elevation: 12,
-
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.12,
-          shadowRadius: 8,
         },
+      tabBarIcon: ({ color, focused }) => {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? '';
 
-        tabBarIcon: ({ color, focused }) => {
-          let iconName = 'home-outline';
+  let iconName = 'home-outline';
 
-          if (route.name === 'HomeTab') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'SearchTab') {
-            iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'MagazinesTab') {
-            iconName = focused ? 'book' : 'book-outline';
-          }
+  if (route.name === 'HomeTab') {
+    const isInnerScreen = routeName && routeName !== 'Home';
 
-          return <Ionicons name={iconName} size={22} color={color} />;
-        },
+    iconName =
+      focused && !isInnerScreen ? 'home' : 'home-outline';
+  } else if (route.name === 'CategoriesTab') {
+    iconName = focused ? 'grid' : 'grid-outline';
+  } else if (route.name === 'MagazinesTab') {
+    iconName = focused ? 'book' : 'book-outline';
+  } else if (route.name === 'ProfileTab') {
+    iconName = focused ? 'person' : 'person-outline';
+  }
+
+  return <Ionicons name={iconName} size={22} color={color} />;
+}
       })}
-      //  ANIMATED TAB BAR
-      tabBar={props => (
-        <Animated.View
-          style={{
-            transform: [{ translateY }],
-          }}
-        >
+      tabBar={(props) => (
+        <Animated.View style={{ transform: [{ translateY }] }}>
           <BottomTabBar {...props} />
         </Animated.View>
       )}
     >
-      {/* HOME */}
+      {/* ✅ Stack inside tab */}
       <Tab.Screen name="HomeTab" options={{ title: 'Home' }}>
-        {props => (
-          <Home {...props} onScrollDown={hideTabBar} onScrollUp={showTabBar} />
+        {(props) => (
+          <MainStack
+            {...props}
+            onScrollDown={hideTabBar}
+            onScrollUp={showTabBar}
+          />
         )}
       </Tab.Screen>
 
-      {/* SEARCH */}
       <Tab.Screen
-        name="SearchTab"
-        component={View} // Use a dummy View because the listener prevents navigation anyway
-        options={{ title: 'Search' }}
-        listeners={{
-          tabPress: e => {
-            // 1. Prevent the default action (actually switching to a search screen)
-            e.preventDefault();
-
-            // 2. Trigger the overlay
-            if (onSearchPress) {
-              onSearchPress();
-            }
-          },
-        }}
+        name="CategoriesTab"
+        component={CategoryList}
+        options={{ title: 'Categories' }}
       />
 
-      {/* MAGAZINES */}
-      {/* Replace your current Magazines Tab with this */}
       <Tab.Screen name="MagazinesTab" options={{ title: 'Magazines' }}>
-        {props => (
+        {(props) => (
           <MagazinesScreen
             {...props}
             onScrollDown={hideTabBar}
@@ -125,7 +107,14 @@ const BottomTabs = ({ onSearchPress }: any) => {
           />
         )}
       </Tab.Screen>
+
+      <Tab.Screen
+        name="ProfileTab"
+        component={View}
+        options={{ title: 'Profile' }}
+      />
     </Tab.Navigator>
+    </TabBarContext.Provider>
   );
 };
 

@@ -32,7 +32,6 @@ export default function MagazineDetailScreen() {
 
   const navigation = useNavigation<NavigationProp>();
 
-  //  Fetch magazine
   useEffect(() => {
     if (slug) {
       fetchMagazine();
@@ -51,18 +50,15 @@ export default function MagazineDetailScreen() {
     }
   };
 
-  //  Loader
+  const getImage = (img: string, base: string) => {
+    if (!img) return 'https://via.placeholder.com/300x200';
+    return img.startsWith('http') ? img : `${base}/${img}`;
+  };
+
   if (loading) {
-    return (
-      <ActivityIndicator
-        size="large"
-        color="#c9060a"
-        style={{ marginTop: 50 }}
-      />
-    );
+    return <ActivityIndicator size="large" color="#c9060a" style={{ marginTop: 50 }} />;
   }
 
-  //  Empty state
   if (!magazine) {
     return (
       <View style={styles.center}>
@@ -70,220 +66,218 @@ export default function MagazineDetailScreen() {
       </View>
     );
   }
-  // console.log(magazine);
+
   return (
     <View style={{ flex: 1 }}>
-      {/* <Header /> */}
+      <ScrollView showsVerticalScrollIndicator={false}>
 
-      {/*  ADD THIS */}
-      {/* <Menubar /> */}
-
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* SAME UI */}
-        {/* MAGAZINE COVER */}
-        <Image
-          source={{
-            uri: magazine.image
-              ? `${imgUrl}/${magazine.image}`
-              : 'https://via.placeholder.com/300x400',
-          }}
-          style={styles.mainImage}
-          resizeMode="contain"
-        />
-
-        {/* DETAILS */}
-        <View style={styles.detailsContainer}>
-          <Text style={styles.magazineName}>{magazine.magazine_name}</Text>
-          <Text style={styles.issueDate}>{magazine.title || 'No Title'}</Text>
-
-          <View style={styles.separator} />
-
-          <Text style={styles.sectionTitle}>Magazine Details</Text>
-
-          <Text style={styles.description}>
-            {magazine.description
-              ?.replace(/<[^>]+>/g, '')
-              .replace(/&amp;/g, '&')}
-          </Text>
-
-          <View style={{ flexDirection: 'row' }}>
-            <Text style={styles.previousIssues}>
-              Check out our previous issues{' '}
-            </Text>
-
-            <Text
-              style={styles.linkText}
-              onPress={() => navigation.navigate('MagazinesScreen')}
-            >
-              here
-            </Text>
+        {/* COVER */}
+        <View style={styles.wrapper}>
+          <View style={styles.coverCard}>
+           <Image
+  source={{ uri: getImage(magazine.image, imgUrl) }}
+  style={styles.coverImage}
+  resizeMode="contain" // Add this
+/>
           </View>
 
-          <TouchableOpacity style={styles.subscribeButton}>
-            <Text style={styles.subscribeText}>Subscribe now</Text>
-          </TouchableOpacity>
+          {/* DETAILS */}
+          <View style={styles.content}>
+            <Text style={styles.subtitle}>{magazine.magazine_name}</Text>
+            <Text style={styles.title}>{magazine.title}</Text>
+
+            <View style={styles.divider}/>
+
+            <Text style={styles.text}>Magazine Details</Text>
+
+            <Text style={styles.description}>
+              {magazine.description
+                ?.replace(/<[^>]+>/g, '')
+                .replace(/&amp;/g, '&')}
+            </Text>
+
+            <TouchableOpacity style={styles.subscribeBtn}>
+              <Text style={styles.subscribeText}>Subscribe Now</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ARTICLES */}
-        <View style={styles.articlesSection}>
-          <Text style={styles.articlesHeading}>ARTICLES</Text>
-          <View style={styles.redUnderline} />
+        <View style={styles.articleSection}>
+          <Text style={styles.sectionTitle}>Articles</Text>
+          <View style={styles.redLine}/>
 
-          {magazine.posts?.map((post: any) => (
-            <TouchableOpacity
-              key={post.id}
-              style={styles.articleCard}
-              activeOpacity={0.8}
-              onPress={() => {
-                navigation.navigate('ArticleDetail', {
-                  slug: post.slug,
-                  category: post.category?.slug || 'general',
-                });
-              }}
-            >
-              <Image
-                source={{
-                  uri: post.image
-                    ? `${imgUrl2}/${post.image}`
-                    : 'https://via.placeholder.com/150',
-                }}
-                style={styles.articleImage}
-              />
+          <View style={styles.grid}>
+            {magazine.posts?.map((post: any) => (
+              <TouchableOpacity
+                key={post.id}
+                style={styles.card}
+                activeOpacity={0.8}
+                onPress={() =>
+                  navigation.navigate('ArticleDetail', {
+                    slug: post.slug,
+                    category: post.category?.slug || 'general',
+                  })
+                }
+              >
+                <Image
+                  source={{ uri: getImage(post.image, imgUrl2) }}
+                  style={styles.cardImage}
+                />
 
-              <View style={styles.articleInfo}>
-                <Text style={styles.articleTitle}>{post.title}</Text>
-                <Text style={styles.articleCategory}>
-                  {post.category?.name || 'Uncategorized'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.cardContent}>
+                  <Text numberOfLines={2} style={styles.cardTitle}>
+                    {post.title}
+                  </Text>
+
+                  <Text style={styles.cardCategory}>
+                    {post.category?.name || 'General'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        {/*  LATEST EDITIONS (works correctly now) */}
+        {/* MORE EDITIONS */}
         {magazine?.id && <LatestEditions skipId={magazine.id} />}
-        <Footer/>
+
+        {/* <Footer /> */}
       </ScrollView>
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  mainImage: {
-    width: '100%',
-    height: 430,
-    backgroundColor: '#f9f9f9',
-    marginTop: 20,
+  wrapper: {
+    paddingHorizontal: 12,
+    marginTop: 10,
   },
 
-  detailsContainer: {
-    padding: 20,
+  coverCard: {
+    borderRadius: 10,
+    overflow: 'hidden',
   },
 
-  magazineName: {
-    fontSize: 24,
-    fontWeight: 600,
-    marginBottom: 10,
+coverImage: {
+  width: '100%',
+  height: 450, // Reduced height for better mobile perspective
+  backgroundColor: '#f9f9f9',
+},
+
+cardImage: {
+  width: '100%',
+  height: 100,      // Smaller height for 2-column grid
+  backgroundColor: '#eee',
+},
+  content: {
+    marginTop: 16,
   },
 
-  issueDate: {
-    fontSize: 18,
+  title: {
+    fontSize: 16,
+    fontWeight: '400',
     color: '#333',
-    marginBottom: 10,
   },
 
-  separator: {
+  subtitle: {
+    fontSize: 24,
+    color: '#333',
+    marginTop: 4,
+    fontWeight:700
+  },
+
+   divider: {
+    width: '100%',
     height: 1,
-    backgroundColor: '#eee',
-    marginBottom: 20,
+    backgroundColor: '#b5afb0',
+    marginTop: 5,
+    marginLeft:1,
+    marginBottom:10
   },
-
-  sectionTitle: {
-    fontSize: 18,
-    color: '#c9060a',
-    marginBottom: 12,
+  
+  text:{
+    color:"#c9060a"
   },
-
+  
   description: {
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 14,
     color: '#444',
-    marginBottom: 15,
+    lineHeight: 20,
+    marginTop: 6,
   },
 
-  previousIssues: {
-    fontSize: 15,
-    marginBottom: 20,
-  },
-
-  linkText: {
-    color: '#c9060a',
-    textDecorationLine: 'underline',
-  },
-
-  subscribeButton: {
+  subscribeBtn: {
     backgroundColor: '#c9060a',
+    borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignSelf: 'flex-start',
+    alignItems: 'center',
+    marginTop: 14,
   },
-
+  
   subscribeText: {
     color: '#fff',
-    fontSize: 16,
     fontWeight: '600',
   },
-
-  articlesSection: {
-    marginTop: 20,
-    paddingBottom: 40,
+  
+  /* ARTICLES */
+  articleSection: {
+    marginTop: 24,
+    paddingHorizontal: 12,
+  },
+  
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#111',
+  },
+  redLine: {
+ width: 40,
+ height: 4,
+ backgroundColor: '#c9060a',
+ marginTop: -10,
+ marginLeft:1,
+ marginBottom:10
+},
+  
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
 
-  articlesHeading: {
-    textAlign: 'center',
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-
-  redUnderline: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#c9060a',
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 25,
-  },
-
-  articleCard: {
+  card: {
+    width: '48%',
+    marginBottom: 14,
+    borderRadius: 4,
+    overflow: 'hidden',
     backgroundColor: '#fff',
-    marginHorizontal: 15,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#efefef',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 2,
   },
 
-  articleImage: {
-    width: '100%',
-    height: 200,
+
+
+  cardContent: {
+    padding: 10,
   },
 
-  articleInfo: {
-    padding: 15,
+  cardTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111',
   },
 
-  articleTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-
-  articleCategory: {
-    marginTop: 10,
-    color: '#c9060a',
-    fontSize: 14,
+  cardCategory: {
+    fontSize: 11,
+    color: '#ff3b30',
+    marginTop: 4,
   },
 });

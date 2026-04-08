@@ -18,6 +18,7 @@ import EditorialCard from './components/Editorial';
 import { getHeroPost } from '../../services/api/heroCard';
 import { getEditorPick } from '../../services/api/editorpicks';
 import HomeSkeleton from '../../skeleton/HomeSkeleton';
+import TopMenu from '../../components/common/Menubar';
 
 const { width } = Dimensions.get('window');
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
@@ -28,7 +29,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
-  
+
   const lastOffset = useRef(0);
 
   // 1. Listen for Network Changes
@@ -84,6 +85,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
 
   return (
     <View style={styles.container}>
+      <TopMenu/>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -108,7 +110,7 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
             width={width - 24}
             height={280}
             autoPlay={true}
-            autoPlayInterval={3000} 
+            autoPlayInterval={2000}
             data={sliderData}
             panGestureHandlerProps={{
               activeOffsetX: [-10, 10],
@@ -126,15 +128,16 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
           />
         </View>
 
-        <View style={styles.gridContainer}>
-          {remainingCards.map((item) => (
+        <View style={styles.listContainer}>
+          <Text style={styles.heading}>Latest Articles</Text>
+          {remainingCards.slice(0, 4).map(item => (
             <ListCard
               key={item.id}
               category={item?.category}
               title={item.title}
               date={formatDate(item)}
-              image={getImage(item.image)}
               slug={item.slug}
+              image={item.image}
             />
           ))}
         </View>
@@ -162,16 +165,19 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff' },
+  container: { flex: 1, backgroundColor: '#ffffff', paddingBottom: 40 },
   scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 20 },
   carouselWrapper: { marginBottom: 20, alignItems: 'center' },
   fullWidth: { marginHorizontal: -12 },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingTop: 20,
-    backgroundColor: '#fff',
+  // gridContainer: {
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap',
+  //   justifyContent: 'space-between',
+  //   paddingTop: 20,
+  //   backgroundColor: '#fff',
+  // },
+  listContainer: {
+    marginTop: 10,
   },
   graySectionWrapper: {
     backgroundColor: '#f8f8f8',
@@ -181,6 +187,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 10,
     marginHorizontal: -12,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: 700,
+    marginBottom: 10,
   },
 });
 

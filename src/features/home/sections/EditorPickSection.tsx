@@ -8,18 +8,13 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
   getImage,
 }) => {
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.header}>
-        <Text style={styles.title}>EDITOR PICKS</Text>
-        <View style={styles.line} />
-      </View>
+    <View style={styles.container}>
+      <Text style={styles.heading}>Editor’s Picks</Text>
 
-      {/* Horizontal Scroll logic starts here */}
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        decelerationRate="fast"
+        contentContainerStyle={styles.scroll}
       >
         {data.map(item => (
           <EditorPicks
@@ -27,7 +22,7 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
             image={getImage(item.image)}
             title={item.title}
             author={item.author?.name}
-            category={item.category} 
+            category={item.category}
             slug={item.slug}
           />
         ))}
@@ -39,29 +34,20 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
 export default EditorPicksSection;
 
 const styles = StyleSheet.create({
-  wrapper: { 
-    marginVertical: 10,
-    backgroundColor: '#fff' 
+  container: {
+    marginTop: 20,
   },
-  header: {
-    height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 22,
+
+  heading: {
+    fontSize: 18,
     fontWeight: '700',
-    letterSpacing: 2,
-    color: '#1a1a1a',
+    color: '#111',
+    marginBottom: 12,
+    paddingHorizontal: 12,
   },
-  line: {
-    height: 4, // Slightly thinner for a cleaner look
-    width: 45,
-    marginTop: 5,
-    backgroundColor: '#e60000',
+
+  scroll: {
+    paddingLeft: 12,
+    paddingRight: 6,
   },
-  scrollContent: {
-    paddingHorizontal: 15, // Adds space at the very start and end of the scroll
-    paddingBottom: 10,     // Room for shadows if your card has them
-  }
 });

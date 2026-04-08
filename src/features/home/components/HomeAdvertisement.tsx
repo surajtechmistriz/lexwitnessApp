@@ -3,8 +3,19 @@ import React from 'react';
 
 const HomeAdvertisement = () => {
   return (
-    <View >
-      <Text style={styles.adText}>Advertisement</Text>
+    <View style={styles.container}>
+      <Text style={styles.label}>ADVERTISEMENT</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.title}>Your Ad Here</Text>
+        <Text style={styles.subtitle}>
+          Promote your brand with us
+        </Text>
+
+        {/* <View style={styles.button}> */}
+          {/* <Text style={styles.buttonText}>Learn More</Text> */}
+        {/* </View> */}
+      </View>
     </View>
   );
 };
@@ -12,17 +23,48 @@ const HomeAdvertisement = () => {
 export default HomeAdvertisement;
 
 const styles = StyleSheet.create({
-//   container: {
-//     height: 100, // fixed height (important for ads)
-//     justifyContent: 'center',
-//     alignItems: 'center',
-//     marginVertical: 18,
-//     backgroundColor: '#ffffff',
-//   },
+  container: {
+    width: '100%',
+  },
 
- adText: {
-    fontSize: 20,             // Increased size (previous was 18 or 22)
-    // fontWeight: '600',        // Semi-bold for better visibility
-    color: '#333333',         // Dark grey text
+  label: {
+    fontSize: 11,
+    color: '#999',
+    letterSpacing: 1,
+    marginBottom: 8,
+  },
+
+  card: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 14,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111',
+    marginBottom: 6,
+  },
+
+  subtitle: {
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 14,
+  },
+
+  button: {
+    backgroundColor: '#111',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+
+  buttonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

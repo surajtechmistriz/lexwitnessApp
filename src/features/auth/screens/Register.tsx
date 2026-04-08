@@ -162,10 +162,10 @@ const Register = () => {
             <Text style={styles.regBtnText}>Register</Text>
           </TouchableOpacity>
         </View>
-        <View style={{marginHorizontal:-16, marginTop:20, marginBottom:-10}}>
+        {/* <View style={{marginHorizontal:-16, marginTop:20, marginBottom:-10}}>
 
         <Footer />
-        </View>
+        </View> */}
       </ScrollView>
     </SafeAreaView>
     </MainLayout>
