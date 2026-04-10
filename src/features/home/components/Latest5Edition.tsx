@@ -96,7 +96,7 @@ return (
     {/* CTA */}
     <TouchableOpacity
       style={styles.cta}
-      onPress={() => navigation.navigate('MagazineScreen')}
+      onPress={() => navigation.navigate('Magazines')}
     >
       <Text style={styles.ctaText}>View All Editions</Text>
     </TouchableOpacity>

@@ -45,25 +45,32 @@ export default EditorPicks;
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    borderRadius: 8,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#fff',
     marginRight: 14,
+    marginBottom: 22,
 
+    //  soft glass surface
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+
+    // depth
+    elevation: 5,
     shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-    marginBottom:22
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
 
   image: {
     width: '100%',
-    height: 160,
+    height: 170,
   },
 
   content: {
-    padding: 12,
+    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
 
   title: {
@@ -72,11 +79,14 @@ const styles = StyleSheet.create({
     color: '#111',
     lineHeight: 22,
     marginBottom: 6,
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
 
   author: {
     fontSize: 12,
-    color: '#c6090a',
+    color: '#c9060a',
     fontWeight: '500',
+    opacity: 0.85,
+    backgroundColor: 'rgba(255,255,255,0.6)',
   },
 });

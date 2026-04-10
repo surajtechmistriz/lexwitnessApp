@@ -50,9 +50,9 @@ const BottomTabs = () => {
           paddingBottom: 5,
           position: 'absolute',
           backgroundColor: '#fff',
-          marginHorizontal: 16,
-          marginBottom: 10,
-          borderRadius: 20,
+          // marginHorizontal: 16,
+          // marginBottom: 10,
+          // borderRadius: 20,
           elevation: 12,
         },
       tabBarIcon: ({ color, focused }) => {
@@ -67,7 +67,7 @@ const BottomTabs = () => {
       focused && !isInnerScreen ? 'home' : 'home-outline';
   } else if (route.name === 'CategoriesTab') {
     iconName = focused ? 'grid' : 'grid-outline';
-  } else if (route.name === 'MagazineScreen') {
+  } else if (route.name === 'Magazines') {
     iconName = focused ? 'book' : 'book-outline';
   } else if (route.name === 'ProfileTab') {
     iconName = focused ? 'person' : 'person-outline';
@@ -99,7 +99,7 @@ const BottomTabs = () => {
         options={{ title: 'Categories' }}
       />
 
-      <Tab.Screen name="MagazineScreen" options={{ title: 'Magazines' }}>
+      <Tab.Screen name="Magazines" options={{ title: 'Magazines' }}>
   {(props) => (
     <MagazineStack
       {...props}

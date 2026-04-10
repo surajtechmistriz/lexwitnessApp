@@ -137,7 +137,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   return (
     <MainLayout
       title="Magazines"
-       routeName="MagazineScreen" 
+       routeName="Magazines" 
       renderFilter={close => (
         <YearFilter
           years={years}

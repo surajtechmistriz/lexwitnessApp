@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Linking,
   Share,
+  useWindowDimensions,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Config from 'react-native-config';
@@ -26,12 +27,14 @@ import Footer from '../../components/common/Footer';
 import HomeBanner from '../home/components/HomeBanner';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import { useTabBar } from '../../BotttomTabs/TabBarContext';
+import RenderHtml from 'react-native-render-html';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
 type Route = RouteProp<RootStackParamList, 'ArticleDetail'>;
 
 export default function ArticleDetailPage() {
+  const { width } = useWindowDimensions();
 
    const { hideTabBar, showTabBar } = useTabBar();
   const scrollOffset = useRef(0);
@@ -266,16 +269,13 @@ const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
         )}
 
         {/* Content */}
-        <View style={styles.content}>
+      <View style={styles.content}>
           {isSubscribed ? (
-            <Text style={styles.text}>
-              {article.description
-                ? article.description
-                    .replace(/<[^>]+>/g, '')
-                    .replace(/&nbsp;/g, ' ')
-                    .replace(/&amp;/g, '&')
-                : ''}
-            </Text>
+            <RenderHtml
+              contentWidth={width - 32} // Account for padding (16*2)
+              source={{ html: article.description || '' }}
+              tagsStyles={tagsStyles} // Apply custom styles for HTML tags
+            />
           ) : (
             <View style={styles.lock}>
               <Text style={styles.lockText}>
@@ -416,6 +416,32 @@ const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
 }
 
 /* ---------------- Styles ---------------- */
+
+const tagsStyles = {
+  body: {
+    whiteSpace: 'normal',
+    color: '#333',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  p: {
+    marginBottom: 15,
+    textAlign: 'justify',
+  },
+  strong: {
+    fontWeight: '700',
+    color: '#000',
+  },
+  li: {
+    color: '#333',
+    marginBottom: 5,
+  },
+  a: {
+    color: '#c9060a',
+    textDecorationLine: 'none',
+  },
+};
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   pad: { padding: 16 },
@@ -435,7 +461,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#c9060a',
     // marginVertical: 4,
-    marginBottom: 4,
+    marginBottom: 8,
   },
 
   meta: { flexDirection: 'row', marginBottom: 12 },

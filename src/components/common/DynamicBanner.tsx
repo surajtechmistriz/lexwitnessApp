@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
 
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-  pointerEvents: 'box-none', // ✅ allow touches to pass
+  pointerEvents: 'box-none', //  allow touches to pass
   },
 
   backdropTouchable: {

@@ -10,9 +10,9 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 
 type HeroCardProps = {
-  category: any; // can be string or object
+  category: any;
   title: string;
-  slug: string; //  REQUIRED
+  slug: string;
   date?: string;
   image?: string;
   height?: number;
@@ -24,7 +24,7 @@ const HeroCard = ({
   slug,
   date,
   image,
-  height = 280,
+  height = 260, // slightly tighter
 }: HeroCardProps) => {
   const navigation = useNavigation<any>();
 
@@ -46,26 +46,37 @@ const HeroCard = ({
     >
       <ImageBackground source={{ uri: image }} style={styles.image}>
         <LinearGradient
-          colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.85)']}
+          colors={[
+            'rgba(0,0,0,0.05)',
+            'rgba(0,0,0,0.4)',
+            'rgba(0,0,0,0.85)',
+          ]}
+          locations={[0, 0.5, 1]}
           style={styles.gradient}
         >
           {/* Category */}
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('CategoryScreen', {
-                slug: categorySlug,
-              })
-            }
-            style={styles.badge}
-          >
-            <Text style={styles.badgeText}>{categoryName}</Text>
-          </TouchableOpacity>
+          {!!categoryName && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('CategoryScreen', {
+                  slug: categorySlug,
+                })
+              }
+              activeOpacity={0.8}
+              style={styles.badge}
+            >
+              <Text style={styles.badgeText}>
+                {categoryName.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {/* Bottom Content */}
           <View style={styles.bottomContent}>
             <Text style={styles.title} numberOfLines={2}>
               {title}
             </Text>
+
             {date && <Text style={styles.dateText}>{date}</Text>}
           </View>
         </LinearGradient>
@@ -77,40 +88,55 @@ const HeroCard = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderRadius: 12,
+    borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 14,
+
+    // 🔥 subtle premium shadow
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
   },
+
   image: {
     flex: 1,
   },
+
   gradient: {
     flex: 1,
     justifyContent: 'space-between',
-    padding: 14,
+    padding: 16,
   },
+
   badge: {
-    backgroundColor: '#c9060a',
+    backgroundColor: 'rgba(201, 6, 10, 0.9)', // softer red
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
+
   badgeText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
+
   bottomContent: {
-    gap: 4,
+    marginTop: 10,
   },
+
   title: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '700',
-    lineHeight: 22,
+    lineHeight: 24,
+    marginBottom: 6,
   },
+
   dateText: {
     color: '#ddd',
     fontSize: 12,

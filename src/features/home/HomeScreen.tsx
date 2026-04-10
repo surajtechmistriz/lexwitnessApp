@@ -173,7 +173,7 @@ const handleScroll = (event: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#ffffff',},
+  container: { flex: 1, backgroundColor: '#f5f5f7',},
   scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 20 },
   carouselWrapper: { marginBottom: 20, alignItems: 'center' },
   fullWidth: { marginHorizontal: -12 },

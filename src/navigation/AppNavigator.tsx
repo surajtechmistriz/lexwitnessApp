@@ -14,6 +14,7 @@ import SearchOverlay from '../components/common/SearchOverlay';
 import RegisterPopup from '../modal/RegisterPopup';
 import AppDrawer from '../components/drawer/AppDrawer';
 import CategoryScreen from '../features/category/CategoryScreen';
+import ArchiveScreen from '../features/archive/ArchiveScreen';
 
 // Stack definition
 export const navigationRef = createNavigationContainerRef();
@@ -36,6 +37,7 @@ const AppNavigator = () => {
         <RootStack.Screen name="Register" component={Register} />
         <RootStack.Screen name="Subscription" component={SubscriptionPage} />
         <RootStack.Screen name="Magazines" component={MagazinesScreen} />
+        <RootStack.Screen name="Archive" component={ArchiveScreen} />
       </RootStack.Navigator>
 
       <SearchOverlay visible={isSearchVisible} onClose={() => setIsSearchVisible(false)} />

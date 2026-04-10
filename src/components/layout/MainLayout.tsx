@@ -8,7 +8,7 @@ import TopMenu from '../common/Menubar';
 interface MainLayoutProps {
   children: React.ReactNode;
   title: string;
-  renderFilter?: (close: () => void) => React.ReactNode; // ✅
+  renderFilter?: (close: () => void) => React.ReactNode; // 
   showFilter?: boolean;
     activeSlug?: string;
       routeName?: string;
@@ -23,7 +23,7 @@ const MainLayout = ({
   routeName,
 }: MainLayoutProps) => {
 
-  const hiddenScreens = ['MagazineScreen', 'Subscription', 'Register']; 
+  const hiddenScreens = ['Magazines', 'Subscription', 'Register']; 
 
   return (
     <SafeAreaView style={styles.container}>

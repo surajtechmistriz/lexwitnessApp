@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 35,
     marginLeft: -10,
+ 
   },
   right: {
     flexDirection: 'row',

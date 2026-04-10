@@ -9,7 +9,7 @@ import {
   Keyboard,
   Platform,
   BackHandler,
-  Animated, // 1. Import Animated
+  Animated,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
@@ -31,55 +31,45 @@ type Props = {
 const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   
-  // 2. Animation Values
+  // Animation Values
   const fadeAnim = useRef(new Animated.Value(0)).current; 
   const scaleAnim = useRef(new Animated.Value(0.8)).current; 
 
+  // Form States
   const [searchText, setSearchText] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedAuthor, setSelectedAuthor] = useState<string>('');
-
+  
+  // App States
   const [years, setYears] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [error, setError] = useState('');
 
-  // 3. Trigger Animation on visibility change
+  // 1. Clear error when user changes any input
+  useEffect(() => {
+    if (error) setError('');
+  }, [searchText, selectedYear, selectedCategory, selectedAuthor]);
+
+  // 2. Animation Logic
   useEffect(() => {
     if (visible) {
-      // Opening: Fade in and Scale to 1
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 40,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
       ]).start();
     } else {
-      // Closing: Fade out and Scale back down
+      setError(''); // Reset error on close
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 0.8,
-          duration: 200,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
+        Animated.timing(scaleAnim, { toValue: 0.8, duration: 200, useNativeDriver: true }),
       ]).start();
     }
   }, [visible]);
 
-  // Fetch Data logic remains same...
+  // Data Fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -91,88 +81,86 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
         setAuthors(authorRes.data || []);
         setCategories(categoryRes || []);
         setYears(yearRes.data || []);
-      } catch (error) {
-        console.log('Error fetching search data:', error);
+      } catch (err) {
+        console.log('Error fetching search data:', err);
       }
     };
     fetchData();
   }, []);
 
-  // Keyboard and BackHandler logic remains same...
+  // Keyboard & Back Button Handlers
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => { showSub.remove(); hideSub.remove(); };
-  }, []);
-
-  useEffect(() => {
-    const backAction = () => {
-      if (visible) {
-        onClose && onClose();
-        return true;
-      }
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (visible) { onClose?.(); return true; }
       return false;
-    };
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-    return () => backHandler.remove();
-  }, [visible]);
+    });
+    return () => { showSub.remove(); hideSub.remove(); backHandler.remove(); };
+  }, [visible, onClose]);
 
   const handleSearch = () => {
     const params: any = { page: 1 };
-    if (searchText.trim()) {
+    const hasSearch = searchText.trim().length > 0;
+    const hasFilters = selectedYear || selectedCategory || selectedAuthor;
+
+    // VALIDATION: Prevent mixing text search and dropdown filters
+    if (hasSearch && hasFilters) {
+      setError('Please select only one: Search text OR Filters.');
+      return;
+    }
+
+    if (!hasSearch && !hasFilters) {
+      setError('Please enter a keyword or select a filter.');
+      return;
+    }
+
+    if (hasSearch) {
       params.search = searchText.trim();
       params.mode = 'search';
       if (/^\d{4}$/.test(searchText.trim())) params.year = searchText.trim();
+    } else {
+      if (selectedYear) params.year = selectedYear;
+      if (selectedCategory) params.category_id = selectedCategory;
+      if (selectedAuthor) params.author_id = selectedAuthor;
     }
-    if (selectedYear) params.year = selectedYear;
-    if (selectedCategory) params.category_id = selectedCategory;
-    if (selectedAuthor) params.author_id = selectedAuthor;
 
-    onClose && onClose();
+    onClose?.();
     navigation.navigate('Archive', params);
   };
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      statusBarTranslucent
-      onRequestClose={() => onClose && onClose()}
-    >
-      {/* 4. Use Animated.View for the Overlay Background */}
+    <Modal visible={visible} transparent statusBarTranslucent onRequestClose={onClose}>
       <Animated.View style={[styles.overlayContainer, { opacity: fadeAnim }]}>
         
-        <TouchableOpacity
-          style={StyleSheet.absoluteFill}
-          activeOpacity={1}
-          onPress={() => {
-            Keyboard.dismiss();
-            onClose && onClose();
-          }}
+        <TouchableOpacity 
+          style={StyleSheet.absoluteFill} 
+          activeOpacity={1} 
+          onPress={() => { Keyboard.dismiss(); onClose?.(); }} 
         />
 
-        {/* 5. Use Animated.View for Content Scaling */}
-        <Animated.View 
-            style={[
-                styles.contentWrapper, 
-                { transform: [{ scale: scaleAnim }] }
-            ]}
-        >
+        <Animated.View style={[styles.contentWrapper, { transform: [{ scale: scaleAnim }] }]}>
           {!keyboardVisible && (
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => onClose && onClose()}
-            >
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={35} color="white" />
             </TouchableOpacity>
           )}
 
           <View style={styles.formContainer}>
-            <View style={styles.searchBar}>
+            
+            {/* ERROR MESSAGE DISPLAYED ABOVE SEARCH FIELD */}
+            {error ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={16} color="#ff4d4d" />
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
+            <View style={[styles.searchBar, error ? styles.searchBarError : null]}>
               <TextInput
                 style={styles.input}
                 placeholder="Search here..."
-                placeholderTextColor="#ccc"
+                placeholderTextColor="#999"
                 value={searchText}
                 onChangeText={setSearchText}
                 onSubmitEditing={handleSearch}
@@ -184,17 +172,16 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 
             <Text style={styles.orText}>or</Text>
 
+            {/* PICKERS */}
             <View style={styles.pickerWrapper}>
               <Picker
                 selectedValue={selectedYear}
                 style={styles.picker}
                 dropdownIconColor="white"
-                onValueChange={value => setSelectedYear(String(value))}
+                onValueChange={v => setSelectedYear(String(v))}
               >
-                <Picker.Item label="Select Year" value="" color="#000" />
-                {years.map(y => (
-                  <Picker.Item key={y} label={String(y)} value={String(y)} color="#000" />
-                ))}
+                <Picker.Item label="Select Year" value="" color="#888" />
+                {years.map(y => <Picker.Item key={y} label={String(y)} value={String(y)} color="#000" />)}
               </Picker>
             </View>
 
@@ -203,12 +190,10 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
                 selectedValue={selectedCategory}
                 style={styles.picker}
                 dropdownIconColor="white"
-                onValueChange={value => setSelectedCategory(String(value))}
+                onValueChange={v => setSelectedCategory(String(v))}
               >
-                <Picker.Item label="Select Category" value="" color="#000" />
-                {categories.map(c => (
-                  <Picker.Item key={c.id} label={c.name} value={String(c.id)} color="#000" />
-                ))}
+                <Picker.Item label="Select Category" value="" color="#888" />
+                {categories.map(c => <Picker.Item key={c.id} label={c.name} value={String(c.id)} color="#000" />)}
               </Picker>
             </View>
 
@@ -217,12 +202,10 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
                 selectedValue={selectedAuthor}
                 style={styles.picker}
                 dropdownIconColor="white"
-                onValueChange={value => setSelectedAuthor(String(value))}
+                onValueChange={v => setSelectedAuthor(String(v))}
               >
-                <Picker.Item label="Select Author" value="" color="#000" />
-                {authors.map(a => (
-                  <Picker.Item key={a.id} label={a.name} value={String(a.id)} color="#000" />
-                ))}
+                <Picker.Item label="Select Author" value="" color="#888" />
+                {authors.map(a => <Picker.Item key={a.id} label={a.name} value={String(a.id)} color="#000" />)}
               </Picker>
             </View>
 
@@ -239,29 +222,45 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
-    backgroundColor: 'rgba(38,37,37,0.98)', // Slightly darker for focus
+    backgroundColor: 'rgba(20, 20, 20, 0.98)',
     justifyContent: 'center',
-    padding: 20,
+    padding: 25,
   },
   contentWrapper: {
-    flex: 1,
     justifyContent: 'center',
   },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 77, 77, 0.15)',
+    padding: 10,
+    borderRadius: 6,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ff4d4d',
+  },
+  errorText: {
+    color: '#ff4d4d',
+    fontSize: 13,
+    marginLeft: 8,
+    fontWeight: '600',
+  },
   closeButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 40 : 20, // Adjusted for internal wrapper
-    right: 0,
-    zIndex: 10,
+    alignSelf: 'flex-end',
+    marginBottom: 20,
   },
   formContainer: {
     width: '100%',
   },
   searchBar: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
+    borderBottomWidth: 1.5,
+    borderColor: '#555',
     paddingBottom: 5,
     alignItems: 'center',
+  },
+  searchBarError: {
+    borderColor: '#ff4d4d',
   },
   input: {
     flex: 1,
@@ -270,16 +269,19 @@ const styles = StyleSheet.create({
     height: 50,
   },
   orText: {
-    color: '#ccc',
+    color: '#777',
     textAlign: 'center',
     marginVertical: 20,
     fontSize: 16,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
   },
   pickerWrapper: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: '#555',
+    borderColor: '#444',
     marginBottom: 15,
-    borderRadius: 5,
+    borderRadius: 8,
     overflow: 'hidden',
   },
   picker: {
@@ -288,15 +290,17 @@ const styles = StyleSheet.create({
   },
   searchBtn: {
     backgroundColor: '#c9060a',
-    padding: 15,
+    padding: 16,
     alignItems: 'center',
-    marginTop: 10,
-    borderRadius: 5,
+    marginTop: 15,
+    borderRadius: 8,
+    elevation: 3,
   },
   searchBtnText: {
     color: 'white',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 17,
+    letterSpacing: 1,
   },
 });
 
