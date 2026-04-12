@@ -1,16 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
-  ScrollView,
   StyleSheet,
-  SafeAreaView,
-  RefreshControl,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import Config from 'react-native-config';
 
-// API Services
+// API
 import { getPosts } from '../../services/api/posts';
 import { getYears } from '../../services/api/years';
 import { getCategoryBySlug } from '../../services/api/category';
@@ -19,46 +17,20 @@ import { getCategoryBySlug } from '../../services/api/category';
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
-import Footer from '../../components/common/Footer';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import MainLayout from '../../components/layout/MainLayout';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
-import { useTabBar } from '../../BotttomTabs/TabBarContext';
-import TopMenu from '../../components/common/Menubar';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-
 export default function CategoryScreen() {
-
-   const { hideTabBar, showTabBar } = useTabBar();
-
-const scrollOffset = useRef(0);
-
-const handleScroll = (event: any) => {
-  const currentOffset = event.nativeEvent.contentOffset.y;
-  const diff = currentOffset - scrollOffset.current;
-
-  if (currentOffset <= 0) {
-    showTabBar(); // top reached
-  } else if (diff > 10) {
-    hideTabBar(); // scrolling down
-  } else if (diff < -10) {
-    showTabBar(); // scrolling up
-  }
-
-  scrollOffset.current = currentOffset;
-};
   const route = useRoute<any>();
-  const scrollRef = useRef<ScrollView>(null);
-
   const slug = route.params?.slug || '';
   const postBaseUrl = Config.POSTS_BASE_URL;
 
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [category, setCategory] = useState<any>(null);
@@ -81,65 +53,34 @@ const handleScroll = (event: any) => {
         setLastPage(response.meta?.paging?.last_page ?? 1);
         setCurrentPage(page);
       } catch (err) {
-        console.error('Fetch error:', err);
+        console.error(err);
       } finally {
         setLoading(false);
-        setRefreshing(false);
       }
     },
-    [],
+    []
   );
 
   useEffect(() => {
     const init = async () => {
-      setLoading(true);
-      try {
-        const [catData, yearData] = await Promise.all([
-          getCategoryBySlug(slug),
-          getYears(),
-        ]);
-        setCategory(catData);
-        setYears(yearData.data || []);
-        if (catData?.id) {
-          await fetchData(catData.id, null, 1);
-        }
-      } catch (err) {
-        console.error('Init error:', err);
-      } finally {
-        setLoading(false);
-      }
+      const [catData, yearData] = await Promise.all([
+        getCategoryBySlug(slug),
+        getYears(),
+      ]);
+      setCategory(catData);
+      setYears(yearData.data || []);
+      if (catData?.id) fetchData(catData.id, null, 1);
     };
     init();
   }, [slug, fetchData]);
 
   useEffect(() => {
-    if (!category?.id) return;
-    fetchData(category.id, appliedYear, 1);
-  }, [appliedYear, category?.id, fetchData]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
     if (category?.id) {
-      fetchData(category.id, appliedYear, currentPage);
+      fetchData(category.id, appliedYear, 1);
     }
-  };
-
-  const handleApplyFilter = () => {
-    if (selectedYear !== appliedYear) {
-      setAppliedYear(selectedYear);
-      scrollRef.current?.scrollTo({ y: 0, animated: true });
-    }
-  };
-
-  const handlePageChange = (page: number) => {
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
-    if (category?.id) {
-      fetchData(category.id, appliedYear, page);
-    }
-  };
+  }, [appliedYear]);
 
   return (
-
     <MainLayout
       activeSlug={slug}
       title={slug?.replace(/-/g, ' ')}
@@ -150,102 +91,65 @@ const handleScroll = (event: any) => {
           selectedYear={selectedYear}
           onSelect={setSelectedYear}
           onApply={() => {
-            handleApplyFilter();
+            setAppliedYear(selectedYear);
             close();
           }}
         />
       )}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          ref={scrollRef}
-          style={styles.container}
-          contentContainerStyle={styles.scrollContent}
-          nestedScrollEnabled={true}
-               onScroll={handleScroll}
-            scrollEventThrottle={16} 
-          keyboardShouldPersistTaps="handled"
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={['#c9060a']}
+      <View style={styles.container}>
+        <View style={styles.content}>
+          {loading ? (
+            <View>
+              {[1, 2, 3, 4, 5].map((item) => (
+                <ArticleSkeleton key={item} />
+              ))}
+            </View>
+          ) : (
+            <PostList
+              posts={posts}
+              postBaseUrl={postBaseUrl}
+              emptyMessage={
+                appliedYear
+                  ? `No posts for ${appliedYear}`
+                  : 'No posts available'
+              }
             />
-          }
-        >
-          <View style={styles.content}>
-            {loading && !refreshing ? (
-              /* --- SKELETON LIST --- */
-              <View style={styles.skeletonListWrapper}>
-                {[1, 2, 3, 4, 5].map((item) => (
-                  // <SkeletonCard key={item} />
-                <ArticleSkeleton key={item}/>
-                ))}
-              </View>
-            ) : (
-              <PostList
-                posts={posts}
-                loading={false}
-                postBaseUrl={postBaseUrl}
-                emptyMessage={appliedYear ? `No posts for ${appliedYear}` : 'No posts available'}
-              />
-            )}
+          )}
 
-            {!loading && posts.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                lastPage={lastPage}
-                onPageChange={handlePageChange}
-                loading={loading}
-              />
-            )}
-          </View>
+          {!loading && posts.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              lastPage={lastPage}
+              onPageChange={(page) =>
+                fetchData(category.id, appliedYear, page)
+              }
+            />
+          )}
+        </View>
 
-          <View style={styles.footerContainer}>
-            <View style={styles.magazine}>
-              <LatestEditionImageOnly />
-            </View>
-            <View style={styles.BannerContainer}>
-              <HomeBanner />
-            </View>
-            <View style={styles.adContainer}>
-              <HomeAdvertisement />
-            </View>
-            {/* <Footer /> */}
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <LatestEditionImageOnly />
+          <HomeBanner />
+          <HomeAdvertisement />
+        </View>
+      </View>
     </MainLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
-
+  container: {
+    flex: 1,
+    minHeight: SCREEN_HEIGHT,
+  },
   content: {
     paddingTop: 10,
     paddingBottom: 20,
-    minHeight: SCREEN_HEIGHT * 0.6,
   },
-
-    skeletonListWrapper: {
-    // paddingHorizontal: 05,
+  footer: {
+    marginTop: 20,
+    paddingHorizontal: 15,
   },
-
-
-  footerContainer: { marginTop: 20, width: '100%' },
-  BannerContainer: { marginHorizontal: 15 },
-  adContainer: {
-    height: 300,
-    backgroundColor: '#fff',
-    marginVertical: 20,
-    borderWidth: 1,
-    borderColor: '#dddbdb',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 15,
-  },
-  magazine: { marginBottom: 20, marginHorizontal: 15 },
 });

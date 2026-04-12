@@ -8,8 +8,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { formatMonthYear } from '../../utils/helper/dateHelper';
 
 interface PostListProps {
   posts: any[];
@@ -59,20 +61,14 @@ export default function PostList({
   return (
     <View style={styles.container}>
       {posts.map((article, index) => (
-        <View
+        <TouchableOpacity
           key={article.id || index}
-          style={[
-            styles.articleItem,
-            styles.row,
-            index === posts.length - 1 && styles.noBorder,
-          ]}
+          style={styles.card}
+          activeOpacity={0.9}
+          onPress={() => handleNavigateDetail(article)}
         >
-          {/* IMAGE */}
-          <TouchableOpacity
-            style={styles.imageContainer}
-            activeOpacity={0.8}
-            onPress={() => handleNavigateDetail(article)}
-          >
+          {/* Image Section */}
+          <View style={styles.imageWrapper}>
             {article.image ? (
               <Image
                 source={{ uri: getImageUrl(article.image) }}
@@ -81,133 +77,175 @@ export default function PostList({
               />
             ) : (
               <View style={styles.placeholderContainer}>
-                <Text style={{ color: '#999', fontSize: 12 }}>Img</Text>
+                <Text style={styles.placeholderText}>No Image</Text>
               </View>
             )}
-          </TouchableOpacity>
+          </View>
 
-          {/* CONTENT */}
+          {/* Content Section */}
           <View style={styles.contentContainer}>
-            {/* TITLE */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => handleNavigateDetail(article)}
-            >
-              <Text style={styles.title} numberOfLines={2}>
-                {article.title}
-              </Text>
-            </TouchableOpacity>
+            <Text style={styles.title} numberOfLines={2}>
+              {article.title}
+            </Text>
 
-            {/* META: AUTHOR | DATE (ONE ROW FIX) */}
-            <View style={styles.metaText}>
-              <View style={styles.authorWrapper}>
-                <TouchableOpacity
-                  onPress={() => {
-                    if (article.author?.slug) {
-                      navigation.navigate('AuthorScreen', {
-                        slug: article.author.slug,
-                      });
-                    }
-                  }}
-                >
-                  <Text style={styles.authorText} numberOfLines={1}>
-                    {typeof article.author === 'string'
-                      ? article.author
-                      : article.author?.name || 'Unknown'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+            {/* Meta Row */}
+            <View style={styles.metaRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (article.author?.slug) {
+                    navigation.navigate('AuthorScreen', {
+                      slug: article.author.slug,
+                    });
+                  }
+                }}
+              >
+                <Text style={styles.authorText} numberOfLines={1}>
+                  {typeof article.author === 'string'
+                    ? article.author
+                    : article.author?.name || 'Unknown'}
+                </Text>
+              </TouchableOpacity>
 
-              <Text style={styles.date} numberOfLines={1}>
-                {' | '}
-                {article.magazine?.month?.name} {article.magazine?.year}
-              </Text>
+              <Text style={styles.dot}>•</Text>
+
+ <Text style={styles.dateText} numberOfLines={1} ellipsizeMode="tail">
+  {formatMonthYear(
+    article.magazine?.month?.name,
+    article.magazine?.year
+  )}
+</Text>
             </View>
 
-            {/* READ MORE */}
-            <TouchableOpacity
-              style={styles.readMoreContainer}
-              activeOpacity={0.8}
-              onPress={() => handleNavigateDetail(article)}
-            >
-              <Text style={styles.readMoreText}>Read More</Text>
-            </TouchableOpacity>
+            {/* Action Indicator */}
+            <View style={styles.actionRow}>
+              <Text style={styles.readMoreText}>Read Article</Text>
+              <View style={styles.chevron} />
+            </View>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { paddingHorizontal: 15, marginTop:10 },
-  loaderContainer: { paddingVertical: 40, alignItems: 'center' },
-  emptyContainer: {
-    padding: 40,
-    backgroundColor: '#f9f9f9',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderStyle: 'dashed',
-    borderRadius: 6,
+  container: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#f8f9fb',
+  },
+  loaderContainer: {
+    paddingVertical: 40,
     alignItems: 'center',
   },
-  emptyText: { color: '#666' },
-  row: {
+  emptyContainer: {
+    margin: 20,
+    padding: 40,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  emptyText: {
+    color: '#888',
+  },
+
+  card: {
     flexDirection: 'row',
-    gap: 12,
-    alignItems: 'flex-start',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    marginBottom: 14,
+    padding: 12,
+    // Modern subtle shadow
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
-  articleItem: {
-    marginBottom: 20,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    borderStyle: 'dashed',
-  },
-  noBorder: { borderBottomWidth: 0 },
-  imageContainer: {
+  imageWrapper: {
     width: 90,
     height: 90,
+    borderRadius: 10,
     overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
   },
-  image: { width: '100%', height: '100%' },
-  placeholderContainer: {
+  image: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#eee',
+  },
+  placeholderContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  contentContainer: { flex: 1 },
+  placeholderText: {
+    color: '#ccc',
+    fontSize: 10,
+  },
+
+  contentContainer: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+  },
   title: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#333',
-    lineHeight: 22,
-    marginBottom: 6,
-    marginTop: -4,
+    color: '#111',
+    lineHeight: 20,
   },
-  metaText: {
-    flexDirection: 'row', // Force single row
+ metaRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 6,
+  flex: 1,
+},
+  authorText: {
+    color: '#c9060a',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  dot: {
+    marginHorizontal: 6,
+    color: '#ccc',
+    fontSize: 14,
+  },
+ dateText: {
+  fontSize: 12,
+  color: '#777',
+  flexShrink: 1,
+  maxWidth: '60%', // adjust if needed
+},
+  actionRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingBottom: 8,
-    marginBottom: 8,
+    marginTop: 6,
   },
-  authorWrapper: {
-    flexShrink: 1, //  Allows author name to truncate if space is tight
+  readMoreText: {
+    color: '#c9060a',
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
-  authorText: { 
-    color: '#c9060a', 
-    fontWeight: '500', 
-    fontSize: 13,
+  chevron: {
+    width: 5,
+    height: 5,
+    borderTopWidth: 1.5,
+    borderRightWidth: 1.5,
+    borderColor: '#c9060a',
+    transform: [{ rotate: '45deg' }],
+    marginLeft: 5,
   },
-  date: {
-    fontSize: 13, 
-    color: '#333',
-    flexShrink: 0, //  Ensures date never gets compressed or hidden
-  },
-  readMoreContainer: { flexDirection: 'row', alignItems: 'center' },
-  readMoreText: { color: '#c9060a', fontSize: 14, fontWeight: '500' },
 });

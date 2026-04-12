@@ -73,39 +73,42 @@ const CategoryList = ({ navigation }: any) => {
 const renderItem = ({ item, index }: any) => {
   const design = getDesign(index);
   const categoryName = item.name || item.title;
-
   const articleCount = item.articles_count || item.count;
-  const countDisplay = articleCount
-    ? `${articleCount} Articles`
-    : 'Explore';
 
   return (
     <TouchableOpacity
       style={styles.card}
-      activeOpacity={0.9}
+      activeOpacity={0.8}
       onPress={() =>
-      navigation.navigate('HomeTab', {
-  screen: 'CategoryScreen',
-  params: {
-    category: item.name,
-    slug: item.slug,
-  },
-})
+        navigation.navigate('HomeTab', {
+          screen: 'CategoryScreen',
+          params: { category: item.name, slug: item.slug },
+        })
       }
     >
+      {/* Top Accent Bar for visual distinction */}
       <View style={[styles.accentBar, { backgroundColor: design.color }]} />
 
       <View style={styles.cardContent}>
+        {/* Category Name - Larger and bolder */}
         <Text style={styles.cardTitle} numberOfLines={2}>
           {categoryName}
         </Text>
 
-        <Text style={styles.cardCount}>{countDisplay}</Text>
+        {/* Article Count - Clean pill design */}
+        <View style={styles.badgeContainer}>
+           <View style={[styles.dot, { backgroundColor: design.color }]} />
+           <Text style={styles.cardCount}>
+            {articleCount ? `${articleCount} Articles` : 'Explore'}
+          </Text>
+        </View>
       </View>
+      
+      {/* Subtle background hint of the color at the bottom corner */}
+      <View style={[styles.bottomCorner, { backgroundColor: design.color + '08' }]} />
     </TouchableOpacity>
   );
 };
-
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -138,102 +141,95 @@ const renderItem = ({ item, index }: any) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fcfcfc' },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: { paddingHorizontal: 20, paddingTop: 20, marginBottom: 10 },
-  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#1A1A1B' },
-  headerSub: { fontSize: 16, color: '#c9060a', fontWeight: '500', marginTop: 2 },
-  listContent: { paddingHorizontal: 12, paddingBottom: 100 },
+  safeArea: { flex: 1, backgroundColor: '#F9FAFB' },
+  
+  header: { paddingHorizontal: 20, paddingTop: 24, marginBottom: 16 },
+  headerTitle: { fontSize: 30, fontWeight: '800', color: '#111', letterSpacing: -0.6 },
+  headerSub: { fontSize: 13, color: '#c9060a', fontWeight: '700', textTransform: 'uppercase', marginTop: 4, letterSpacing: 1 },
+  
+  listContent: { paddingHorizontal: 16, paddingBottom: 100 },
   row: { justifyContent: 'space-between' },
-  // card: {
-  //   backgroundColor: '#fff',
-  //   width: (width / 2) - 22,
-  //   marginVertical: 10,
-  //   paddingVertical: 25,
-  //   borderRadius: 20,
-  //   alignItems: 'center',
-  //   justifyContent: 'center',
-  //   // High-end Shadow
-  //   elevation: 5,
-  //   shadowColor: '#000',
-  //   shadowOffset: { width: 0, height: 4 },
-  //   shadowOpacity: 0.1,
-  //   shadowRadius: 10,
-  //   borderWidth: 1,
-  //   borderColor: '#f0f0f0',
-  // },
-  iconContainer: {
+
+  card: {
+    backgroundColor: '#fff',
+    width: (width / 2) - 24,
+    marginVertical: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative', // for the corner accent
+    // App-style soft shadow
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+
+  accentBar: {
+    height: 4,
+    width: '100%',
+  },
+
+  cardContent: {
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    minHeight: 120, // Uniform card height
+    justifyContent: 'center',
+    zIndex: 2, // Stay above the corner accent
+  },
+
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1B',
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+
+  badgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+
+  cardCount: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#6B7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  bottomCorner: {
+    position: 'absolute',
+    bottom: -20,
+    right: -20,
     width: 60,
     height: 60,
-    borderRadius: 18, // Squircle look
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 15,
+    borderRadius: 30,
+    zIndex: 1,
   },
-  // cardTitle: {
-  //   fontSize: 14,
-  //   fontWeight: '700',
-  //   color: '#1A1A1B',
-  //   textAlign: 'center',
-  //   paddingHorizontal: 10,
-  //   lineHeight: 18,
-  //   height: 36, // Ensure 2 lines look consistent
-  // },
-  // cardCount: {
-  //   fontSize: 11,
-  //   color: '#999',
-  //   marginTop: 6,
-  //   textTransform: 'uppercase',
-  //   letterSpacing: 0.5,
-  // },
-  
 
-card: {
-  backgroundColor: '#fff',
-  width: (width / 2) - 20,
-  marginVertical: 10,
-  borderRadius: 16,
-  overflow: 'hidden',
-
-  // Softer shadow (premium)
-  elevation: 2,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 0.05,
-  shadowRadius: 6,
-
-  borderWidth: 1,
-  borderColor: '#f3f3f3',
-},
-
-accentBar: {
-  height: 3,
-  width: '100%',
-},
-
-cardContent: {
-  paddingVertical: 18,
-  paddingHorizontal: 14,
-  alignItems: 'center', //  center alignment looks cleaner
-  justifyContent: 'center',
-  minHeight: 90, //  equal height cards
-},
-
-cardTitle: {
-  fontSize: 15,
-  fontWeight: '700',
-  color: '#111',
-  textAlign: 'center',
-  lineHeight: 20,
-  marginBottom: 6,
-},
-
-cardCount: {
-  fontSize: 11,
-  color: '#999',
-  textTransform: 'uppercase',
-  letterSpacing: 0.5,
-},
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });
 
 export default CategoryList;

@@ -1,47 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Screens
-import Register from '../features/auth/screens/Register';
-import SignInScreen from '../features/auth/screens/SignIn';
-import SubscriptionPage from '../features/auth/screens/Subscription';
-import MagazinesScreen from '../features/magazines/MagazinesScreen';
+// Screens & Context
+import { useAuth } from '../context/AuthContext';
+import AppDrawer from '../components/drawer/AppDrawer';
 
 // Components
 import Header from '../components/common/Header';
 import SearchOverlay from '../components/common/SearchOverlay';
-import RegisterPopup from '../modal/RegisterPopup';
-import AppDrawer from '../components/drawer/AppDrawer';
-import CategoryScreen from '../features/category/CategoryScreen';
-import ArchiveScreen from '../features/archive/ArchiveScreen';
+import AuthPopup from '../modal/AuthPopup';
 
-// Stack definition
+
 export const navigationRef = createNavigationContainerRef();
 const RootStack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const [isSearchVisible, setIsSearchVisible] = React.useState(false);
+  const { isLoggedIn } = useAuth();
+  // Set to null when user is logged in to hide the popup
+  const [authMode, setAuthMode] = useState<'register' | 'signin' | null>(isLoggedIn ? null : 'register');
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  // Auto-hide popup if user logs in
+  React.useEffect(() => {
+    if (isLoggedIn) setAuthMode(null);
+  }, [isLoggedIn]);
 
   return (
     <NavigationContainer ref={navigationRef}>
       <Header onSearchPress={() => setIsSearchVisible(true)} />
       
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Main App (Drawer & Tabs) */}
         <RootStack.Screen name="AppMain" component={AppDrawer} />
-
-        {/* Global Screens - Now reachable from anywhere directly! */}
-        <RootStack.Screen name="CategoryScreen" component={CategoryScreen} />
-        <RootStack.Screen name="SignIn" component={SignInScreen} />
-        <RootStack.Screen name="Register" component={Register} />
-        <RootStack.Screen name="Subscription" component={SubscriptionPage} />
-        <RootStack.Screen name="Magazines" component={MagazinesScreen} />
-        <RootStack.Screen name="Archive" component={ArchiveScreen} />
       </RootStack.Navigator>
 
       <SearchOverlay visible={isSearchVisible} onClose={() => setIsSearchVisible(false)} />
-      <RegisterPopup />
+
+    {/* Pass authMode directly. 
+         !!authMode converts 'register'/'signin' to true, and null to false.
+      */}
+      {authMode && (
+        <AuthPopup 
+          visible={!!authMode} 
+          mode={authMode} 
+          setMode={setAuthMode} 
+        />
+      )}
     </NavigationContainer>
   );
 };

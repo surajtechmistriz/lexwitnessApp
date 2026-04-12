@@ -28,6 +28,7 @@ import HomeBanner from '../home/components/HomeBanner';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import { useTabBar } from '../../BotttomTabs/TabBarContext';
 import RenderHtml from 'react-native-render-html';
+import { navigateToAuthor } from '../../utils/helper/navigationHelper';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -222,15 +223,13 @@ const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
 
         {/* Meta */}
         <View style={styles.meta}>
-          <TouchableOpacity
-            onPress={() => {
-              if (article.author?.slug) {
-                navigation.navigate('AuthorScreen', {
-                  slug: article.author.slug,
-                });
-              }
-            }}
-          >
+        <TouchableOpacity
+  onPress={() => {
+    if (article.author?.slug) {
+      navigateToAuthor(article.author.slug);
+    }
+  }}
+>
             <Text style={styles.author}>
               {typeof article.author === 'string'
                 ? article.author

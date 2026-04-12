@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 
 interface PaginationProps {
   currentPage: number;
@@ -19,7 +19,7 @@ export default function Pagination({
 
   const getPages = () => {
     const pages: (number | string)[] = [];
-    const start = Math.max(1, currentPage - 1); // Reduced range for mobile screens
+    const start = Math.max(1, currentPage - 1);
     const end = Math.min(lastPage, currentPage + 1);
 
     if (start > 1) pages.push(1);
@@ -39,23 +39,19 @@ export default function Pagination({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Pages:</Text>
-      
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Previous Button */}
-        {currentPage > 1 && (
-          <TouchableOpacity
-            disabled={loading}
-            onPress={() => onPageChange(currentPage - 1)}
-            style={styles.pageBox}
-          >
-            <Text style={styles.arrowText}>«</Text>
-          </TouchableOpacity>
-        )}
+      {/* Previous Button */}
+      <TouchableOpacity
+        disabled={loading || currentPage === 1}
+        onPress={() => onPageChange(currentPage - 1)}
+        style={[styles.arrowBox, currentPage === 1 && styles.disabledArrow]}
+      >
+        <View style={[styles.chevron, styles.chevronLeft, currentPage === 1 && styles.disabledChevron]} />
+      </TouchableOpacity>
 
-        {/* Page Numbers */}
+      {/* Page Numbers */}
+      <View style={styles.pagesRow}>
         {pages.map((page, index) => (
-          <View key={index} style={styles.itemWrapper}>
+          <View key={index}>
             {page === "..." ? (
               <Text style={styles.ellipsis}>...</Text>
             ) : (
@@ -63,8 +59,8 @@ export default function Pagination({
                 disabled={loading}
                 onPress={() => onPageChange(page as number)}
                 style={[
-                  styles.pageBox,
-                  currentPage === page && styles.activePageBox
+                  styles.pageBtn,
+                  currentPage === page && styles.activePageBtn
                 ]}
               >
                 <Text style={[
@@ -77,18 +73,16 @@ export default function Pagination({
             )}
           </View>
         ))}
+      </View>
 
-        {/* Next Button */}
-        {currentPage < lastPage && (
-          <TouchableOpacity
-            disabled={loading}
-            onPress={() => onPageChange(currentPage + 1)}
-            style={styles.pageBox}
-          >
-            <Text style={styles.arrowText}>»</Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
+      {/* Next Button */}
+      <TouchableOpacity
+        disabled={loading || currentPage === lastPage}
+        onPress={() => onPageChange(currentPage + 1)}
+        style={[styles.arrowBox, currentPage === lastPage && styles.disabledArrow]}
+      >
+        <View style={[styles.chevron, styles.chevronRight, currentPage === lastPage && styles.disabledChevron]} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -97,50 +91,81 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingHorizontal: 15,
+    justifyContent: 'center',
+    paddingVertical: 25,
+    gap: 10,
   },
-  scrollContent: {
-    alignItems: 'center',
-  },
-  label: {
-    fontSize: 14,
-    color: '#333',
-    marginRight: 10,
-  },
-  itemWrapper: {
+  pagesRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
   },
-  pageBox: {
-    width: 35,
-    height: 35,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#f5f5f5',
+  pageBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 2,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#eee',
   },
-  activePageBox: {
+  activePageBtn: {
     backgroundColor: '#c9060a',
     borderColor: '#c9060a',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#c9060a',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
   },
   pageText: {
-    fontSize: 13,
-    color: '#333',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#444',
   },
   activePageText: {
     color: '#fff',
-    fontWeight: 'bold',
-  },
-  arrowText: {
-    fontSize: 18,
-    color: '#333',
-    marginTop: -2, // Visual alignment
   },
   ellipsis: {
-    paddingHorizontal: 5,
-    color: '#999',
+    paddingHorizontal: 4,
+    color: '#aaa',
+    fontSize: 16,
   },
+  arrowBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disabledArrow: {
+    backgroundColor: '#f9f9f9',
+    opacity: 0.5,
+  },
+  chevron: {
+    width: 8,
+    height: 8,
+    borderTopWidth: 2,
+    borderRightWidth: 2,
+    borderColor: '#333',
+  },
+  chevronLeft: {
+    transform: [{ rotate: '-135deg' }],
+    marginLeft: 3,
+  },
+  chevronRight: {
+    transform: [{ rotate: '45deg' }],
+    marginRight: 3,
+  },
+  disabledChevron: {
+    borderColor: '#ccc',
+  }
 });

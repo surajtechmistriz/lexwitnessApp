@@ -111,9 +111,10 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     fetchMagazines(page, selectedYear);
   };
 
-  const renderItem = ({ item }: any) => (
+ const renderItem = ({ item }: any) => (
     <TouchableOpacity
       style={styles.card}
+      activeOpacity={0.9}
       onPress={() => navigation.navigate('MagazineDetail', { slug: item?.slug })}
     >
       <View style={styles.imageWrapper}>
@@ -126,18 +127,25 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
           style={styles.image}
           resizeMode="cover"
         />
+        {/* Subtle overlay for realism */}
+        <View style={styles.imageOverlay} />
       </View>
+      
       <View style={styles.cardContent}>
-        <Text style={styles.title}>{item.title || item.magazine_name}</Text>
-        <Text style={styles.readMore}>Read more</Text>
+        <Text style={styles.title} numberOfLines={1}>
+          {item.title || item.magazine_name}
+        </Text>
+        {/* <Text style={styles.editionText}>
+          {item.month?.name || ''} {item.year || ''} Edition
+        </Text> */}
       </View>
     </TouchableOpacity>
   );
 
   return (
     <MainLayout
-      title="Magazines"
-       routeName="Magazines" 
+      title="Magazines" // Changed to Library for a more "App" feel
+      routeName="Magazines" 
       renderFilter={close => (
         <YearFilter
           years={years}
@@ -154,11 +162,9 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     >
       <View style={styles.container}>
         {loading ? (
-          <ActivityIndicator
-            size="large"
-            color="#c9060a"
-            style={{ marginTop: 50 }}
-          />
+          <View style={styles.centerLoader}>
+             <ActivityIndicator size="large" color="#c9060a" />
+          </View>
         ) : (
           <FlatList
             data={magazines}
@@ -168,12 +174,11 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
             columnWrapperStyle={styles.columnWrapper}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.flatListContent}
-            // 4. Attach the scroll listener here
             onScroll={handleScroll}
             scrollEventThrottle={16}
             ListHeaderComponent={
-              <View style={styles.content}>
-                <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
+              <View style={styles.headerArea}>
+                <Text style={styles.heading}>Lex Witness Archive</Text>
                 <View style={styles.underline} />
               </View>
             }
@@ -195,37 +200,73 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     </MainLayout>
   );
 };
+  
 
 export default MagazinesScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { paddingHorizontal: 15, paddingTop: 15 },
-  heading: { fontSize: 20, fontWeight: '600', color: '#333' },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  centerLoader: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 },
+  headerArea: { paddingHorizontal: 16, paddingTop: 20, marginBottom: 10 },
+  heading: { fontSize: 13, fontWeight: '800', color: '#888', letterSpacing: 1.2, textTransform: 'uppercase' },
   underline: {
-    width: 50,
-    height: 5,
+    width: 30,
+    height: 3,
     backgroundColor: '#c9060a',
-    marginTop: 5,
-    marginBottom: 15,
+    marginTop: 6,
   },
   columnWrapper: {
     justifyContent: 'space-between',
-    paddingHorizontal: 15,
-    marginBottom: 15,
+    paddingHorizontal: 16,
   },
-  flatListContent: { paddingTop: 10 },
-  card: { width: ITEM_WIDTH },
-  imageWrapper: { width: '100%', aspectRatio: 3 / 4, marginBottom: 5 },
+  flatListContent: { paddingBottom: 40 },
+  
+  card: { 
+    width: ITEM_WIDTH, 
+    marginBottom: 24 
+  },
+  imageWrapper: { 
+    width: '100%', 
+    aspectRatio: 3 / 4, 
+    borderRadius: 6,
+    backgroundColor: '#eee',
+    // Physical book shadow
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 4, height: 6 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+    overflow: 'hidden',
+    borderLeftWidth: 1, // Mimics the "spine"
+    borderLeftColor: 'rgba(0,0,0,0.1)',
+  },
   image: { width: '100%', height: '100%' },
-  cardContent: { alignItems: 'center', paddingVertical: 5 },
-  title: { fontSize: 13, color: '#333', textAlign: 'center' },
-  readMore: { color: '#c9060a', fontWeight: '500', marginTop: 4 },
-  emptyText: {
-    textAlign: 'center',
-    color: '#333',
-    paddingVertical: 50,
-    fontSize: 14,
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.02)', // Soft overlay for texture
   },
-  footerWrapper: { marginTop: 20 },
+  cardContent: { 
+    paddingTop: 12, 
+    paddingHorizontal: 2 
+  },
+  title: { 
+    fontSize: 14, 
+    fontWeight: '700', 
+    color: '#1A1A1B', 
+    textAlign: 'center' 
+  },
+  editionText: { 
+    fontSize: 12, 
+    color: '#6B7280', 
+    marginTop: 3, 
+    textAlign: 'left',
+    fontWeight: '500' 
+  },
+  footerWrapper: { marginTop: 10, paddingBottom: 20 },
 });

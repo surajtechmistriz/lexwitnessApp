@@ -125,7 +125,7 @@ export default function ArchiveScreen() {
   const isSearchMode = route.params?.mode === 'search' || !!route.params?.search;
 
   return (
-    <MainLayout title="Archive" showFilter={false}>
+    <MainLayout title="Archive" showFilter={false} routeName="Archive">
 
     <SafeAreaView style={styles.safeArea}>
       {/* <Header /> */}

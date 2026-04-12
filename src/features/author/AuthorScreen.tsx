@@ -146,9 +146,27 @@ export default function AuthorScreen() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <TopMenu/>
+return (
+  <SafeAreaView style={styles.safeArea}>
+    <ScrollView
+      ref={scrollRef}
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#c9060a']}
+        />
+      }
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+      stickyHeaderIndices={[1]} // 👈 Banner sticky
+    >
+      {/* ✅ TopMenu scroll karega */}
+      <TopMenu />
+
+      {/* ✅ Banner sticky */}
       <Banner
         title={author?.name || slug?.replace(/-/g, ' ')}
         renderFilter={(close) => (
@@ -164,60 +182,52 @@ export default function AuthorScreen() {
         )}
       />
 
-      <ScrollView
-        ref={scrollRef}
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#c9060a']}
+      {/* ✅ CONTENT */}
+      <View style={styles.content}>
+        {loading && !refreshing ? (
+          <View style={styles.skeletonWrapper}>
+            {[1, 2, 3, 4, 5].map((item) => (
+              <ArticleSkeleton key={item} />
+            ))}
+          </View>
+        ) : (
+          <PostList
+            posts={posts}
+            loading={false}
+            postBaseUrl={postBaseUrl}
+            emptyMessage={
+              appliedYear
+                ? `No posts by ${author?.name || 'this author'} for ${appliedYear}`
+                : 'No posts available'
+            }
           />
-        }
-           onScroll={handleScroll}
-            scrollEventThrottle={16} 
-      >
-        <View style={styles.content}>
-          {loading && !refreshing ? (
-            /* --- SKELETON LOADING STATE --- */
-            <View style={styles.skeletonWrapper}>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <ArticleSkeleton key={item} />
-              ))}
-            </View>
-          ) : (
-            <PostList
-              posts={posts}
-              loading={false} // Disable internal loader
-              postBaseUrl={postBaseUrl}
-              emptyMessage={
-                appliedYear
-                  ? `No posts by ${author?.name || 'this author'} for ${appliedYear}`
-                  : 'No posts available'
-              }
-            />
-          )}
+        )}
 
-          {!loading && posts.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              lastPage={lastPage}
-              onPageChange={handlePageChange}
-              loading={loading}
-            />
-          )}
-        </View>
+        {!loading && posts.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            onPageChange={handlePageChange}
+            loading={loading}
+          />
+        )}
+      </View>
 
-        <View style={styles.footerContainer}>
-          <View style={styles.magazine}><LatestEditionImageOnly /></View>
-          <View style={styles.BannerContainer}><HomeBanner /></View>
-          <View style={styles.adContainer}><HomeAdvertisement /></View>
-          {/* <Footer /> */}
+      {/* FOOTER */}
+      <View style={styles.footerContainer}>
+        <View style={styles.magazine}>
+          <LatestEditionImageOnly />
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        <View style={styles.BannerContainer}>
+          <HomeBanner />
+        </View>
+        <View style={styles.adContainer}>
+          <HomeAdvertisement />
+        </View>
+      </View>
+    </ScrollView>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({

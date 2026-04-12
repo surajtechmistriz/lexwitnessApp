@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { DrawerActions } from '@react-navigation/native';
+import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 // Import the navigationRef from your AppNavigator file
 import { navigationRef } from '../../navigation/AppNavigator'; 
@@ -15,11 +15,14 @@ type HeaderProps = {
 const Header = ({ onSearchPress }: HeaderProps) => {
   const { isLoggedIn } = useAuth();
 
+  const navigation = useNavigation()
+
 const handleToggleDrawer = () => {
   if (navigationRef.isReady()) {
-      navigationRef.dispatch(DrawerActions.toggleDrawer());
-    
-     }
+    // This helper specifically looks for a navigator that handles 'openDrawer'
+    // even if the currently focused screen isn't a direct child.
+    navigationRef.dispatch(DrawerActions.toggleDrawer());
+  }
 };
 
   const handleGoHome = () => {
@@ -51,9 +54,10 @@ const handleToggleDrawer = () => {
   <TouchableOpacity 
     onPress={() => {
        if (navigationRef.isReady()) {
-         // This tells React Navigation: Go to HomeTab, then open SignIn screen
-         navigationRef.navigate('HomeTab', { screen: 'SignIn' });
-       }
+          // Navigate directly to 'SignIn' because it is a sibling of 'AppMain' 
+          // in your RootStack.Navigator
+          navigationRef.navigate('SignIn'); 
+        }
     }}
   >
     <Entypo name="user" size={20} color="#111" />

@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 14,
 
-    // 🔥 subtle premium shadow
+    // subtle premium shadow
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },

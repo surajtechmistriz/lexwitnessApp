@@ -1,17 +1,32 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Dimensions,
+} from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 
-// Setting a fixed width so cards can sit side-by-side
 const { width } = Dimensions.get('window');
-// const CARD_WIDTH = width * 0.65; // Shows 1 full card + a peek of the next
+// Narrower card (can tweak 0.5 to 0.6 based on your layout)
+const CARD_WIDTH = width * 0.6; // ← reduced from 0.75
 
-const CARD_WIDTH = width * 0.75;
+interface EditorPicksProps {
+  image: string;
+  title: string;
+  author?: string;
+  slug: string;
+  category?: {
+    slug: string;
+  };
+}
 
-const EditorPicks = ({ image, title, author, slug, category }) => {
+const EditorPicks = ({ image, title, author, slug, category }: EditorPicksProps) => {
   const navigation = useNavigation<any>();
   const categorySlug = category?.slug ?? 'general';
-console.log("Name", author)
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
@@ -23,18 +38,18 @@ console.log("Name", author)
       }
       style={styles.card}
     >
+      {/* Image */}
       <Image source={{ uri: image }} style={styles.image} />
 
+      {/* Content */}
       <View style={styles.content}>
         <Text style={styles.title} numberOfLines={2}>
           {title}
         </Text>
 
-        {author && (
-          <Text style={styles.author}>
-            By {author}
-          </Text>
-        )}
+        {author ? (
+          <Text style={styles.author}>By {author}</Text>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -45,48 +60,48 @@ export default EditorPicks;
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    borderRadius: 20,
+    borderRadius: 16, // Slightly smaller radius
     overflow: 'hidden',
-    marginRight: 14,
-    marginBottom: 22,
+    marginRight: 8,   // Tighter horizontal gap
+    marginBottom: 12,
 
-    //  soft glass surface
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    // Light frosted background
+    backgroundColor: 'rgba(255,255,255,0.8)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
+    borderColor: 'rgba(255,255,255,0.9)',
 
-    // depth
-    elevation: 5,
+    // Soft shadow
+    elevation: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
   },
 
   image: {
     width: '100%',
-    height: 170,
+    height: 140, // Slightly shorter image
+    backgroundColor: '#f0f0f0',
   },
 
   content: {
-    padding: 14,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.8)',
   },
 
   title: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     color: '#111',
-    lineHeight: 22,
-    marginBottom: 6,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    lineHeight: 18,
+    marginBottom: 4,
   },
 
   author: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#c9060a',
     fontWeight: '500',
-    opacity: 0.85,
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    opacity: 0.8,
   },
 });

@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Dimensions, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; // Import this
 import Carousel from 'react-native-reanimated-carousel';
 import Config from 'react-native-config';
-import NetInfo from '@react-native-community/netinfo'; // Import NetInfo
+import NetInfo from '@react-native-community/netinfo';
 
 // Components
 import HeroCard from './components/HeroCard';
@@ -30,27 +31,24 @@ const Home = ({ onScrollDown, onScrollUp }: any) => {
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
 
-  const lastOffset = useRef(0);
   const { hideTabBar, showTabBar } = useTabBar();
+  const scrollOffset = useRef(0);
 
-const scrollOffset = useRef(0);
+  const handleScroll = (event: any) => {
+    const currentOffset = event.nativeEvent.contentOffset.y;
+    const diff = currentOffset - scrollOffset.current;
 
-const handleScroll = (event: any) => {
-  const currentOffset = event.nativeEvent.contentOffset.y;
-  const diff = currentOffset - scrollOffset.current;
+    if (currentOffset <= 0) {
+      showTabBar();
+    } else if (diff > 10) {
+      hideTabBar();
+    } else if (diff < -10) {
+      showTabBar();
+    }
 
-  if (currentOffset <= 0) {
-    showTabBar();
-  } else if (diff > 10) {
-    hideTabBar();
-  } else if (diff < -10) {
-    showTabBar();
-  }
+    scrollOffset.current = currentOffset;
+  };
 
-  scrollOffset.current = currentOffset;
-};
-
-  // 1. Listen for Network Changes
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
@@ -58,10 +56,8 @@ const handleScroll = (event: any) => {
     return () => unsubscribe();
   }, []);
 
-  // 2. Fetch Data (Triggers on mount AND when isConnected changes to true)
   useEffect(() => {
     const fetchData = async () => {
-      // If we know we are offline, show skeleton and don't even try the API
       if (isConnected === false) {
         setLoading(true);
         return;
@@ -83,7 +79,7 @@ const handleScroll = (event: any) => {
     };
 
     fetchData();
-  }, [isConnected]); // Re-run when connection status changes
+  }, [isConnected]);
 
   const sliderData = useMemo(() => articles?.slice(0, 3) || [], [articles]);
   const remainingCards = useMemo(() => articles?.slice(3) || [], [articles]);
@@ -96,19 +92,23 @@ const handleScroll = (event: any) => {
 
   const getImage = (img: string) => `${IMAGE_BASE_URL}/${img}`;
 
-  // 3. Show Skeleton if loading OR if there's no internet
   if (loading || isConnected === false) {
     return <HomeSkeleton />;
   }
 
   return (
-    <View style={styles.container}>
-      <TopMenu/>
+    // SafeAreaView with 'top' edge prevents notch overlap
+    // 'bottom' is usually handled by TabBar, so we focus on the top.
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
+      
+      <TopMenu />
+      
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         onScroll={handleScroll}
-  scrollEventThrottle={16}
+        scrollEventThrottle={16}
       >
         <View style={styles.carouselWrapper}>
           <Carousel
@@ -122,16 +122,16 @@ const handleScroll = (event: any) => {
               activeOffsetX: [-10, 10],
             }}
             renderItem={({ item }) => (
-                <View style={{ paddingHorizontal: 2 }}>
-              <HeroCard
-                category={item.category}
-                title={item.title}
-                slug={item.slug}
-                date={formatDate(item)}
-                image={getImage(item.image)}
-                height={280}
-              />
-                </View>
+              <View style={{ paddingHorizontal: 2 }}>
+                <HeroCard
+                  category={item.category}
+                  title={item.title}
+                  slug={item.slug}
+                  date={formatDate(item)}
+                  image={getImage(item.image)}
+                  height={280}
+                />
+              </View>
             )}
           />
         </View>
@@ -168,22 +168,27 @@ const handleScroll = (event: any) => {
           <LatestEditions skipId={latestEditionData?.magazine?.id} />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f7',},
-  scrollContent: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 20 },
-  carouselWrapper: { marginBottom: 20, alignItems: 'center' },
-  fullWidth: { marginHorizontal: -12 },
-  // gridContainer: {
-  //   flexDirection: 'row',
-  //   flexWrap: 'wrap',
-  //   justifyContent: 'space-between',
-  //   paddingTop: 20,
-  //   backgroundColor: '#fff',
-  // },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f5f5f7' 
+  },
+  scrollContent: { 
+    paddingHorizontal: 12, 
+    paddingTop: 10, 
+    paddingBottom: 40 // Extra padding for bottom stability
+  },
+  carouselWrapper: { 
+    marginBottom: 20, 
+    alignItems: 'center' 
+  },
+  fullWidth: { 
+    marginHorizontal: -12 
+  },
   listContainer: {
     marginTop: 10,
   },
@@ -198,8 +203,9 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 18,
-    fontWeight: 700,
+    fontWeight: '700', // String recommended for weight
     marginBottom: 10,
+    color: '#333',
   },
 });
 

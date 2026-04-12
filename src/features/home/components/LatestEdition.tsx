@@ -37,8 +37,8 @@ type Magazine = {
   title: string;
   image: string;
   year: number;
-  slug?: string; // safe slug
-  link?: string; // subscribe link
+  slug?: string;
+  link?: string;
 };
 
 type EditionResponse = {
@@ -66,39 +66,34 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
 
   const navigation = useNavigation<NavigationProp>();
 
-  /* ---------- FETCH DATA ---------- */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await latesteEdition();
-        setData(result.data); // set api data
-        onData(result.data);  // pass parent
+        setData(result.data);
+        onData(result.data);
       } catch (error) {
         console.error('API Error:', error);
       } finally {
-        setLoading(false); // stop loader
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [onData]);
 
-  /* ---------- LOADING ---------- */
   if (loading) {
     return (
       <ActivityIndicator
-        size="large"
+        size="small"
         color={COLORS.primary}
-        style={{ marginTop: 50 }}
+        style={{ marginTop: 24 }}
       />
     );
   }
 
   if (!data) return null;
 
-  /* ---------- NAVIGATION ---------- */
-
-  // article navigation
   const goToArticle = (item: Post) => {
     navigation.navigate('ArticleDetail', {
       slug: item.slug,
@@ -106,114 +101,119 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
     });
   };
 
-  // magazine navigation
   const goToMagazine = () => {
     navigation.navigate('MagazineDetail', {
       slug: data.magazine?.slug ?? String(data.magazine.id),
     });
   };
 
-  /* ---------- UI ---------- */
-
   return (
-  <View style={styles.wrapper}>
-    {/* Header */}
-    <Text style={styles.heading}>Latest Edition</Text>
-     <View style={styles.redLine} />
+    <View style={styles.wrapper}>
+      {/* Header */}
+      <Text style={styles.heading}>Latest Edition</Text>
+      <View style={styles.redLine} />
 
-    {/* Magazine Card */}
-    <TouchableOpacity style={styles.magCard} onPress={goToMagazine}>
-      <Image
-        source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
-        style={styles.magImage}
-      />
+      {/* Magazine Card */}
+      <TouchableOpacity style={styles.magCard} onPress={goToMagazine}>
+        <Image
+          source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
+          style={styles.magImage}
+        />
 
-      <View style={styles.magContent}>
-        <Text style={styles.magTitle}>{data.magazine?.title}</Text>
-        <Text style={styles.magSubtitle}>
-          {data.magazine?.magazine_name}
-        </Text>
+        <View style={styles.magContent}>
+          <Text style={styles.magTitle} numberOfLines={1}>
+            {data.magazine?.title}
+          </Text>
+          <Text style={styles.magSubtitle} numberOfLines={1}>
+            {data.magazine?.magazine_name}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Subscribe – always visible but safe */}
+      <TouchableOpacity
+        style={[styles.subscribeBtn, !data.magazine?.link && styles.disabledBtn]}
+        onPress={() => {
+          if (data.magazine?.link) {
+            Linking.openURL(data.magazine.link);
+          }
+        }}
+        disabled={!data.magazine?.link}
+      >
+        <Text style={styles.subscribeText}>Subscribe Now</Text>
+      </TouchableOpacity>
+
+      {/* Articles – as cards */}
+      <View style={styles.articleList}>
+        {data.posts.slice(0, 3).map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.articleCard}
+            onPress={() => goToArticle(item)}
+          >
+            <Image
+              source={{ uri: `${PostimgUrl}/${item.image}` }}
+              style={styles.articleImage}
+            />
+
+            <View style={styles.articleContent}>
+              <Text numberOfLines={2} style={styles.articleTitle}>
+                {item.title}
+              </Text>
+
+              <Text numberOfLines={2} style={styles.articleDesc}>
+                {item.short_description}
+              </Text>
+
+              {item.category?.slug && (
+                <Text style={styles.categoryBadge}>{item.category.slug}</Text>
+              )}
+            </View>
+          </TouchableOpacity>
+        ))}
       </View>
-    </TouchableOpacity>
-
-    {/* Subscribe */}
-    <TouchableOpacity
-      style={styles.subscribeBtn}
-      onPress={() =>
-        data.magazine?.link && Linking.openURL(data.magazine.link)
-      }
-    >
-      <Text style={styles.subscribeText}>Subscribe Now</Text>
-    </TouchableOpacity>
-
-    {/* Articles */}
-    <View style={styles.articleList}>
-      {data.posts?.slice(0, 3).map((item) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.articleRow}
-          onPress={() => goToArticle(item)}
-        >
-          <Image
-            source={{ uri: `${PostimgUrl}/${item.image}` }}
-            style={styles.articleImage}
-          />
-
-          <View style={{ flex: 1 }}>
-            <Text numberOfLines={2} style={styles.articleTitle}>
-              {item.title}
-            </Text>
-
-            <Text numberOfLines={2} style={styles.articleDesc}>
-              {item.short_description}
-            </Text>
-          </View>
-        </TouchableOpacity>
-      ))}
     </View>
-  </View>
-);
+  );
 };
 
-/* ---------- STYLES ---------- */
+export default LatestEdition;
 
 const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 12,
-    marginTop: 20,
+    marginTop: 16,
+    marginBottom: 12,
   },
 
   heading: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 12,
     color: '#111',
+    marginBottom: 8,
   },
-    redLine: {
-    width: 40,
+  redLine: {
+    width: 36,
     height: 4,
     backgroundColor: COLORS.primary,
-    marginTop: -10,
-    marginLeft:1,
-    marginBottom:10
+    marginBottom: 12,
   },
 
   /* Magazine Card */
   magCard: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 12,
-
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
   },
 
   magImage: {
     width: '100%',
-    height: 220, // reduced from 500 
+    height: 160,
+    backgroundColor: '#f5f5f5',
   },
 
   magContent: {
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   magTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111',
+    color: '#000',
   },
 
   magSubtitle: {
@@ -234,34 +234,52 @@ const styles = StyleSheet.create({
 
   /* Subscribe */
   subscribeBtn: {
-     backgroundColor:COLORS.primary,
-    borderRadius: 8,
-    height: 44,
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
+    elevation: 2,
   },
-
+  disabledBtn: {
+    // opacity: 0.6,
+    elevation: 0,
+  },
   subscribeText: {
     color: '#fff',
+    fontSize: 14,
     fontWeight: '600',
-  
   },
 
-  /* Articles */
+  /* Articles – cards */
   articleList: {
     gap: 12,
   },
 
-  articleRow: {
+  articleCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
     flexDirection: 'row',
-    gap: 10,
+    overflow: 'hidden',
+    marginBottom: 8,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
 
   articleImage: {
-    width: 90,
-    height: 80,
-    borderRadius: 6,
+    width: 88,
+    height: 88,
+    backgroundColor: '#f5f5f5',
+  },
+
+  articleContent: {
+    flex: 1,
+    padding: 10,
+    justifyContent: 'center',
   },
 
   articleTitle: {
@@ -273,8 +291,19 @@ const styles = StyleSheet.create({
 
   articleDesc: {
     fontSize: 12,
-    color: '#777',
+    color: '#666',
+    lineHeight: 16,
+    marginBottom: 4,
+  },
+
+  categoryBadge: {
+    fontSize: 10,
+    color: '#c9060a',
+    fontWeight: '500',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(201, 6, 10, 0.1)',
   },
 });
-
-export default LatestEdition;
