@@ -15,7 +15,10 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Config from 'react-native-config';
 
 import { getArticleBySlug, getRelatedPosts } from '../../services/api/posts';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import {
+  navigationRef,
+  RootStackParamList,
+} from '../../navigation/AppNavigator';
 
 import TestimonialCard from './components/Testimonial';
 import Header from '../../components/common/Header';
@@ -37,7 +40,7 @@ type Route = RouteProp<RootStackParamList, 'ArticleDetail'>;
 export default function ArticleDetailPage() {
   const { width } = useWindowDimensions();
 
-   const { hideTabBar, showTabBar } = useTabBar();
+  const { hideTabBar, showTabBar } = useTabBar();
   const scrollOffset = useRef(0);
 
   const handleScroll = (event: any) => {
@@ -183,27 +186,30 @@ export default function ArticleDetailPage() {
     Linking.openURL(link);
   };
 
-
   const shareArticle = async () => {
-  try {
-    await Share.open({
-      title: article.title,
-      message: `${article.title}\nhttps://yourwebsite.com/articles/${article.slug}`,
-    });
-  } catch (err) {
-    console.log(err);
-  }
-};
+    try {
+      await Share.open({
+        title: article.title,
+        message: `${article.title}\nhttps://yourwebsite.com/articles/${article.slug}`,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
-const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
+  const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
 
   return (
     <View style={{ flex: 1 }}>
       {/* <Header /> */}
       {/* <TopMenu /> */}
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.pad}    onScroll={handleScroll}
-            scrollEventThrottle={16} >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.pad}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
         {/* Category */}
         <TouchableOpacity
           onPress={() =>
@@ -223,13 +229,15 @@ const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
 
         {/* Meta */}
         <View style={styles.meta}>
-        <TouchableOpacity
-  onPress={() => {
-    if (article.author?.slug) {
-      navigateToAuthor(article.author.slug);
-    }
-  }}
->
+          <TouchableOpacity
+            onPress={() => {
+              if (article.author?.slug && navigationRef.isReady()) {
+                navigationRef.navigate('AuthorScreen', {
+                  slug: article.author.slug,
+                });
+              }
+            }}
+          >
             <Text style={styles.author}>
               {typeof article.author === 'string'
                 ? article.author
@@ -268,7 +276,7 @@ const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
         )}
 
         {/* Content */}
-      <View style={styles.content}>
+        <View style={styles.content}>
           {isSubscribed ? (
             <RenderHtml
               contentWidth={width - 32} // Account for padding (16*2)

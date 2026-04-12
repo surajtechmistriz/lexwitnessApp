@@ -27,7 +27,12 @@ const handleToggleDrawer = () => {
 
   const handleGoHome = () => {
     if (navigationRef.isReady()) {
-      navigationRef.navigate('Home' as never);
+     navigationRef.navigate('AppMain', {
+  screen: 'HomeTab',
+  params: {
+    screen: 'Home',
+  },
+});
     }
   };
 

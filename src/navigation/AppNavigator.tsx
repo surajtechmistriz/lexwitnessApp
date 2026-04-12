@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Screens & Context
+// Context
 import { useAuth } from '../context/AuthContext';
+
+// Main App
 import AppDrawer from '../components/drawer/AppDrawer';
 
 // Components
@@ -11,41 +16,57 @@ import Header from '../components/common/Header';
 import SearchOverlay from '../components/common/SearchOverlay';
 import AuthPopup from '../modal/AuthPopup';
 
+// OPTIONAL (future-safe navigation)
+import AuthorScreen from '../features/author/AuthorScreen';
+import ArticleDetailPage from '../features/article/ArticleScreen';
+import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
+import EditorialDetail from '../features/editorial/EditorialDetail';
+import CategoryScreen from '../features/category/CategoryScreen';
 
 export const navigationRef = createNavigationContainerRef();
 const RootStack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { isLoggedIn } = useAuth();
-  // Set to null when user is logged in to hide the popup
-  const [authMode, setAuthMode] = useState<'register' | 'signin' | null>(isLoggedIn ? null : 'register');
+
+  const [authMode, setAuthMode] = useState<'register' | 'signin' | null>(
+    isLoggedIn ? null : 'register',
+  );
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
-  // Auto-hide popup if user logs in
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoggedIn) setAuthMode(null);
   }, [isLoggedIn]);
 
   return (
     <NavigationContainer ref={navigationRef}>
+      {/* HEADER */}
       <Header onSearchPress={() => setIsSearchVisible(true)} />
-      
+
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {/* MAIN APP */}
         <RootStack.Screen name="AppMain" component={AppDrawer} />
+
+        {/* ✅ ADD THIS (IMPORTANT FIX) */}
+        <RootStack.Screen name="AuthorScreen" component={AuthorScreen} />
+        <RootStack.Screen name="ArticleDetail" component={ArticleDetailPage} />
+        <RootStack.Screen
+          name="MagazineDetail"
+          component={MagazineDetailScreen}
+        />
+        <RootStack.Screen name="EditorialDetail" component={EditorialDetail} />
+
+        <RootStack.Screen name="CategoryScreen" component={CategoryScreen} />
       </RootStack.Navigator>
 
-      <SearchOverlay visible={isSearchVisible} onClose={() => setIsSearchVisible(false)} />
+      {/* SEARCH */}
+      <SearchOverlay
+        visible={isSearchVisible}
+        onClose={() => setIsSearchVisible(false)}
+      />
 
-    {/* Pass authMode directly. 
-         !!authMode converts 'register'/'signin' to true, and null to false.
-      */}
-      {authMode && (
-        <AuthPopup 
-          visible={!!authMode} 
-          mode={authMode} 
-          setMode={setAuthMode} 
-        />
-      )}
+      {/* AUTH POPUP */}
+      {authMode && <AuthPopup visible mode={authMode} setMode={setAuthMode} />}
     </NavigationContainer>
   );
 };

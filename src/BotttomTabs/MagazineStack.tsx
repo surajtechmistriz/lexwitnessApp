@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MagazinesScreen from '../features/magazines/MagazinesScreen';
 import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
 import ArticleDetailPage from '../features/article/ArticleScreen';
+import AuthorScreen from '../features/author/AuthorScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,18 @@ export const MagazineStack = ({ onScrollDown, onScrollUp }) => {
       <Stack.Screen name="ArticleDetail">
         {props => <ArticleDetailPage {...props} onScrollDown={onScrollDown} onScrollUp={onScrollUp} />}
       </Stack.Screen>
+
+      <Stack.Screen name="AuthorScreen">
+  {props => (
+    <AuthorScreen
+      {...props}
+      onScrollDown={onScrollDown}
+      onScrollUp={onScrollUp}
+    />
+  )}
+</Stack.Screen>
     </Stack.Navigator>
+
+    
   );
 };
