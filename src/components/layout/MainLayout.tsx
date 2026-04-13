@@ -46,7 +46,7 @@ const MainLayout = ({
     scrollOffset.current = currentOffset;
   };
 
-  const hiddenTopMenu = ['Magazines', 'Subscription', 'Register', 'SignIn', 'Archive'];
+  const hiddenTopMenu = ['Magazines', 'Subscription', 'Register', 'SignIn', 'Archive',];
   const disablePopupScreens = ['Register', 'SignIn'];
 
   const shouldShowPopup =

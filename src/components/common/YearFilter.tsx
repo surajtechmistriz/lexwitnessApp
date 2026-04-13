@@ -95,6 +95,7 @@ export default YearFilter;
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    
   },
 
   // row layout
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
+     
   },
 
   // filter button
@@ -122,6 +124,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    
   },
 
   filterText: {
@@ -136,7 +139,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingLeft: 15,
     paddingRight:91,
-        paddingBottom:40
+        paddingBottom:40,
+     marginTop:-37
+
+        
   },
 
   // dropdown box
@@ -144,6 +150,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     // borderRadius: 6,
     maxHeight: 300,
+   
   },
 
   // item

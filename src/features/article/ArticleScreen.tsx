@@ -210,18 +210,34 @@ export default function ArticleDetailPage() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {/* Category */}
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate('CategoryScreen', {
-              slug: article.category?.slug,
-            })
-          }
-        >
-          <Text style={styles.category}>
-            {article.category?.name || 'UNCATEGORIZED'}
-          </Text>
-        </TouchableOpacity>
+        {/* Image */}
+        {article.image && (
+          <Image
+            source={{
+              uri: article.image.startsWith('http')
+                ? article.image
+                : `${postBaseUrl}/${article.image}`,
+            }}
+            style={styles.image}
+          />
+        )}
+
+        {/* Category & socialShare */}
+        <View style={styles.topRow}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('CategoryScreen', {
+                slug: article.category?.slug,
+              })
+            }
+          >
+            <Text style={styles.category}>
+              {article.category?.name || 'UNCATEGORIZED'}
+            </Text>
+          </TouchableOpacity>
+
+          <SocialShare title={article.title} url={articleUrl} />
+        </View>
 
         {/* Title */}
         <Text style={styles.title}>{article.title}</Text>
@@ -257,23 +273,6 @@ export default function ArticleDetailPage() {
             {article.magazine?.month?.name} {article.magazine?.year}
           </Text>
         </View>
-
-        {/* Share */}
-        <View style={{}}>
-          <SocialShare title={article.title} url={articleUrl} />
-        </View>
-
-        {/* Image */}
-        {article.image && (
-          <Image
-            source={{
-              uri: article.image.startsWith('http')
-                ? article.image
-                : `${postBaseUrl}/${article.image}`,
-            }}
-            style={styles.image}
-          />
-        )}
 
         {/* Content */}
         <View style={styles.content}>
@@ -460,8 +459,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
   },
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+  },
 
-  title: { fontSize: 22, fontWeight: '600', color: '#333' },
+  title: { fontSize: 20, fontWeight: '600', color: '#333' },
 
   divider: {
     width: 40,
@@ -480,7 +485,7 @@ const styles = StyleSheet.create({
 
   content: { marginVertical: 10, textAlign: 'justify' },
   text: {
-    fontSize: 17,
+    fontSize: 16,
     lineHeight: 24,
     textAlign: 'justify',
     color: '#333333',

@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   dropdownOverlay: {
     position: 'absolute',
-    top: 70,
+    top: 100,
     left: 0,
     right: 0,
     backgroundColor: '#fff',

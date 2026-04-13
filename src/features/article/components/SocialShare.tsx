@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
   },
 
   btn: {
-    width: 40,
-    height: 24,
+    width: 30,
+    height: 20,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
