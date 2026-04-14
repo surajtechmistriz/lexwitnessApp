@@ -14,10 +14,9 @@ import Config from 'react-native-config';
 import LatestEditions from '../home/components/Latest5Edition';
 import Header from '../../components/common/Header';
 import Menubar from '../../components/common/Menubar';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import { navigationRef, RootStackParamList } from '../../navigation/AppNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Footer from '../../components/common/Footer';
-import { useTabBar } from '../../BotttomTabs/TabBarContext';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -25,28 +24,6 @@ const imgUrl2 = Config.POSTS_BASE_URL;
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function MagazineDetailScreen() {
-
-    const lastOffset = useRef(0);
-    const { hideTabBar, showTabBar } = useTabBar();
-  
-  const scrollOffset = useRef(0);
-  
-  const handleScroll = (event: any) => {
-    const currentOffset = event.nativeEvent.contentOffset.y;
-    const diff = currentOffset - scrollOffset.current;
-  
-    if (currentOffset <= 0) {
-      showTabBar();
-    } else if (diff > 10) {
-      hideTabBar();
-    } else if (diff < -10) {
-      showTabBar();
-    }
-  
-    scrollOffset.current = currentOffset;
-  };
-
-
   const route = useRoute<any>();
   const { slug } = route.params;
 
@@ -56,9 +33,7 @@ export default function MagazineDetailScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
-    if (slug) {
-      fetchMagazine();
-    }
+    if (slug) fetchMagazine();
   }, [slug]);
 
   const fetchMagazine = async () => {
@@ -79,40 +54,48 @@ export default function MagazineDetailScreen() {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#c9060a" style={{ marginTop: 50 }} />;
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#c9060a" />
+      </View>
+    );
   }
 
   if (!magazine) {
     return (
-      <View style={styles.center}>
+      <View style={styles.loader}>
         <Text>No Data</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1 }}>
-      <ScrollView showsVerticalScrollIndicator={false}  onScroll={handleScroll}
-  scrollEventThrottle={16}>
+    <View style={styles.screen}>
+      <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* COVER */}
-        <View style={styles.wrapper}>
-          <View style={styles.coverCard}>
-           <Image
-  source={{ uri: getImage(magazine.image, imgUrl) }}
-  style={styles.coverImage}
-  resizeMode="contain" // Add this
-/>
+        {/* MAGAZINE HERO */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroCard}>
+            <Image
+              source={{ uri: getImage(magazine.image, imgUrl) }}
+              style={styles.heroImage}
+              resizeMode="contain"
+            />
           </View>
 
           {/* DETAILS */}
           <View style={styles.content}>
-            <Text style={styles.subtitle}>{magazine.magazine_name}</Text>
-            <Text style={styles.title}>{magazine.title}</Text>
+            <Text style={styles.kicker}>
+              {magazine.magazine_name}
+            </Text>
 
-            <View style={styles.divider}/>
+            <Text style={styles.title}>
+              {magazine.title}
+            </Text>
 
-            <Text style={styles.text}>Magazine Details</Text>
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionLabel}>Magazine Details</Text>
 
             <Text style={styles.description}>
               {magazine.description
@@ -129,16 +112,16 @@ export default function MagazineDetailScreen() {
         {/* ARTICLES */}
         <View style={styles.articleSection}>
           <Text style={styles.sectionTitle}>Articles</Text>
-          <View style={styles.redLine}/>
+          <View style={styles.redLine} />
 
           <View style={styles.grid}>
             {magazine.posts?.map((post: any) => (
               <TouchableOpacity
                 key={post.id}
                 style={styles.card}
-                activeOpacity={0.8}
+                activeOpacity={0.85}
                 onPress={() =>
-                  navigation.navigate('ArticleDetail', {
+                  navigationRef.navigate('ArticleDetail', {
                     slug: post.slug,
                     category: post.category?.slug || 'general',
                   })
@@ -164,133 +147,149 @@ export default function MagazineDetailScreen() {
         </View>
 
         {/* MORE EDITIONS */}
-        <View style={{marginBottom:60}}>
-
-        {magazine?.id && <LatestEditions skipId={magazine.id} />}
+        <View style={styles.moreSection}>
+          {magazine?.id && <LatestEditions skipId={magazine.id} />}
         </View>
 
-        {/* <Footer /> */}
       </ScrollView>
     </View>
   );
 }
 
-
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  wrapper: {
-    paddingHorizontal: 12,
-    marginTop: 10,
+  screen: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
   },
 
-  coverCard: {
-    borderRadius: 10,
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  /* HERO */
+  heroSection: {
+    padding: 14,
+  },
+
+  heroCard: {
+    borderRadius: 14,
     overflow: 'hidden',
+    backgroundColor: '#fff',
   },
 
-coverImage: {
+ heroImage: {
   width: '100%',
-  height: 450, // Reduced height for better mobile perspective
+  height: undefined,
+  aspectRatio: 3 / 4,   // 👈 key fix (adjusts naturally like magazine cover)
   backgroundColor: '#f9f9f9',
 },
 
-cardImage: {
-  width: '100%',
-  height: 100,      // Smaller height for 2-column grid
-  backgroundColor: '#eee',
-},
+  /* CONTENT */
   content: {
-    marginTop: 16,
+    backgroundColor: '#fff',
+    marginTop: 14,
+    padding: 16,
+    borderRadius: 14,
+  },
+
+  kicker: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000',
+    // textTransform: 'uppercase',
+    // letterSpacing: 1,
   },
 
   title: {
     fontSize: 16,
-    fontWeight: '400',
-    color: '#333',
+    fontWeight: '500',
+    color: '#111',
+    marginTop: 6,
+    lineHeight: 30,
   },
 
-  subtitle: {
-    fontSize: 24,
-    color: '#333',
-    marginTop: 4,
-    fontWeight:700
-  },
-
-   divider: {
-    width: '100%',
+  divider: {
     height: 1,
-    backgroundColor: '#b5afb0',
-    marginTop: 5,
-    marginLeft:1,
-    marginBottom:10
+    backgroundColor: '#eee',
+    marginVertical: 12,
   },
-  
-  text:{
-    color:"#c9060a"
+
+  sectionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#c9060a',
+    marginBottom: 6,
   },
-  
+
   description: {
     fontSize: 14,
     color: '#444',
-    lineHeight: 20,
-    marginTop: 6,
+    lineHeight: 22,
   },
 
   subscribeBtn: {
+    marginTop: 16,
     backgroundColor: '#c9060a',
-    borderRadius: 8,
     paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
-    marginTop: 14,
   },
-  
+
   subscribeText: {
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  
+
   /* ARTICLES */
   articleSection: {
-    marginTop: 24,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
+    marginTop: 20,
   },
-  
+
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 12,
+    fontSize: 20,
+    fontWeight: '800',
     color: '#111',
   },
+
   redLine: {
- width: 40,
- height: 4,
- backgroundColor: '#c9060a',
- marginTop: -10,
- marginLeft:1,
- marginBottom:10
-},
-  
+    width: 50,
+    height: 4,
+    backgroundColor: '#c9060a',
+    marginTop: 6,
+    marginBottom: 14,
+    borderRadius: 2,
+  },
+
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
 
-  card: {
-    width: '48%',
-    marginBottom: 14,
-    borderRadius: 4,
-    overflow: 'hidden',
-    backgroundColor: '#fff',
+card: {
+  width: '48%',
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  overflow: 'hidden',
+  marginBottom: 14,
 
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+  borderWidth: 1,
+  borderColor: '#e5e5e5', // 👈 light gray border
+
+  elevation: 2, // Android subtle shadow (keep optional)
+  shadowColor: '#000', // iOS shadow
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  shadowOffset: { width: 0, height: 2 },
+},
+
+  cardImage: {
+    width: '100%',
+    height: 110,
   },
-
-
 
   cardContent: {
     padding: 10,
@@ -304,7 +303,14 @@ cardImage: {
 
   cardCategory: {
     fontSize: 11,
-    color: '#ff3b30',
-    marginTop: 4,
+    color: '#c9060a',
+    marginTop: 6,
+    fontWeight: '500',
+  },
+
+  /* MORE */
+  moreSection: {
+    marginTop: 20,
+    paddingBottom: 40,
   },
 });

@@ -13,7 +13,7 @@ const AppDrawer = () => {
     <Drawer.Navigator
       screenOptions={{ 
         headerShown: false,
-        drawerPosition: 'right',
+        drawerPosition: 'left',
         drawerStyle: {
           borderRadius: 0, 
         }

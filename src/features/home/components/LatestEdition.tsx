@@ -118,6 +118,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
         <Image
           source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
           style={styles.magImage}
+          resizeMode='contain'
         />
 
         <View style={styles.magContent}>
@@ -210,12 +211,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  magImage: {
-    width: '100%',
-    height: 160,
-    backgroundColor: '#f5f5f5',
-  },
-
+magImage: {
+  width: '100%',
+  aspectRatio: 4 / 3,
+  // aspectRatio: 16 / 9,
+  backgroundColor: '#f5f5f5',
+},
   magContent: {
     padding: 12,
   },
@@ -257,33 +258,36 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  articleCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    flexDirection: 'row',
-    overflow: 'hidden',
-    marginBottom: 8,
+articleCard: {
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  flexDirection: 'row',
+  overflow: 'hidden',
+  marginBottom: 10,
 
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
+  shadowColor: '#000',
+  shadowOpacity: 0.05,
+  shadowRadius: 6,
+  elevation: 2,
+    alignItems: 'center',
+},
 
-  articleImage: {
-    width: 88,
-    height: 88,
-    backgroundColor: '#f5f5f5',
-  },
+articleImage: {
+  width: 110,
+  aspectRatio: 16 / 9,   // ✅ MAIN FIX
+  borderRadius: 10,
+  margin: 10,
+  backgroundColor: '#eee',
+},
 
-  articleContent: {
-    flex: 1,
-    padding: 10,
-    justifyContent: 'center',
-  },
-
+articleContent: {
+  flex: 1,
+  paddingVertical: 10,
+  paddingRight: 10,
+  justifyContent: 'center',
+},
   articleTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111',
     marginBottom: 4,

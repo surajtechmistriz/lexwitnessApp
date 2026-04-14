@@ -1,5 +1,14 @@
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import React, { useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
 
 const HomeBanner = () => {
   const [name, setName] = useState('');
@@ -7,45 +16,71 @@ const HomeBanner = () => {
   const [contact, setContact] = useState('');
 
   const handleSubmit = () => {
-    console.log('Subscribed:', email);
+    if (!name || !email) {
+      console.log('Name and email are required');
+      return;
+    }
+
+    console.log('Subscribed:', {
+      name,
+      email,
+      contact,
+    });
+
+    // reset form (optional)
+    setName('');
+    setEmail('');
+    setContact('');
   };
 
   return (
-    <View style={styles.wrapper}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Subscribe Us</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <View style={styles.wrapper}>
+          <View style={styles.card}>
+            <Text style={styles.title}>Subscribe Us</Text>
 
-        <Text style={styles.subtitle}>
-          Get the latest articles & editions directly in your inbox
-        </Text>
+            <Text style={styles.subtitle}>
+              Get the latest articles & editions directly in your inbox
+            </Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your name.."
-          placeholderTextColor="#999"
-          value={name}
-          onChangeText={setName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your number.."
-          placeholderTextColor="#999"
-          value={contact}
-          onChangeText={setContact}
-        />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your name"
+              placeholderTextColor="#999"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
 
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>SUBMIT</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your email"
+              placeholderTextColor="#999"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your number"
+              placeholderTextColor="#999"
+              value={contact}
+              onChangeText={setContact}
+              keyboardType="phone-pad"
+            />
+
+            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+              <Text style={styles.buttonText}>SUBMIT</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -56,13 +91,19 @@ export default HomeBanner;
 const styles = StyleSheet.create({
   wrapper: {
     marginVertical: 20,
-    // paddingHorizontal: 12,
+    paddingHorizontal: 12,
   },
 
   card: {
     backgroundColor: '#111',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 20,
+
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
 
   title: {

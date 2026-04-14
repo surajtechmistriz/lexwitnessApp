@@ -151,27 +151,29 @@ const styles = StyleSheet.create({
     color: '#888',
   },
 
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    marginBottom: 14,
-    padding: 12,
-    // Modern subtle shadow
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
-  },
+ card: {
+  flexDirection: 'row',
+  backgroundColor: '#fff',
+  borderRadius: 14,
+  marginBottom: 12,
+  padding: 12,
+
+  borderWidth: 1,
+  borderColor: '#f0f0f0',
+
+  // cleaner shadow
+  ...Platform.select({
+    ios: {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+    },
+    android: {
+      elevation: 2,
+    },
+  }),
+},
   imageWrapper: {
     width: 90,
     height: 90,
@@ -192,15 +194,13 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 10,
   },
-
-  contentContainer: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: 'space-between',
-    paddingVertical: 2,
-  },
+contentContainer: {
+  flex: 1,
+  marginLeft: 12,
+  justifyContent: 'center',
+},
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#111',
     lineHeight: 20,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   flexDirection: 'row',
   alignItems: 'center',
   marginTop: 6,
-  flex: 1,
+  flexWrap: 'wrap', // 🔥 important
 },
   authorText: {
     color: '#c9060a',
@@ -221,11 +221,10 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 14,
   },
- dateText: {
+dateText: {
   fontSize: 12,
   color: '#777',
   flexShrink: 1,
-  maxWidth: '60%', // adjust if needed
 },
   actionRow: {
     flexDirection: 'row',

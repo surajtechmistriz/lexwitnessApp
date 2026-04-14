@@ -26,8 +26,7 @@ const imgUrl = Config.POSTS_BASE_URL;
 const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
   const navigation = useNavigation<NavigationProp>();
 
-  const categoryName =
-    typeof category === 'string' ? category : category?.name;
+  const categoryName = typeof category === 'string' ? category : category?.name;
 
   const categorySlug = category?.slug ?? 'general';
 
@@ -48,9 +47,18 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
         {/* TEXT */}
         <View style={styles.textContainer}>
           {!!categoryName && (
-            <Text style={styles.category} numberOfLines={1}>
-              {categoryName.toUpperCase()}
-            </Text>
+            <TouchableOpacity
+              style={styles.category}
+              onPress={() =>
+                navigation.navigate('CategoryScreen', {
+                  slug: categorySlug,
+                })
+              }
+            >
+              <Text numberOfLines={1} style={styles.categoryText}>
+                {categoryName.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
           )}
 
           <Text style={styles.title} numberOfLines={2}>
@@ -66,6 +74,7 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
             source={{ uri: fullImageUrl }}
             style={styles.thumbnail}
             resizeMode="cover"
+            fadeDuration={300}
           />
         ) : (
           <View style={styles.thumbnailPlaceholder} />
@@ -80,9 +89,9 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 10, // reduced from 12
+    marginBottom: 8,
 
     // softer premium shadow
     elevation: 2,
@@ -94,6 +103,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
   },
+  //   category: {
+  //   marginBottom: 4,
+  // },
+
+  categoryText: {
+    color: '#c9060a',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
 
   row: {
     flexDirection: 'row',
@@ -102,7 +121,7 @@ const styles = StyleSheet.create({
 
   textContainer: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: 8,
   },
 
   category: {
@@ -114,11 +133,11 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: '#111',
-    lineHeight: 21,
-    marginBottom: 6,
+    lineHeight: 20,
+    marginBottom: 4,
   },
 
   date: {
@@ -127,16 +146,16 @@ const styles = StyleSheet.create({
   },
 
   thumbnail: {
-    width: 84,
-    height: 84,
-    borderRadius: 12, // 🔥 more modern
+    width: 96,
+    height: 64, // smaller 16:9
+    borderRadius: 10,
     backgroundColor: '#eee',
   },
 
   thumbnailPlaceholder: {
-    width: 84,
-    height: 84,
-    borderRadius: 12,
+    width: 96,
+    height: 64,
+    borderRadius: 10,
     backgroundColor: '#f2f2f2',
   },
 });

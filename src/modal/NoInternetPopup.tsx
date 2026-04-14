@@ -16,8 +16,8 @@ const NoInternetPopup = () => {
         setStatus('offline');
         showToast();
       } else {
-        setStatus('online');
-        showToast();
+      //  setStatus('online');
+        // showToast();
 
         // Auto hide after 2 sec when back online
         setTimeout(hideToast, 2000);

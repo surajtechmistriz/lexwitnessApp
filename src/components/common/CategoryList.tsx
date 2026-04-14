@@ -9,10 +9,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getMenu } from '../../services/api/category';
-import { useTabBar } from '../../BotttomTabs/TabBarContext';
 
 const { width } = Dimensions.get('window');
 
@@ -36,22 +33,7 @@ const CategoryList = ({ navigation }: any) => {
   const [loading, setLoading] = useState(true);
 
  
-  const { hideTabBar, showTabBar } = useTabBar();
-  const scrollOffset = useRef(0);
-
-  const handleScroll = (event: any) => {
-    const currentOffset = event.nativeEvent.contentOffset.y;
-    const diff = currentOffset - scrollOffset.current;
-
-    if (currentOffset <= 0) {
-      showTabBar();
-    } else if (diff > 10) {
-      hideTabBar();
-    } else if (diff < -10) {
-      showTabBar();
-    }
-    scrollOffset.current = currentOffset;
-  };
+ 
 
   useEffect(() => {
     fetchCategories();
@@ -133,8 +115,7 @@ const renderItem = ({ item, index }: any) => {
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
-           onScroll={handleScroll}
-            scrollEventThrottle={16} 
+     
       />
     </SafeAreaView>
   );

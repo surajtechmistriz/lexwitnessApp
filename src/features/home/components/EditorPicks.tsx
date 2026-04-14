@@ -11,7 +11,9 @@ import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 // Narrower card (can tweak 0.5 to 0.6 based on your layout)
-const CARD_WIDTH = width * 0.6; // ← reduced from 0.75
+const CARD_WIDTH = width * 0.52;
+const IMAGE_WIDTH = CARD_WIDTH;
+const IMAGE_HEIGHT = (IMAGE_WIDTH * 9) / 16;
 
 interface EditorPicksProps {
   image: string;
@@ -26,6 +28,7 @@ interface EditorPicksProps {
 const EditorPicks = ({ image, title, author, slug, category }: EditorPicksProps) => {
   const navigation = useNavigation<any>();
   const categorySlug = category?.slug ?? 'general';
+
 
   return (
     <TouchableOpacity
@@ -78,30 +81,32 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
   },
 
-  image: {
-    width: '100%',
-    height: 140, // Slightly shorter image
-    backgroundColor: '#f0f0f0',
-  },
+image: {
+  width: '100%',
+  height: IMAGE_HEIGHT,
+  backgroundColor: '#f0f0f0',
+},
+ content: {
+  paddingVertical: 8,
+  paddingHorizontal: 10,
+  backgroundColor: 'rgba(255,255,255,0.8)',
+},
 
-  content: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.8)',
-  },
-
-  title: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111',
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-
+title: {
+  fontSize: 13,
+  fontWeight: '700',
+  color: '#111',
+  lineHeight: 17,
+  marginBottom: 3,
+},
   author: {
     fontSize: 11,
     color: '#c9060a',
     fontWeight: '500',
     opacity: 0.8,
   },
+  scroll: {
+  paddingRight: 10,
+  paddingLeft: 4,
+},
 });

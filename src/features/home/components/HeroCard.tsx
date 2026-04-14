@@ -35,16 +35,16 @@ const HeroCard = ({
 
   return (
     <TouchableOpacity
-      activeOpacity={0.9}
-      style={[styles.container, { height }]}
-      onPress={() =>
-        navigation.navigate('ArticleDetail', {
-          slug,
-          category: categorySlug,
-        })
-      }
-    >
-      <ImageBackground source={{ uri: image }} style={styles.image}>
+  activeOpacity={0.9}
+  style={styles.container}
+  onPress={() =>
+    navigation.navigate('ArticleDetail', {
+      slug,
+      category: categorySlug,
+    })
+  }
+>
+  <ImageBackground source={{ uri: image }} style={styles.image}>
         <LinearGradient
           colors={[
             'rgba(0,0,0,0.05)',
@@ -86,13 +86,12 @@ const HeroCard = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
+   container: {
     width: '100%',
     borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 14,
 
-    // subtle premium shadow
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -100,12 +99,14 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
 
-  image: {
-    flex: 1,
-  },
+ image: {
+  width: '100%',
+  aspectRatio: 16 / 9,
+  borderRadius: 16,
+},
 
   gradient: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
     padding: 16,
   },

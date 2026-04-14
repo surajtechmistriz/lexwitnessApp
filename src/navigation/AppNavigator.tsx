@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import {
-  NavigationContainer,
-  createNavigationContainerRef,
-} from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-// Context
 import { useAuth } from '../context/AuthContext';
 
-// Main App
 import AppDrawer from '../components/drawer/AppDrawer';
-
-// Components
 import Header from '../components/common/Header';
 import SearchOverlay from '../components/common/SearchOverlay';
 import AuthPopup from '../modal/AuthPopup';
 
-// OPTIONAL (future-safe navigation)
 import AuthorScreen from '../features/author/AuthorScreen';
 import ArticleDetailPage from '../features/article/ArticleScreen';
 import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
@@ -29,7 +21,7 @@ const RootStack = createNativeStackNavigator();
 const AppNavigator = () => {
   const { isLoggedIn } = useAuth();
 
-  const [authMode, setAuthMode] = useState<'register' | 'signin' | null>(
+  const [authMode, setAuthMode] = useState(
     isLoggedIn ? null : 'register',
   );
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -40,33 +32,32 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer ref={navigationRef}>
-      {/* HEADER */}
+
       <Header onSearchPress={() => setIsSearchVisible(true)} />
 
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        {/* MAIN APP */}
+
+        {/* MAIN APP (tabs/drawer inside) */}
         <RootStack.Screen name="AppMain" component={AppDrawer} />
 
-        {/* ✅ ADD THIS (IMPORTANT FIX) */}
-        <RootStack.Screen name="AuthorScreen" component={AuthorScreen} />
+        {/* GLOBAL SCREENS (always full screen) */}
         <RootStack.Screen name="ArticleDetail" component={ArticleDetailPage} />
-        <RootStack.Screen
-          name="MagazineDetail"
-          component={MagazineDetailScreen}
-        />
+        <RootStack.Screen name="AuthorScreen" component={AuthorScreen} />
+        <RootStack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
         <RootStack.Screen name="EditorialDetail" component={EditorialDetail} />
-
         <RootStack.Screen name="CategoryScreen" component={CategoryScreen} />
+
       </RootStack.Navigator>
 
-      {/* SEARCH */}
       <SearchOverlay
         visible={isSearchVisible}
         onClose={() => setIsSearchVisible(false)}
       />
 
-      {/* AUTH POPUP */}
-      {authMode && <AuthPopup visible mode={authMode} setMode={setAuthMode} />}
+      {authMode && (
+        <AuthPopup visible mode={authMode} setMode={setAuthMode} />
+      )}
+
     </NavigationContainer>
   );
 };

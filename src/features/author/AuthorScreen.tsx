@@ -24,29 +24,14 @@ import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton'; // IMPORT SKELETON
 import { getAuthorBySlug } from './api/authorarticle';
-import { useTabBar } from '../../BotttomTabs/TabBarContext';
 import TopMenu from '../../components/common/Menubar';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function AuthorScreen() {
 
-   const { hideTabBar, showTabBar } = useTabBar();
-  const scrollOffset = useRef(0);
 
-  const handleScroll = (event: any) => {
-    const currentOffset = event.nativeEvent.contentOffset.y;
-    const diff = currentOffset - scrollOffset.current;
-
-    if (currentOffset <= 0) {
-      showTabBar();
-    } else if (diff > 10) {
-      hideTabBar();
-    } else if (diff < -10) {
-      showTabBar();
-    }
-    scrollOffset.current = currentOffset;
-  };
+ 
 
   const route = useRoute<any>();
   const scrollRef = useRef<ScrollView>(null);
@@ -148,21 +133,19 @@ export default function AuthorScreen() {
 
 return (
   <SafeAreaView style={styles.safeArea}>
-    <ScrollView
-      ref={scrollRef}
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={['#c9060a']}
-        />
-      }
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-      stickyHeaderIndices={[1]} // 👈 Banner sticky
-    >
+   <ScrollView
+  ref={scrollRef}
+  style={styles.container}
+  contentContainerStyle={styles.scrollContent}
+  refreshControl={
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      colors={['#c9060a']}
+    />
+  }
+  stickyHeaderIndices={[1]} // Banner sticky
+>
       {/* ✅ TopMenu scroll karega */}
       <TopMenu />
 

@@ -1,121 +1,60 @@
-import React, { useRef } from 'react';
-import { Animated, View } from 'react-native';
-import { BottomTabBar, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Import your stack
-import { MainStack } from './MainStack';
-
-import MagazinesScreen from '../features/magazines/MagazinesScreen';
+import { MainStack } from '../navigation/MainStack';
 import CategoryList from '../components/common/CategoryList';
-import TabBarContext from './TabBarContext';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { MagazineStack } from './MagazineStack';
+import { MagazineStack } from '../navigation/MagazineStack';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
-  const translateY = useRef(new Animated.Value(0)).current;
-  const isHidden = useRef(false);
-
-  const hideTabBar = () => {
-    if (isHidden.current) return;
-    isHidden.current = true;
-    Animated.timing(translateY, {
-      toValue: 80,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const showTabBar = () => {
-    if (!isHidden.current) return;
-    isHidden.current = false;
-    Animated.timing(translateY, {
-      toValue: 0,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  };
-
   return (
-      <TabBarContext.Provider value={{ hideTabBar, showTabBar }}>
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+
         tabBarActiveTintColor: '#c9060a',
         tabBarInactiveTintColor: '#999',
+
         tabBarStyle: {
           height: 60,
           paddingBottom: 5,
           position: 'absolute',
           backgroundColor: '#fff',
-          // marginHorizontal: 16,
-          // marginBottom: 10,
-          // borderRadius: 20,
           elevation: 12,
         },
-      tabBarIcon: ({ color, focused }) => {
-  const routeName = getFocusedRouteNameFromRoute(route) ?? '';
 
-  let iconName = 'home-outline';
+        tabBarIcon: ({ color, focused }) => {
+          let iconName = 'home-outline';
 
-  if (route.name === 'HomeTab') {
-    const isInnerScreen = routeName && routeName !== 'Home';
+          if (route.name === 'HomeTab') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'CategoriesTab') {
+            iconName = focused ? 'grid' : 'grid-outline';
+          } else if (route.name === 'Magazines') {
+            iconName = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'ProfileTab') {
+            iconName = focused ? 'person' : 'person-outline';
+          }
 
-    iconName =
-      focused && !isInnerScreen ? 'home' : 'home-outline';
-  } else if (route.name === 'CategoriesTab') {
-    iconName = focused ? 'grid' : 'grid-outline';
-  } else if (route.name === 'Magazines') {
-    iconName = focused ? 'book' : 'book-outline';
-  } else if (route.name === 'ProfileTab') {
-    iconName = focused ? 'person' : 'person-outline';
-  }
-
-  return <Ionicons name={iconName} size={22} color={color} />;
-}
+          return <Ionicons name={iconName} size={22} color={color} />;
+        },
       })}
-      tabBar={(props) => (
-        <Animated.View style={{ transform: [{ translateY }] }}>
-          <BottomTabBar {...props} />
-        </Animated.View>
-      )}
     >
-      {/*  Stack inside tab */}
-      <Tab.Screen name="HomeTab" options={{ title: 'Home' }}>
-        {(props) => (
-          <MainStack
-            {...props}
-            onScrollDown={hideTabBar}
-            onScrollUp={showTabBar}
-          />
-        )}
-      </Tab.Screen>
 
-      <Tab.Screen
-        name="CategoriesTab"
-        component={CategoryList}
-        options={{ title: 'Categories' }}
-      />
+      <Tab.Screen name="HomeTab" component={MainStack} />
+      <Tab.Screen name="CategoriesTab" component={CategoryList} />
+      <Tab.Screen name="Magazines" component={MagazineStack} />
 
-      <Tab.Screen name="Magazines" options={{ title: 'Magazines' }}>
-  {(props) => (
-    <MagazineStack
-      {...props}
-      onScrollDown={hideTabBar}
-      onScrollUp={showTabBar}
-    />
-  )}
-</Tab.Screen>
-
+      {/* TEMP PROFILE */}
       <Tab.Screen
         name="ProfileTab"
-        component={View}
+        component={() => null}
         options={{ title: 'Profile' }}
       />
+
     </Tab.Navigator>
-    </TabBarContext.Provider>
   );
 };
 

@@ -178,7 +178,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
             scrollEventThrottle={16}
             ListHeaderComponent={
               <View style={styles.headerArea}>
-                <Text style={styles.heading}>Lex Witness Archive</Text>
+                <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
                 <View style={styles.underline} />
               </View>
             }

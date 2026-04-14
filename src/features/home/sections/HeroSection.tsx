@@ -28,7 +28,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         slug={firstCard.slug}
         date={formatDate(firstCard)}
         image={getImage(firstCard.image)}
-        height={200} 
+      
       />
 
       <View style={styles.secondaryContainer}>
@@ -40,7 +40,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               title={item.title}
               date={formatDate(item)}
               image={getImage(item.image)}
-              height={100}
               slug={item.slug}
             />
           </View>
