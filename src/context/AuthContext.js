@@ -2,55 +2,69 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DeviceEventEmitter } from 'react-native';
 import { navigationRef } from '../navigation/AppNavigator';
+
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true); // ✅ NEW
 
- useEffect(() => {
-  loadStorageData();
+  useEffect(() => {
+    loadStorageData();
 
-  const listener = DeviceEventEmitter.addListener('AUTH_CHANGE', () => {
-    loadStorageData(); // reload state on login/logout
-  });
+    const listener = DeviceEventEmitter.addListener('AUTH_CHANGE', () => {
+      loadStorageData();
+    });
 
-  return () => listener.remove();
-}, []);
+    return () => listener.remove();
+  }, []);
 
   const loadStorageData = async () => {
-    const data = await AsyncStorage.getItem('userData');
-    if (data) {
-      setIsLoggedIn(true);
-      setUserData(JSON.parse(data));
+    try {
+      const data = await AsyncStorage.getItem('userData');
+
+      if (data) {
+        setIsLoggedIn(true);
+        setUserData(JSON.parse(data));
+      } else {
+        setIsLoggedIn(false);
+        setUserData(null);
+      }
+    } catch (e) {
+      console.log('Auth load error:', e);
+    } finally {
+      setIsAuthLoading(false); // ✅ IMPORTANT
     }
   };
 
- const login = async (data) => {
-  await AsyncStorage.setItem('userData', JSON.stringify(data));
-  setUserData(data);
-  setIsLoggedIn(true);
+  const login = async (data) => {
+    await AsyncStorage.setItem('userData', JSON.stringify(data));
+    setUserData(data);
+    setIsLoggedIn(true);
 
-  DeviceEventEmitter.emit('AUTH_CHANGE');
-};
+    DeviceEventEmitter.emit('AUTH_CHANGE');
+  };
 
- const logout = async () => {
-  await AsyncStorage.removeItem('userData');
-  await AsyncStorage.removeItem('userToken');
-console.log("logout")
-  setUserData(null);
-  setIsLoggedIn(false);
+  const logout = async () => {
+    await AsyncStorage.removeItem('userData');
+    await AsyncStorage.removeItem('userToken');
 
-  DeviceEventEmitter.emit('AUTH_CHANGE'); // trigger update
+    setUserData(null);
+    setIsLoggedIn(false);
 
-  if (navigationRef.isReady()) {
-      // Navigate to the 'Home' screen inside your BottomTabs
+    DeviceEventEmitter.emit('AUTH_CHANGE');
+
+    if (navigationRef.isReady()) {
       navigationRef.navigate('Home');
     }
-};
+  };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, userData, login, logout }}>
+    <AuthContext.Provider
+      value={{ isLoggedIn, userData, login, logout, isAuthLoading }} // ✅ expose it
+    >
       {children}
     </AuthContext.Provider>
   );

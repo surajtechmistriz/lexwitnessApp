@@ -3,18 +3,26 @@ package com.lexwitness
 import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
-import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
+import org.devio.rn.splashscreen.SplashScreen
 
 class MainActivity : ReactActivity() {
 
-  override fun getMainComponentName(): String = "lexwitness"
-
   override fun onCreate(savedInstanceState: Bundle?) {
-    setTheme(R.style.AppTheme) 
+SplashScreen.show(this) 
     super.onCreate(savedInstanceState)
-}
+  }
 
-  override fun createReactActivityDelegate(): ReactActivityDelegate =
-      DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)
+  override fun getMainComponentName(): String {
+    return "lexwitness"
+  }
+
+  override fun createReactActivityDelegate(): ReactActivityDelegate {
+    return DefaultReactActivityDelegate(
+      this,
+      getMainComponentName(),
+      fabricEnabled
+    )
+  }
 }

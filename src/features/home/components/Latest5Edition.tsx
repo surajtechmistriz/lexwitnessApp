@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { getLatestMagazines } from "../api/home.api";
+import { getLatestMagazines } from '../api/home.api';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
 import Carousel, { Pagination } from 'react-native-reanimated-carousel';
@@ -16,13 +16,13 @@ import { useSharedValue } from 'react-native-reanimated';
 import { COLORS } from '../../../theme/colors';
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.47; 
+const ITEM_WIDTH = width * 0.47;
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
 const LatestEditions = ({ skipId }: { skipId?: number }) => {
   const [editions, setEditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const progressValue = useSharedValue<number>(0); 
+  const progressValue = useSharedValue<number>(0);
   const navigation = useNavigation<any>();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
         const response = await getLatestMagazines({ skipId, limit: 5 });
         setEditions(response || []);
       } catch (error) {
-        console.error("Fetch Error:", error);
+        console.error('Fetch Error:', error);
       } finally {
         setLoading(false);
       }
@@ -40,68 +40,76 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
     if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  if (loading) return <ActivityIndicator style={styles.loader} color={COLORS.primary}/>;
+  if (loading)
+    return <ActivityIndicator style={styles.loader} color={COLORS.primary} />;
   if (editions.length === 0) return null;
 
-return (
-  <View style={styles.wrapper}>
-    {/* Header */}
-    <Text style={styles.heading}>More Editions</Text>
-     <View style={styles.redLine} />
+  return (
+    <View style={styles.wrapper}>
+      {/* Header */}
+      <Text style={styles.heading}>More Editions</Text>
+      <View style={styles.redLine} />
 
-    <Carousel
-      loop={false}
-      width={ITEM_WIDTH}
-      height={260}
-      style={{ width }}
-      data={editions}
-      panGestureHandlerProps={{
-        activeOffsetX: [-10, 10],
-      }}
-      onProgressChange={(_, absoluteProgress) =>
-        (progressValue.value = absoluteProgress)
-      }
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.card}
-          activeOpacity={0.9}
-          onPress={() =>
-            navigation.navigate('MagazineDetail', {
-              slug: item.slug,
-            })
-          }
-        >
-          <Image 
-              source={{ uri: item.image ? `${imgUrl}/${item.image}` : "https://via.placeholder.com/300x400" }} 
-              style={styles.image} 
+      <Carousel
+        loop={false}
+        width={ITEM_WIDTH}
+        height={260}
+        style={{ width }}
+        data={editions}
+        panGestureHandlerProps={{
+          activeOffsetX: [-10, 10],
+        }}
+        onProgressChange={(_, absoluteProgress) =>
+          (progressValue.value = absoluteProgress)
+        }
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.card}
+            activeOpacity={0.9}
+            onPress={() =>
+              navigation.navigate('Magazines', {
+                screen: 'MagazineDetail',
+                params: {
+                  slug: item.slug,
+                },
+              })
+            }
+          >
+            <Image
+              source={{
+                uri: item.image
+                  ? `${imgUrl}/${item.image}`
+                  : 'https://via.placeholder.com/300x400',
+              }}
+              style={styles.image}
               resizeMode="contain"
             />
 
-          {/* <Text style={styles.title} numberOfLines={2}>
+            {/* <Text style={styles.title} numberOfLines={2}>
             {item.title}
           </Text> */}
-        </TouchableOpacity>
-      )}
-    />
+          </TouchableOpacity>
+        )}
+      />
 
-    {/* Pagination */}
-    <Pagination.Basic
-      progress={progressValue}
-      data={editions}
-      dotStyle={styles.dot}
-      activeDotStyle={styles.activeDot}
-      containerStyle={styles.pagination}
-    />
+      {/* Pagination */}
+      <Pagination.Basic
+        progress={progressValue}
+        data={editions}
+        dotStyle={styles.dot}
+        activeDotStyle={styles.activeDot}
+        containerStyle={styles.pagination}
+      />
 
-    {/* CTA */}
-    <TouchableOpacity
-      style={styles.cta}
-      onPress={() => navigation.navigate('Magazines')}
-    >
-      <Text style={styles.ctaText}>View All Editions</Text>
-    </TouchableOpacity>
-  </View>
-);
+      {/* CTA */}
+      <TouchableOpacity
+        style={styles.cta}
+        onPress={() => navigation.navigate('Magazines')}
+      >
+        <Text style={styles.ctaText}>View All Editions</Text>
+      </TouchableOpacity>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -114,17 +122,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#111',
-    
-    alignSelf:'center',
+
+    alignSelf: 'center',
     paddingHorizontal: 12,
   },
-    redLine: {
+  redLine: {
     width: 60,
     height: 4,
     backgroundColor: COLORS.primary,
     marginTop: 5,
-    marginLeft:1,
-    alignSelf:'center',
+    marginLeft: 1,
+    alignSelf: 'center',
     marginBottom: 18,
   },
 
@@ -144,7 +152,7 @@ const styles = StyleSheet.create({
 
   image: {
     width: '100%',
-    height: 240,
+    height: 208,
   },
 
   title: {
@@ -167,8 +175,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#ddd',
     marginHorizontal: 3,
-    marginTop:-15,
-    marginBottom:15
+    marginTop: -15,
+    marginBottom: 15,
   },
 
   activeDot: {
@@ -185,7 +193,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 10,
-    marginBottom:15
+    marginBottom: 15,
   },
 
   ctaText: {

@@ -15,16 +15,24 @@ const Header = ({ onSearchPress }: HeaderProps) => {
   const { isLoggedIn } = useAuth();
 
 const navigation = useNavigation()
-
- const handleToggleDrawer = () => {
-  navigation.dispatch(DrawerActions.toggleDrawer());
+const handleToggleDrawer = () => {
+  if (navigationRef.isReady()) {
+    navigationRef.dispatch(DrawerActions.toggleDrawer());
+  }
 };
+ const handleGoHome = () => {
+  if (!navigationRef.isReady()) return;
 
-  const handleGoHome = () => {
-    if (navigationRef.isReady()) {
-      navigation.navigate('Home');
-    }
-  };
+  navigationRef.navigate('Home', {
+    screen: 'HomeTabs',
+    params: {
+      screen: 'HomeTab',
+      params: {
+        screen: 'Home',
+      },
+    },
+  });
+};
 
   return (
     <View style={styles.container}>

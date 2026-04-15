@@ -2,9 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { MainStack } from '../navigation/MainStack';
-import CategoryList from '../components/common/CategoryList';
-import { MagazineStack } from '../navigation/MagazineStack';
+import { MainStack } from '../stacks/MainStack';
+import { MagazineStack } from '../stacks/MagazineStack';
+import CategoryList from '../../components/common/CategoryList';
 
 const Tab = createBottomTabNavigator();
 
@@ -13,16 +13,13 @@ const BottomTabs = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-
         tabBarActiveTintColor: '#c9060a',
         tabBarInactiveTintColor: '#999',
 
         tabBarStyle: {
           height: 60,
           paddingBottom: 5,
-          position: 'absolute',
           backgroundColor: '#fff',
-          elevation: 12,
         },
 
         tabBarIcon: ({ color, focused }) => {
@@ -42,18 +39,15 @@ const BottomTabs = () => {
         },
       })}
     >
-
       <Tab.Screen name="HomeTab" component={MainStack} />
       <Tab.Screen name="CategoriesTab" component={CategoryList} />
       <Tab.Screen name="Magazines" component={MagazineStack} />
 
-      {/* TEMP PROFILE */}
       <Tab.Screen
         name="ProfileTab"
         component={() => null}
         options={{ title: 'Profile' }}
       />
-
     </Tab.Navigator>
   );
 };

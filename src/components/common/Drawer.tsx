@@ -63,7 +63,7 @@ const DrawerUI: React.FC<Props> = ({ categories, onClose, navigation }) => {
               key={item.id}
               style={styles.menuItem}
               onPress={() => {
-                navigation.navigate('CategoryScreen', {
+                navigation.navigate('Category', {
                   slug: item.slug,
                 });
                 onClose();

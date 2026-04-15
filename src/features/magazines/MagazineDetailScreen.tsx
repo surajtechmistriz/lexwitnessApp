@@ -120,11 +120,14 @@ export default function MagazineDetailScreen() {
                 key={post.id}
                 style={styles.card}
                 activeOpacity={0.85}
-                onPress={() =>
-                  navigationRef.navigate('ArticleDetail', {
-                    slug: post.slug,
-                    category: post.category?.slug || 'general',
-                  })
+               onPress={() =>
+  navigation.navigate('HomeTab', {
+    screen: 'ArticleDetail',
+    params: {
+      slug: post.slug,
+    },
+  })
+
                 }
               >
                 <Image

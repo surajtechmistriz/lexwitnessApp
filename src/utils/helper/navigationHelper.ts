@@ -3,7 +3,7 @@ import { navigationRef } from "../../navigation/AppNavigator";
 export const navigateToAuthor = (slug: string) => {
   if (navigationRef.isReady()) {
     navigationRef.navigate('AppMain', {
-      screen: 'AuthorScreen',
+      screen: 'Author',
       params: { slug },
     });
   }

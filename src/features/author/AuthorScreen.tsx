@@ -28,7 +28,7 @@ import TopMenu from '../../components/common/Menubar';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function AuthorScreen() {
+export default function Author() {
 
 
  

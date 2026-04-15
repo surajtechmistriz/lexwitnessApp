@@ -58,7 +58,7 @@ const HeroCard = ({
           {!!categoryName && (
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('CategoryScreen', {
+                navigation.navigate('Category', {
                   slug: categorySlug,
                 })
               }

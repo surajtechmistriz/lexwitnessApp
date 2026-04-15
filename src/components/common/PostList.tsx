@@ -93,7 +93,7 @@ export default function PostList({
               <TouchableOpacity
                 onPress={() => {
                   if (article.author?.slug) {
-                    navigation.navigate('AuthorScreen', {
+                    navigation.navigate('Author', {
                       slug: article.author.slug,
                     });
                   }

@@ -25,7 +25,7 @@ import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-export default function CategoryScreen() {
+export default function Category() {
   const route = useRoute<any>();
   const slug = route.params?.slug || '';
   const postBaseUrl = Config.POSTS_BASE_URL;
@@ -84,7 +84,7 @@ export default function CategoryScreen() {
     <MainLayout
       activeSlug={slug}
       title={slug?.replace(/-/g, ' ')}
-      routeName="CategoryScreen"
+      routeName="Category"
       renderFilter={(close) => (
         <YearFilter
           years={years}

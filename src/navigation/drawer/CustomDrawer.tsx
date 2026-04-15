@@ -8,7 +8,6 @@ const CustomDrawer = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      
       {/* USER INFO */}
       <View style={styles.userInfoSection}>
         <Text style={styles.userName}>
@@ -24,22 +23,30 @@ const CustomDrawer = ({ navigation }) => {
       >
         <Text style={styles.menuText}>My Plan</Text>
       </TouchableOpacity>
-
       <TouchableOpacity
-        onPress={() => navigation.navigate('ProfileTab')}
+        onPress={() =>
+          navigation.navigate('Home', {
+            screen: 'ProfileTab',
+          })
+        }
         style={styles.drawerItem}
       >
         <Text style={styles.menuText}>Profile</Text>
       </TouchableOpacity>
+
       <TouchableOpacity
-        onPress={() => navigation.navigate('SettingTab')}
+        onPress={() =>
+          navigation.navigate('Home', {
+            screen: 'CategoriesTab',
+          })
+        }
         style={styles.drawerItem}
       >
         <Text style={styles.menuText}>Settings</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity 
-        onPress={logout} 
+      <TouchableOpacity
+        onPress={logout}
         style={[styles.drawerItem, styles.logoutItem]}
       >
         <Text style={styles.logoutText}>Logout</Text>

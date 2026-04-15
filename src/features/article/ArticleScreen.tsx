@@ -181,7 +181,7 @@ export default function ArticleDetailPage() {
           <View style={styles.topRow}>
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('CategoryScreen', {
+                navigation.navigate('Category', {
                   slug: article.category?.slug,
                 })
               }
@@ -202,7 +202,7 @@ export default function ArticleDetailPage() {
             <TouchableOpacity
               onPress={() => {
                 if (article.author?.slug && navigationRef.isReady()) {
-                  navigationRef.navigate('AuthorScreen', {
+                  navigationRef.navigate('Author', {
                     slug: article.author.slug,
                   });
                 }

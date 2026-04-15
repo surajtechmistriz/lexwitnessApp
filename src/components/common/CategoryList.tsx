@@ -63,7 +63,7 @@ const renderItem = ({ item, index }: any) => {
       activeOpacity={0.8}
       onPress={() =>
         navigation.navigate('HomeTab', {
-          screen: 'CategoryScreen',
+          screen: 'Category',
           params: { category: item.name, slug: item.slug },
         })
       }

@@ -68,7 +68,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   };
 
   const handlePress = (slug: string) => {
-    navigation.navigate('CategoryScreen', { slug });
+    navigation.navigate('Category', { slug });
     scrollToCenter(slug);
   };
 

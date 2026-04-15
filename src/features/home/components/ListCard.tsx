@@ -50,7 +50,7 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
             <TouchableOpacity
               style={styles.category}
               onPress={() =>
-                navigation.navigate('CategoryScreen', {
+                navigation.navigate('Category', {
                   slug: categorySlug,
                 })
               }

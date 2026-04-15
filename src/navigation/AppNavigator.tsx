@@ -1,63 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 
+// Context
 import { useAuth } from '../context/AuthContext';
 
-import AppDrawer from '../components/drawer/AppDrawer';
+// UI
 import Header from '../components/common/Header';
 import SearchOverlay from '../components/common/SearchOverlay';
 import AuthPopup from '../modal/AuthPopup';
+import SplashScreen from 'react-native-splash-screen';
 
-import AuthorScreen from '../features/author/AuthorScreen';
-import ArticleDetailPage from '../features/article/ArticleScreen';
-import MagazineDetailScreen from '../features/magazines/MagazineDetailScreen';
-import EditorialDetail from '../features/editorial/EditorialDetail';
-import CategoryScreen from '../features/category/CategoryScreen';
+// Drawer
+import AppDrawer from './drawer/AppDrawer';
 
 export const navigationRef = createNavigationContainerRef();
-const RootStack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAuthLoading } = useAuth();
 
-  const [authMode, setAuthMode] = useState(
-    isLoggedIn ? null : 'register',
-  );
+  const [authMode, setAuthMode] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   useEffect(() => {
-    if (isLoggedIn) setAuthMode(null);
-  }, [isLoggedIn]);
+    if (!isAuthLoading) {
+      setAuthMode(isLoggedIn ? null : 'register');
+    }
+  }, [isLoggedIn, isAuthLoading]);
+
+    //  FIX: hide splash when ready
+  useEffect(() => {
+    if (!isAuthLoading) {
+      SplashScreen.hide();
+    }
+  }, [isAuthLoading]);
+
+  //  SHOW SPLASH WHILE AUTH IS LOADING
+  // if (isAuthLoading) {
+  //   return <SplashScreen />;
+  // }
 
   return (
     <NavigationContainer ref={navigationRef}>
-
       <Header onSearchPress={() => setIsSearchVisible(true)} />
 
-      <RootStack.Navigator screenOptions={{ headerShown: false }}>
-
-        {/* MAIN APP (tabs/drawer inside) */}
-        <RootStack.Screen name="AppMain" component={AppDrawer} />
-
-        {/* GLOBAL SCREENS (always full screen) */}
-        <RootStack.Screen name="ArticleDetail" component={ArticleDetailPage} />
-        <RootStack.Screen name="AuthorScreen" component={AuthorScreen} />
-        <RootStack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
-        <RootStack.Screen name="EditorialDetail" component={EditorialDetail} />
-        <RootStack.Screen name="CategoryScreen" component={CategoryScreen} />
-
-      </RootStack.Navigator>
+      <AppDrawer />
 
       <SearchOverlay
         visible={isSearchVisible}
         onClose={() => setIsSearchVisible(false)}
       />
 
-      {authMode && (
+      {!isAuthLoading && authMode && (
         <AuthPopup visible mode={authMode} setMode={setAuthMode} />
       )}
-
     </NavigationContainer>
   );
 };

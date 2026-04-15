@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import HeroCard from '../components/HeroCard';
-import { Article } from '../types/types'; // adjust path
+import { Article } from '../types/types';
 
 type HeroSectionProps = {
   firstCard: Article | null;
@@ -9,7 +9,6 @@ type HeroSectionProps = {
   formatDate: (item: Article) => string;
   getImage: (img: string) => string;
 };
-
 
 const HeroSection: React.FC<HeroSectionProps> = ({
   firstCard,
@@ -20,21 +19,33 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   if (!firstCard) return null;
 
   return (
-    <View style={{ flex: 1 }}> 
-      {/* Reduced Main Hero Height to 200 */}
-      <HeroCard
-        category={firstCard.category}
-        title={firstCard.title}
-        slug={firstCard.slug}
-        date={formatDate(firstCard)}
-        image={getImage(firstCard.image)}
+    <View style={styles.container}>
       
-      />
+      {/* 🔥 Main Hero (Top Layer) */}
+      <View style={styles.mainCard}>
+        <HeroCard
+          category={firstCard.category}
+          title={firstCard.title}
+          slug={firstCard.slug}
+          date={formatDate(firstCard)}
+          image={getImage(firstCard.image)}
+        />
+      </View>
 
+      {/* 🔥 Secondary Cards (Stacked / layered feel) */}
       <View style={styles.secondaryContainer}>
-        {nextTwoCards.map((item) => (
-          <View key={item.id} style={styles.secondaryCardWrapper}>
-            {/* Reduced Secondary Card Height to 100 */}
+        {nextTwoCards.map((item, index) => (
+          <View
+            key={item.id}
+            style={[
+              styles.secondaryCardWrapper,
+              {
+                transform: [{ scale: 0.96 + index * 0.02 }], // slight depth scale
+                marginTop: index === 0 ? -20 : -10, // overlap effect
+                zIndex: 10 - index,
+              },
+            ]}
+          >
             <HeroCard
               category={item.category}
               title={item.title}
@@ -45,26 +56,34 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </View>
         ))}
       </View>
+
     </View>
   );
 };
 
 export default HeroSection;
 
-
 const styles = StyleSheet.create({
-  secondaryContainer: {
-    marginVertical: 10,
-    gap: 10,
+  container: {
+    paddingHorizontal: 12,
   },
 
-  fullWidthCard: {
-    width: '100%',
+  mainCard: {
+    zIndex: 20, // always on top
   },
-  
+
+  secondaryContainer: {
+    marginTop: 10,
+  },
+
   secondaryCardWrapper: {
-    width: '100%',
-    borderRadius: 10,
+    borderRadius: 16,
     overflow: 'hidden',
+
+    // 🔥 Shadow for depth
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
   },
-});
+}); 
