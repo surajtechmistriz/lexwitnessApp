@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   NavigationContainer,
   createNavigationContainerRef,
 } from '@react-navigation/native';
+import { Animated } from 'react-native';
 
 // Context
 import { useAuth } from '../context/AuthContext';
@@ -24,39 +25,71 @@ const AppNavigator = () => {
   const [authMode, setAuthMode] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
+  const [isAppReady, setIsAppReady] = useState(false);
+
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  // 🔹 Handle auth mode
   useEffect(() => {
     if (!isAuthLoading) {
       setAuthMode(isLoggedIn ? null : 'register');
     }
   }, [isLoggedIn, isAuthLoading]);
 
-    //  FIX: hide splash when ready
+  // 🔥 Prepare app before showing UI
   useEffect(() => {
-    if (!isAuthLoading) {
-      SplashScreen.hide();
-    }
+    const prepareApp = async () => {
+      if (isAuthLoading) return;
+
+      try {
+        // 👉 you can preload APIs here if needed
+        // await Promise.all([getHeroPost(), getEditorPick()]);
+      } catch (e) {
+        console.log('Prepare error:', e);
+      } finally {
+        setIsAppReady(true);
+
+        // smooth delay
+        setTimeout(() => {
+          SplashScreen.hide();
+        }, 250);
+      }
+    };
+
+    prepareApp();
   }, [isAuthLoading]);
 
-  //  SHOW SPLASH WHILE AUTH IS LOADING
-  // if (isAuthLoading) {
-  //   return <SplashScreen />;
-  // }
+  // 🔥 Fade-in animation
+  useEffect(() => {
+    if (isAppReady) {
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 350,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isAppReady]);
+
+  // ❌ Block UI until ready (no flicker)
+  if (!isAppReady) return null;
 
   return (
-    <NavigationContainer ref={navigationRef}>
-      <Header onSearchPress={() => setIsSearchVisible(true)} />
+    <Animated.View style={{ flex: 1, opacity }}>
+      <NavigationContainer ref={navigationRef}>
+        <Header onSearchPress={() => setIsSearchVisible(true)} />
 
-      <AppDrawer />
+        <AppDrawer />
 
-      <SearchOverlay
-        visible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
-      />
+        <SearchOverlay
+          visible={isSearchVisible}
+          onClose={() => setIsSearchVisible(false)}
+        />
 
-      {!isAuthLoading && authMode && (
-        <AuthPopup visible mode={authMode} setMode={setAuthMode} />
-      )}
-    </NavigationContainer>
+        {authMode && (
+          <AuthPopup visible mode={authMode} setMode={setAuthMode} />
+        )}
+      </NavigationContainer>
+    </Animated.View>
   );
 };
 

@@ -41,7 +41,7 @@ const handleToggleDrawer = () => {
       <View style={styles.left}>
         {isLoggedIn ? (
           <TouchableOpacity onPress={handleToggleDrawer}>
-            <Ionicons name="menu" size={24} color="#111" />
+            <Ionicons name="menu" size={28} color="#c9060a" />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -70,7 +70,7 @@ const handleToggleDrawer = () => {
       {/* RIGHT: SEARCH */}
       <View style={styles.right}>
         <TouchableOpacity onPress={onSearchPress}>
-          <Entypo name="magnifying-glass" size={20} color="#111" />
+          <Entypo name="magnifying-glass" size={24} color="#c9060a" />
         </TouchableOpacity>
       </View>
 
@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     left: 20,
     flexDirection: 'row',
     alignItems: 'center',
+   
   },
 
   center: {
@@ -107,13 +108,13 @@ const styles = StyleSheet.create({
 
   right: {
     position: 'absolute',
-    right: 20,
+    right: 30,
     flexDirection: 'row',
     alignItems: 'center',
   },
 
   logo: {
-    width: 120,
+    width: 130,
     height: 65,
   },
 });

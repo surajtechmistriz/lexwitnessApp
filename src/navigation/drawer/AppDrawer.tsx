@@ -16,7 +16,7 @@ import MagazineDetailScreen from '../../features/magazines/MagazineDetailScreen'
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
-// ✅ STACK INSIDE DRAWER
+//  STACK INSIDE DRAWER
 const MainStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

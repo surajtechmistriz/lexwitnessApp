@@ -16,6 +16,7 @@ type HeroCardProps = {
   date?: string;
   image?: string;
   height?: number;
+  onLoadEnd?: () => void;
 };
 
 const HeroCard = ({
@@ -24,7 +25,8 @@ const HeroCard = ({
   slug,
   date,
   image,
-  height = 260, // slightly tighter
+  height = 260,
+  onLoadEnd, // ✅ use prop directly
 }: HeroCardProps) => {
   const navigation = useNavigation<any>();
 
@@ -35,16 +37,20 @@ const HeroCard = ({
 
   return (
     <TouchableOpacity
-  activeOpacity={0.9}
-  style={styles.container}
-  onPress={() =>
-    navigation.navigate('ArticleDetail', {
-      slug,
-      category: categorySlug,
-    })
-  }
->
-  <ImageBackground source={{ uri: image }} style={styles.image}>
+      activeOpacity={0.9}
+      style={styles.container}
+      onPress={() =>
+        navigation.navigate('ArticleDetail', {
+          slug,
+          category: categorySlug,
+        })
+      }
+    >
+      <ImageBackground
+        source={{ uri: image }}
+        style={styles.image}
+        onLoadEnd={onLoadEnd} // ✅ correct
+      >
         <LinearGradient
           colors={[
             'rgba(0,0,0,0.05)',
@@ -54,7 +60,6 @@ const HeroCard = ({
           locations={[0, 0.5, 1]}
           style={styles.gradient}
         >
-          {/* Category */}
           {!!categoryName && (
             <TouchableOpacity
               onPress={() =>
@@ -71,7 +76,6 @@ const HeroCard = ({
             </TouchableOpacity>
           )}
 
-          {/* Bottom Content */}
           <View style={styles.bottomContent}>
             <Text style={styles.title} numberOfLines={2}>
               {title}
@@ -86,12 +90,11 @@ const HeroCard = ({
 };
 
 const styles = StyleSheet.create({
-   container: {
+  container: {
     width: '100%',
     borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 14,
-
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -99,11 +102,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
 
- image: {
-  width: '100%',
-  aspectRatio: 16 / 9,
-  borderRadius: 16,
-},
+  image: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderRadius: 16,
+  },
 
   gradient: {
     ...StyleSheet.absoluteFillObject,
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    backgroundColor: 'rgba(201, 6, 10, 0.9)', // softer red
+    backgroundColor: 'rgba(201, 6, 10, 0.9)',
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 4,

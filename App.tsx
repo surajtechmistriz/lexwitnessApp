@@ -1,4 +1,4 @@
-import 'react-native-gesture-handler'; // 👈 MUST be first
+import 'react-native-gesture-handler'; //  MUST be first
 
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

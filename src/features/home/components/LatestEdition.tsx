@@ -102,9 +102,12 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   };
 
   const goToMagazine = () => {
-    navigation.navigate('MagazineDetail', {
-      slug: data.magazine?.slug ?? String(data.magazine.id),
-    });
+      navigation.navigate('Magazines', {
+                screen: 'MagazineDetail',
+                params: {
+                  slug: data.magazine?.slug ?? String(data.magazine.id),
+                },
+              })
   };
 
   return (

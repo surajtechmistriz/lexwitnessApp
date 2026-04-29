@@ -139,6 +139,7 @@ const styles = StyleSheet.create({
   card: {
     width: ITEM_WIDTH - 12,
     marginLeft: 12,
+    borderRadius:8,
 
     // borderRadius: 8,
     overflow: 'hidden',

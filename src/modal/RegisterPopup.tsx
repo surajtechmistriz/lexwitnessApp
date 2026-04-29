@@ -91,7 +91,7 @@
 //     fadeAnim.setValue(1);
 //     translateX.setValue(0);
 //     onSwitchToSignIn();
-//   }, 280); // 👈 delay before switching modal
+//   }, 280); //  delay before switching modal
 // };
 
 //   return (
@@ -180,18 +180,18 @@
 //  container: {
 //   backgroundColor: 'white',
 //   width: '90%',
-//   height: 420, // 👈 FIXED HEIGHT (same in both)
+//   height: 420, //  FIXED HEIGHT (same in both)
 //   padding: 25,
 //   borderRadius: 12,
 //   alignItems: 'center',
-//   justifyContent: 'center', // 👈 centers content properly
+//   justifyContent: 'center', //  centers content properly
 // },
 //   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 5, color: '#000' },
 //   subtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
 //   form: { 
 //   width: '100%',
-//   flex: 1,              // 👈 ADD THIS
-//   justifyContent: 'center' // 👈 keeps centered
+//   flex: 1,              //  ADD THIS
+//   justifyContent: 'center' //  keeps centered
 // },
 //   input: {
 //     borderWidth: 1,
@@ -213,7 +213,7 @@
 //   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 //  footer: { 
 //   flexDirection: 'row',
-//   position: 'absolute',   // 👈 FIXED POSITION
+//   position: 'absolute',   //  FIXED POSITION
 //   bottom: 20,
 //   alignItems: 'center' 
 // },

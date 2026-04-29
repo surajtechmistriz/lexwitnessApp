@@ -78,9 +78,12 @@ const LatestEditionImageOnly = () => {
   if (!data?.magazine) return null;
 
   const goToMagazine = () => {
-    navigation.navigate('MagazineDetail', {
-      slug: data.magazine?.slug ?? String(data.magazine.id),
-    });
+     navigation.navigate('Magazines', {
+                screen: 'MagazineDetail',
+                params: {
+                  slug: data.magazine?.slug ?? String(data.magazine.id),
+                },
+              })
   };
 
   /* UI */

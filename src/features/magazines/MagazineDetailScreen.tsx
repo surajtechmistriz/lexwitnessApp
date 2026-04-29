@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
  heroImage: {
   width: '100%',
   height: undefined,
-  aspectRatio: 3 / 4,   // 👈 key fix (adjusts naturally like magazine cover)
+  aspectRatio: 3 / 4,   //  key fix (adjusts naturally like magazine cover)
   backgroundColor: '#f9f9f9',
 },
 
@@ -280,7 +280,7 @@ card: {
   marginBottom: 14,
 
   borderWidth: 1,
-  borderColor: '#e5e5e5', // 👈 light gray border
+  borderColor: '#e5e5e5', //  light gray border
 
   elevation: 2, // Android subtle shadow (keep optional)
   shadowColor: '#000', // iOS shadow
