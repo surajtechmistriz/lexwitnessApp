@@ -26,6 +26,7 @@ import Header from '../../../components/common/Header';
 import { latesteEdition } from '../../../services/api/latestedition';
 import Footer from '../../../components/common/Footer';
 import MainLayout from '../../../components/layout/MainLayout';
+import LatestEditions from '../../home/components/Latest5Edition';
 
 export default function SubscriptionPage() {
   const [magazine, setMagazine] = useState<Magazine | null>(null);
@@ -82,19 +83,21 @@ export default function SubscriptionPage() {
           <Text style={styles.heroSub}>From breaking news to in-depth analysis, we bring clarity.</Text>
           
           <Text style={styles.issueHeader}>
-            {magazine?.title || "How Delhi should deal with the reset in Dhaka"}
+            {/* {magazine?.title || "How Delhi should deal with the reset in Dhaka"} */}
+            How Delhi should deal with the reset in Dhaka
           </Text>
           
           <Text style={styles.issueBody}>
-            {magazine?.description || "The new Tarique Rahman regime in Dhaka gives India a fresh chance... expressways near completion across the country."}
+            {/* {magazine?.description || "The new Tarique Rahman regime in Dhaka gives India a fresh chance... expressways near completion across the country."} */}
+            The new Tarique Rahman regime in Dhaka gives India a fresh chance to resolve longstanding disputes with its neighbour.
           </Text>
 
           <TouchableOpacity style={styles.primaryBtn} onPress={scrollToPricing}>
-            <Text style={styles.primaryBtnText}>Your first year is on us!</Text>
+            <Text style={styles.primaryBtnText}>Your First Year is on Us</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.secondaryBtn}>
-            <Text style={styles.secondaryBtnText}>Existing readers - Renew Now!</Text>
+            <Text style={styles.secondaryBtnText}>Choose your Subscription Plan</Text>
           </TouchableOpacity>
 
           {/* Issue Cover Image with Shadow/Elevation */}
@@ -110,6 +113,8 @@ export default function SubscriptionPage() {
             )}
           </View>
         </View>
+
+        <LatestEditions skipId={magazine?.id}/>
 
         {/* BENEFITS SECTION: Value propositions */}
         <View style={styles.benefitsRow}>

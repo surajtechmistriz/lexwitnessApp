@@ -1,59 +1,109 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useAuth } from '../../context/AuthContext';
-import { COLORS } from '../../theme/colors';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { logout } from '../../redux/slices/authSlice';
 
 const CustomDrawer = ({ navigation }) => {
-  const { userData, logout } = useAuth();
+  const dispatch = useDispatch();
+
+  const { isLoggedIn, user, isHydrated } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  // Wait until auth loads
+  if (!isHydrated) return null;
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigation.closeDrawer();
+  };
 
   return (
     <View style={styles.container}>
-      {/* USER INFO */}
+      
+      {/* USER / AUTH SECTION */}
       <View style={styles.userInfoSection}>
-        <Text style={styles.userName}>
-          {userData?.firstName} {userData?.lastName}
-        </Text>
-        <Text style={styles.userEmail}>{userData?.email}</Text>
+        {isLoggedIn ? (
+          <>
+            <Text style={styles.userName}>
+              {user?.name || 'Welcome User'}
+            </Text>
+
+            <Text style={styles.userEmail}>
+              {user?.email || ''}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text style={styles.userName}>Welcome Guest</Text>
+          </>
+        )}
       </View>
 
-      {/* MENU ITEMS */}
-      <TouchableOpacity
-        onPress={() => navigation.navigate('Subscription')}
-        style={styles.drawerItem}
-      >
-        <Text style={styles.menuText}>My Plan</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('Home', {
-            screen: 'ProfileTab',
-          })
-        }
-        style={styles.drawerItem}
-      >
-        <Text style={styles.menuText}>Profile</Text>
-      </TouchableOpacity>
+      {/*  MENU */}
+      {isLoggedIn ? (
+        <>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Subscription')}
+            style={styles.drawerItem}
+          >
+            <Text style={styles.menuText}>My Plan</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('Home', {
-            screen: 'CategoriesTab',
-          })
-        }
-        style={styles.drawerItem}
-      >
-        <Text style={styles.menuText}>Settings</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('Home', {
+                screen: 'ProfileTab',
+              })
+            }
+            style={styles.drawerItem}
+          >
+            <Text style={styles.menuText}>Profile</Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={logout}
-        style={[styles.drawerItem, styles.logoutItem]}
-      >
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleLogout}
+            style={[styles.drawerItem, styles.logoutItem]}
+          >
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('SignIn');
+              navigation.closeDrawer();
+            }}
+            style={styles.drawerItem}
+          >
+            <Text style={styles.menuText}>Sign In</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate('Register');
+              navigation.closeDrawer();
+            }}
+            style={styles.drawerItem}
+          >
+            <Text style={styles.menuText}>Register</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+  onPress={() => navigation.navigate('Subscription')}
+  style={styles.drawerItem}
+>
+  <Text style={styles.menuText}>Subscribe</Text>
+   </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };
+
+export default CustomDrawer;
 
 const styles = StyleSheet.create({
   container: {
@@ -61,43 +111,46 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
+
   userInfoSection: {
-    marginBottom: 10,
+    marginBottom: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee', // Square separator
+    borderBottomColor: '#eee',
   },
+
   userName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#000',
   },
+
   userEmail: {
     color: '#777',
     marginTop: 4,
   },
+
   drawerItem: {
     marginBottom: 10,
     paddingVertical: 12,
     paddingHorizontal: 10,
-    backgroundColor: '#f9f9f9', // Blocky background
-    // borderRadius: 0 is the default for Views, so we just omit it
+    backgroundColor: '#f9f9f9',
   },
+
   menuText: {
     fontSize: 15,
     color: '#333',
   },
+
   logoutItem: {
-    marginTop: 'auto', // Pushes logout to the bottom
-    backgroundColor: '#fff',
+    marginTop: 20,
     borderWidth: 1,
     borderColor: 'red',
   },
+
   logoutText: {
-    color: COLORS.primary,
+    color: 'red',
     fontWeight: 'bold',
     textAlign: 'center',
   },
 });
-
-export default CustomDrawer;

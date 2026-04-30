@@ -1,278 +1,272 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  SafeAreaView,
+} from "react-native";
+import MainLayout from "../../../components/layout/MainLayout";
 
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Header from '../../../components/common/Header'; // Import your header
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import DynamicBanner from '../../../components/common/DynamicBanner';
-import TopMenu from '../../../components/common/Menubar';
-import MainLayout from '../../../components/layout/MainLayout';
-import Footer from '../../../components/common/Footer';
+const plansData = [
+  { id: "1", name: "FREE", price: 0 },
+  { id: "2", name: "SILVER", price: 1000 },
+  { id: "3", name: "GOLD", price: 1800 },
+  { id: "4", name: "PLATINUM", price: 2500 },
+];
 
-const Register = () => {
-  const [selectedPlan, setSelectedPlan] = useState('1 Year Plan');
-  const [autoRenew, setAutoRenew] = useState(false);
+const RegisterScreen = () => {
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    contact: "",
+    otp: "",
+    dob: "",
+    organisation_name: "",
+    address: "",
+    city: "",
+    pincode: "",
+    state: "",
+    country: "India",
+    password: "",
+    password_confirmation: "",
+    plan: "1",
+    auto_renew: false,
+  });
 
-  const plans = [
-    {
-      id: '3 Year Plan',
-      price: '₹1,200',
-      duration: '3 Years',
-      desc: 'Least cost effective',
-    },
-    {
-      id: '1 Year Plan',
-      price: '₹600',
-      duration: 'Year',
-      desc: 'Least cost effective',
-    },
-    {
-      id: '2 Year Plan',
-      price: '₹1,000',
-      duration: '2 Years',
-      desc: 'Least cost effective',
-    },
-    { id: 'Free Plan', price: 'Free', duration: '7 days', desc: 'effective' },
-  ];
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
+
+  const handleChange = (name: string, value: any) => {
+    if (name === "contact") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+    setForm({ ...form, [name]: value });
+  };
+
+  /* ---------- OTP ---------- */
+  const handleSendOtp = () => {
+    if (form.contact.length !== 10) {
+      return Alert.alert("Error", "Enter valid 10-digit number");
+    }
+    setIsOtpSent(true);
+    Alert.alert("OTP Sent", "Use 1234");
+  };
+
+  const handleVerifyOtp = () => {
+    if (form.otp === "1234") {
+      setIsOtpVerified(true);
+      Alert.alert("Verified");
+    } else {
+      Alert.alert("Invalid OTP");
+    }
+  };
+
+  /* ---------- Submit ---------- */
+  const handleSubmit = () => {
+    if (!isOtpVerified) {
+      return Alert.alert("Error", "Verify phone first");
+    }
+
+    const selectedPlan = plansData.find(p => p.id === form.plan);
+
+    Alert.alert(
+      "Success",
+      `Registered with ${selectedPlan?.name}`
+    );
+  };
+
+  const selectedPlan = plansData.find(p => p.id === form.plan);
+  const otherPlans = plansData.filter(p => p.id !== form.plan);
+
+  const price = selectedPlan?.price || 0;
+  const gst = price * 0.18;
+  const total = price + gst;
 
   return (
     <MainLayout title="Register" showFilter={false} routeName='Register'>
 
     <SafeAreaView style={styles.container}>
-        {/* <Header />
-        <TopMenu/> */}
-      {/* <DynamicBanner title='Register'/> */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.headerTitle}>REGISTER YOURSELF</Text>
-        <Text style={styles.subText}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit
-          tellus, luctus nec ullamcorper mattis.
-        </Text>
-        <View style={styles.redDivider} />
+    <ScrollView style={styles.container}>
+      <Text style={styles.heading}>Register</Text>
 
-        <View style={styles.formCard}>
-          {/* Input Grid */}
-          <View style={styles.row}>
-            <View style={styles.inputHalf}>
-              <Text style={styles.label}>E-mail *</Text>
-              <TextInput style={styles.input}  />
-            </View>
-            <View style={styles.inputHalf}>
-              <Text style={styles.label}>First Name *</Text>
-              <TextInput style={styles.input}  />
-            </View>
-          </View>
+      {/* -------- PERSONAL -------- */}
+      <Input label="First Name *" value={form.first_name} onChange={(v)=>handleChange("first_name",v)} />
+      <Input label="Last Name *" value={form.last_name} onChange={(v)=>handleChange("last_name",v)} />
+      <Input label="Email *" value={form.email} onChange={(v)=>handleChange("email",v)} />
 
-          <View style={styles.row}>
-            <View style={styles.inputHalf}>
-              <Text style={styles.label}>Last Name *</Text>
-              <TextInput style={styles.input} />
-            </View>
-            <View style={styles.inputHalf}>
-              <Text style={styles.label}>Password *</Text>
-              <TextInput
-                style={styles.input}
-                secureTextEntry
-              />
-            </View>
-          </View>
-
-          <View style={styles.fullWidth}>
-            <Text style={styles.label}>Repeat Password *</Text>
-            <TextInput
-              style={styles.input}
-              secureTextEntry
-            />
-          </View>
-
-          <View style={styles.fullWidth}>
-            <Text style={styles.label}>Contact * (10 digits only)</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              placeholder="9876543210"
-            />
-          </View>
-
-          {/* Plan Selection Grid */}
-          <View style={styles.plansGrid}>
-            {plans.map(item => {
-              const isActive = selectedPlan === item.id;
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  activeOpacity={0.8}
-                  onPress={() => setSelectedPlan(item.id)}
-                  style={[styles.planCard, isActive && styles.planCardActive]}
-                >
-                  <Text style={[styles.pTitle, isActive && styles.whiteText]}>
-                    {item.id}
-                  </Text>
-                  <Text style={[styles.pPrice, isActive && styles.whiteText]}>
-                    {item.price} / {item.duration}
-                  </Text>
-                  <Text style={[styles.pDetail, isActive && styles.whiteText]}>
-                    • Browse all charts
-                  </Text>
-                  <Text style={[styles.pDetail, isActive && styles.whiteText]}>
-                    • Cancel anytime
-                  </Text>
-                  <Text style={[styles.pDetail, isActive && styles.whiteText]}>
-                    • {item.desc}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Checkbox Simulation */}
-          <TouchableOpacity
-            style={styles.checkRow}
-            activeOpacity={0.8}
-            onPress={() => setAutoRenew(!autoRenew)}
-          >
-            <View style={[styles.checkbox, autoRenew && styles.checkboxActive]}>
-              {/* Only show the white checkmark icon when autoRenew is true */}
-              {autoRenew && (
-                <Ionicons name="checkmark" size={14} color="#fff" />
-              )}
-            </View>
-            <Text style={styles.checkText}>
-              Automatically renew subscription
+      {/* PHONE */}
+      <View style={styles.row}>
+        <TextInput
+          placeholder="Contact (10 digit)"
+          style={[styles.input, { flex: 1 }]}
+          keyboardType="number-pad"
+          value={form.contact}
+          onChangeText={(v)=>handleChange("contact",v)}
+        />
+        {!isOtpVerified && (
+          <TouchableOpacity style={styles.otpBtn} onPress={handleSendOtp}>
+            <Text style={styles.btnText}>
+              {isOtpSent ? "Resend" : "Get OTP"}
             </Text>
           </TouchableOpacity>
+        )}
+      </View>
 
-          <View style={styles.paymentBox}>
-            <Text style={styles.payHeader}>Payment Details</Text>
-            <Text style={styles.payNote}>
-              Before you can accept payments, you need to connect your Stripe
-              Account by going to
-              <Text style={{ fontWeight: 'bold' }}> Dashboard → Gateways.</Text>
-            </Text>
-          </View>
-
-          <TouchableOpacity style={styles.regBtn}>
-            <Text style={styles.regBtnText}>Register</Text>
+      {isOtpSent && !isOtpVerified && (
+        <View style={styles.row}>
+          <TextInput
+            placeholder="OTP"
+            style={[styles.input, { flex: 1 }]}
+            value={form.otp}
+            onChangeText={(v)=>handleChange("otp",v)}
+          />
+          <TouchableOpacity onPress={handleVerifyOtp}>
+            <Text style={styles.verify}>Verify</Text>
           </TouchableOpacity>
         </View>
-        {/* <View style={{marginHorizontal:-16, marginTop:20, marginBottom:-10}}>
+      )}
 
-        <Footer />
-        </View> */}
-      </ScrollView>
+      {isOtpVerified && <Text style={styles.success}>✓ Verified</Text>}
+
+      <Input label="Date of Birth *" value={form.dob} onChange={(v)=>handleChange("dob",v)} />
+      <Input label="Organisation Name" value={form.organisation_name} onChange={(v)=>handleChange("organisation_name",v)} />
+      <Input label="Address *" value={form.address} onChange={(v)=>handleChange("address",v)} />
+      <Input label="City *" value={form.city} onChange={(v)=>handleChange("city",v)} />
+      <Input label="Pincode *" value={form.pincode} onChange={(v)=>handleChange("pincode",v)} />
+      <Input label="State *" value={form.state} onChange={(v)=>handleChange("state",v)} />
+      <Input label="Country *" value={form.country} onChange={(v)=>handleChange("country",v)} />
+
+      <Input label="Password *" secure value={form.password} onChange={(v)=>handleChange("password",v)} />
+      <Input label="Confirm Password *" secure value={form.password_confirmation} onChange={(v)=>handleChange("password_confirmation",v)} />
+
+      {/* -------- PLAN -------- */}
+      <Text style={styles.section}>Your Plan</Text>
+      <View style={styles.selected}>
+        <Text>{selectedPlan?.name}</Text>
+        <Text>₹{selectedPlan?.price}</Text>
+      </View>
+
+      <Text style={styles.section}>Other Plans</Text>
+      {otherPlans.map(plan => (
+        <TouchableOpacity
+          key={plan.id}
+          style={styles.plan}
+          onPress={()=>handleChange("plan",plan.id)}
+        >
+          <Text>{plan.name}</Text>
+          <Text>₹{plan.price}</Text>
+        </TouchableOpacity>
+      ))}
+
+      {/* -------- SUMMARY -------- */}
+      <View style={styles.summary}>
+        <Text>Base: ₹{price}</Text>
+        {price > 0 && <Text>GST: ₹{gst.toFixed(2)}</Text>}
+        <Text style={styles.total}>Total: ₹{total.toFixed(2)}</Text>
+      </View>
+
+      {/* -------- SUBMIT -------- */}
+      <TouchableOpacity style={styles.submit} onPress={handleSubmit}>
+        <Text style={styles.submitText}>
+          {price === 0 ? "Subscribe Now" : "Pay Now"}
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
     </SafeAreaView>
     </MainLayout>
   );
 };
 
+/* ---------- INPUT COMPONENT ---------- */
+const Input = ({ label, value, onChange, secure = false }: any) => {
+  const isRequired = label.includes('*');
+
+  return (
+    <View style={{ marginBottom: 10 }}>
+      <Text style={styles.label}>
+        {label.replace('*', '')}
+        {isRequired && <Text style={{ color: 'red' }}> *</Text>}
+      </Text>
+
+      <TextInput
+        value={value}
+        onChangeText={onChange}
+        secureTextEntry={secure}
+        style={styles.input}
+      />
+    </View>
+  );
+};
+
+export default RegisterScreen;
+
+/* ---------- STYLES ---------- */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', paddingBottom:70 },
-  scrollContent: { padding: 15, alignItems: 'center' },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', marginTop: 10 },
-  subText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#777',
-    marginVertical: 8,
-    paddingHorizontal: 20,
-  },
-  redDivider: {
-    width: 40,
-    height: 3,
-    backgroundColor: '#c9060a',
-    marginBottom: 20,
-  },
-  formCard: {
-    backgroundColor: '#fff',
-    width: '100%',
-    borderRadius: 1,
-    padding: 15,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  inputHalf: { width: '48%' },
-  fullWidth: { width: '100%', marginBottom: 15 },
-  label: { fontSize: 13, fontWeight: '500', marginBottom: 5 },
+  container: { flex:1, padding:16, backgroundColor:"#fff" },
+  heading: { fontSize:22, fontWeight:"bold", marginBottom:20 },
+
+  label: { fontSize:12, color:"#666", marginBottom:4 },
+
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 5,
-    padding: 8,
-    backgroundColor: '#fafafa',
-  },
-  plansGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  planCard: {
-    width: '48%',
-    borderWidth: 1,
-    borderColor: '#eee',
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    backgroundColor: '#fff',
-  },
-  planCardActive: { backgroundColor: '#c9060a', borderColor: '#c9060a' },
-  pTitle: { fontWeight: 'bold', fontSize: 14, marginBottom: 2 },
-  pPrice: { fontWeight: 'bold', fontSize: 12, marginBottom: 5 },
-  pDetail: { fontSize: 10, color: '#666' },
-  whiteText: { color: '#fff' },
-
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 3, // Slight rounding like the screenshot
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#fff', // White when unchecked
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  checkboxActive: {
-    backgroundColor: '#c9060a', // Solid Red background when checked
-    borderColor: '#c9060a', // Red border to match
-  },
-  checkText: {
-    fontSize: 14,
-    color: '#000',
-    fontWeight: '400',
+    borderWidth:1,
+    borderColor:"#ddd",
+    padding:10,
+    borderRadius:6,
   },
 
-  payHeader: { fontWeight: 'bold', fontSize: 14, marginBottom: 5 },
-  payNote: { fontSize: 12, color: '#444' },
-  regBtn: {
-    backgroundColor: '#c9060a',
-    padding: 12,
-    borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-    marginVertical: 20,
+  row: { flexDirection:"row", gap:10, alignItems:"center", marginBottom:10 },
+
+  otpBtn: {
+    backgroundColor:"#c9060a",
+    padding:10,
+    borderRadius:6,
   },
-  regBtnText: { color: '#fff', fontWeight: 'bold' },
+
+  btnText: { color:"#fff", fontSize:12 },
+
+  verify: { color:"#c9060a", fontWeight:"bold" },
+
+  success: { color:"green", marginBottom:10 },
+
+  section: { marginTop:20, fontWeight:"bold" },
+
+  selected: {
+    borderWidth:2,
+    borderColor:"#c9060a",
+    padding:10,
+    borderRadius:8,
+    marginVertical:10,
+  },
+
+  plan: {
+    borderWidth:1,
+    borderColor:"#eee",
+    padding:10,
+    borderRadius:8,
+    marginBottom:8,
+  },
+
+  summary: {
+    marginTop:20,
+    padding:10,
+    backgroundColor:"#f5f5f5",
+    borderRadius:8,
+  },
+
+  total: { fontWeight:"bold", marginTop:5 },
+
+  submit: {
+    backgroundColor:"#c9060a",
+    padding:15,
+    borderRadius:8,
+    marginTop:20,
+    alignItems:"center",
+  },
+
+  submitText: { color:"#fff", fontWeight:"bold" },
 });
-
-export default Register;

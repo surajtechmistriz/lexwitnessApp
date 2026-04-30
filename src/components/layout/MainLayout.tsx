@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Banner from '../common/DynamicBanner';
 import TopMenu from '../common/Menubar';
 import AuthPopup from '../../modal/AuthPopup';
-import { useAuth } from '../../context/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
-interface MainLayoutProps {
+type Props = {
   children: React.ReactNode;
   title: string;
   renderFilter?: (close: () => void) => React.ReactNode;
   showFilter?: boolean;
   activeSlug?: string;
   routeName?: string;
-}
+};
 
 const MainLayout = ({
   children,
@@ -23,9 +24,14 @@ const MainLayout = ({
   showFilter = true,
   activeSlug,
   routeName,
-}: MainLayoutProps) => {
-  const { isLoggedIn } = useAuth();
+}: Props) => {
+  const { isLoggedIn, isHydrated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
+  const [showPopup, setShowPopup] = useState(false);
+
+  // Screens where the TopMenu is hidden
   const hiddenTopMenu = [
     'Magazines',
     'Subscription',
@@ -34,25 +40,52 @@ const MainLayout = ({
     'Archive',
   ];
 
-  const disablePopupScreens = ['Register', 'SignIn'];
+  // ✅ FIX: Added 'Subscription' here to prevent the popup from appearing
+  // while the user is trying to pay/choose a plan.
+  const disablePopupScreens = ['Register', 'SignIn', 'Subscription'];
 
   const shouldShowPopup =
     !isLoggedIn && !disablePopupScreens.includes(routeName || '');
+
+  useEffect(() => {
+    // 1. If we aren't hydrated yet, do nothing
+    if (!isHydrated) return;
+
+    // 2. If we navigate TO a disabled screen, kill any existing popup immediately
+    if (disablePopupScreens.includes(routeName || '')) {
+      setShowPopup(false);
+      return;
+    }
+
+    // 3. Trigger popup logic only if allowed
+    if (shouldShowPopup) {
+      const timer = setTimeout(() => {
+        setShowPopup(true);
+      }, 800); // Increased slightly for better UX after screen transition
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowPopup(false);
+    }
+  }, [isHydrated, isLoggedIn, routeName]);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={hiddenTopMenu.includes(routeName || '') ? [0] : [1]}
+        // If route is in hiddenTopMenu, Banner is sticky [0], otherwise TopMenu is sticky [1]
+        stickyHeaderIndices={
+          hiddenTopMenu.includes(routeName || '') ? [0] : [1]
+        }
       >
-        {/* Top Menu */}
-        <View>
-          {!hiddenTopMenu.includes(routeName || '') && (
+        {/* Top Menu Section */}
+        {!hiddenTopMenu.includes(routeName || '') && (
+          <View>
             <TopMenu activeSlug={activeSlug} />
-          )}
-        </View>
+          </View>
+        )}
 
-        {/* Banner */}
+        {/* Banner Section */}
         <View>
           <Banner
             title={title}
@@ -61,14 +94,15 @@ const MainLayout = ({
           />
         </View>
 
-        {/* Content */}
+        {/* Page Content */}
         <View style={styles.content}>{children}</View>
       </ScrollView>
 
-      {/* Auth Popup */}
-      {shouldShowPopup && (
-        <AuthPopup visible={true} mode="register" />
-      )}
+      {/* Global Auth Popup */}
+      <AuthPopup
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+      />
     </SafeAreaView>
   );
 };

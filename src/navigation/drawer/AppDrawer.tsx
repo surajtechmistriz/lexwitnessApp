@@ -12,6 +12,7 @@ import ArticleDetailPage from '../../features/article/ArticleScreen';
 import AuthorScreen from '../../features/author/AuthorScreen';
 import EditorialDetail from '../../features/editorial/EditorialDetail';
 import MagazineDetailScreen from '../../features/magazines/MagazineDetailScreen';
+import SignIn from '../../features/auth/screens/SignIn';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -33,6 +34,7 @@ const AppDrawer = () => {
       <Drawer.Screen name="Home" component={MainStack} />
       <Drawer.Screen name="Subscription" component={Subscription} />
       <Drawer.Screen name="Register" component={Register} />
+       <Drawer.Screen name="SignIn" component={SignIn} />
     </Drawer.Navigator>
   );
 };

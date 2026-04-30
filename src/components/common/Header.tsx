@@ -2,61 +2,56 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { DrawerActions, useNavigation } from '@react-navigation/native';
-import { useAuth } from '../../context/AuthContext';
+import { DrawerActions } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 import { navigationRef } from '../../navigation/AppNavigator';
 
 type HeaderProps = {
   onSearchPress: () => void;
-  title?: string;
 };
 
 const Header = ({ onSearchPress }: HeaderProps) => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isHydrated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
-const navigation = useNavigation()
-const handleToggleDrawer = () => {
-  if (navigationRef.isReady()) {
-    navigationRef.dispatch(DrawerActions.toggleDrawer());
-  }
-};
- const handleGoHome = () => {
-  if (!navigationRef.isReady()) return;
 
-  navigationRef.navigate('Home', {
-    screen: 'HomeTabs',
-    params: {
-      screen: 'HomeTab',
+  const handleToggleDrawer = () => {
+    if (navigationRef.isReady()) {
+      navigationRef.dispatch(DrawerActions.toggleDrawer());
+    }
+  };
+
+  const handleGoHome = () => {
+    if (!navigationRef.isReady()) return;
+
+    navigationRef.navigate('Home', {
+      screen: 'HomeTabs',
       params: {
-        screen: 'Home',
+        screen: 'HomeTab',
+        params: { screen: 'Home' },
       },
-    },
-  });
-};
+    });
+  };
+
+  const goToLogin = () => {
+    if (navigationRef.isReady()) {
+      navigationRef.navigate('SignIn');
+    }
+  };
 
   return (
     <View style={styles.container}>
-
-      {/* LEFT: MENU / USER */}
+      
+      {/* LEFT - ALWAYS MENU */}
       <View style={styles.left}>
-        {isLoggedIn ? (
-          <TouchableOpacity onPress={handleToggleDrawer}>
-            <Ionicons name="menu" size={28} color="#c9060a" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={() => {
-              if (navigationRef.isReady()) {
-                navigationRef.navigate('SignIn');
-              }
-            }}
-          >
-            <Entypo name="user" size={20} color="#111" />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={handleToggleDrawer}>
+          <Ionicons name="menu" size={28} color="#c9060a" />
+        </TouchableOpacity>
       </View>
 
-      {/* CENTER: LOGO */}
+      {/* CENTER */}
       <View style={styles.center}>
         <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Image
@@ -67,7 +62,7 @@ const handleToggleDrawer = () => {
         </TouchableOpacity>
       </View>
 
-      {/* RIGHT: SEARCH */}
+      {/* RIGHT */}
       <View style={styles.right}>
         <TouchableOpacity onPress={onSearchPress}>
           <Entypo name="magnifying-glass" size={24} color="#c9060a" />

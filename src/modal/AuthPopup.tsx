@@ -1,55 +1,93 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   Modal,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Animated,
+  Image,
+  Dimensions,
+  Pressable,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { latesteEdition } from '../services/api/latestedition';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Config from 'react-native-config';
+import PopupSkeleton from '../skeleton/PopupSkeleton';
 
-const AuthPopup = ({ visible, mode: initialMode }: any) => {
-  const [mode, setMode] = useState(initialMode || 'register');
-  const { login } = useAuth();
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+// --- Types ---
+type Magazine = {
+  slug: string;
+  id: number;
+  title: string;
+  image: string;
+  magazine_name?: string;
+};
 
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-    firstName: '',
-    lastName: '',
-  });
-  const [errors, setErrors] = useState<any>({});
+type EditionResponse = {
+  magazine: Magazine;
+};
 
-  const validate = () => {
-    let s = {} as any;
-    if (!form.email.includes('@')) s.email = 'Invalid email';
-    if (form.password.length < 6) s.password = 'Min 6 characters';
-    if (mode === 'register') {
-      if (!form.firstName) s.firstName = 'Required';
-      if (!form.lastName) s.lastName = 'Required';
-    }
-    setErrors(s);
-    return Object.keys(s).length === 0;
+type RootStackParamList = {
+  Magazines: { screen: string; params: { slug: string } };
+  Subscription: undefined; // Target for CTA
+};
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+
+const { width } = Dimensions.get('window');
+const MagimgUrl = Config.MAGAZINES_BASE_URL;
+
+const AuthPopup = ({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) => {
+  const [data, setData] = useState<EditionResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const navigation = useNavigation<NavigationProp>();
+
+  /* ---------------- FETCH DATA ---------------- */
+  useEffect(() => {
+    if (!visible) return;
+
+    setLoading(true);
+    const fetchData = async () => {
+      try {
+        const res = await latesteEdition();
+        setData(res.data);
+      } catch (err) {
+        console.log('Popup fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [visible]);
+
+  const handleClose = () => {
+    setData(null);
+    onClose();
   };
 
-  const handleSwitch = (newMode: 'register' | 'signin') => {
-    setErrors({});
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 150,
-      useNativeDriver: true,
-    }).start(() => {
-      setMode(newMode);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }).start();
+  /* ---------------- NAVIGATION ---------------- */
+  const goToSubscription = () => {
+    handleClose(); // Close modal before navigating
+    navigation.navigate('Subscription');
+  };
+
+  const goToMagazine = () => {
+    if (!data?.magazine) return;
+    handleClose();
+    navigation.navigate('Magazines', {
+      screen: 'MagazineDetail',
+      params: {
+        slug: data.magazine.slug || String(data.magazine.id),
+      },
     });
   };
 
@@ -59,153 +97,137 @@ const AuthPopup = ({ visible, mode: initialMode }: any) => {
       transparent
       animationType="fade"
       statusBarTranslucent
+      onRequestClose={handleClose}
     >
       <View style={styles.overlay}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.container}
-        >
-          <Animated.View style={[styles.card, { opacity: fadeAnim }]}>
-            <View style={styles.topSection}>
-              <Text style={styles.title}>
-                {mode === 'register' ? 'Create Account' : 'Welcome Back'}
-              </Text>
-              <Text style={styles.subtitle}>
-                Please enter your details to continue
-              </Text>
-            </View>
+        <View style={styles.card}>
 
-            <View style={styles.formSection}>
-              {mode === 'register' && (
-                <View style={styles.row}>
-                  <View style={{ flex: 1 }}>
-                    <TextInput
-                      style={[
-                        styles.input,
-                        errors.firstName && styles.inputErr,
-                      ]}
-                      placeholder="First Name"
-                      onChangeText={v => setForm({ ...form, firstName: v })}
-                    />
-                  </View>
-                  <View style={{ width: 10 }} />
-                  <View style={{ flex: 1 }}>
-                    <TextInput
-                      style={[styles.input, errors.lastName && styles.inputErr]}
-                      placeholder="Last Name"
-                      onChangeText={v => setForm({ ...form, lastName: v })}
-                    />
-                  </View>
-                </View>
-              )}
+          {/* CLOSE BUTTON */}
+          <Pressable onPress={handleClose} style={styles.closeBtn}>
+            <Text style={styles.closeBtnTxt}>✕</Text>
+          </Pressable>
 
-              <TextInput
-                style={[styles.input, errors.email && styles.inputErr]}
-                placeholder="Email Address"
-                autoCapitalize="none"
-                onChangeText={v => setForm({ ...form, email: v })}
-              />
-              {errors.email && (
-                <Text style={styles.errTxt}>{errors.email}</Text>
-              )}
-
-              <TextInput
-                style={[styles.input, errors.password && styles.inputErr]}
-                placeholder="Password"
-                secureTextEntry
-                onChangeText={v => setForm({ ...form, password: v })}
-              />
-              {errors.password && (
-                <Text style={styles.errTxt}>{errors.password}</Text>
-              )}
-
+          {loading ? (
+            <PopupSkeleton />
+          ) : (
+            <>
+              {/* IMAGE SECTION */}
               <TouchableOpacity
-                style={styles.btn}
-                onPress={() => validate() && login(form)}
+                onPress={goToMagazine}
+                style={styles.imageContainer}
+                activeOpacity={0.9}
               >
-                <Text style={styles.btnTxt}>
-                  {mode === 'register' ? 'Register' : 'Sign In'}
-                </Text>
+                <Image
+                  source={{
+                    uri: `${MagimgUrl}/${data?.magazine?.image}`,
+                  }}
+                  style={styles.bigImg}
+                  resizeMode="contain"
+                />
               </TouchableOpacity>
-            </View>
 
-            <View style={styles.footer}>
-              <Text style={styles.footerTxt}>
-                {mode === 'register'
-                  ? 'Already have an account? '
-                  : 'New here? '}
-              </Text>
-              <TouchableOpacity
-                onPress={() =>
-                  handleSwitch(mode === 'register' ? 'signin' : 'register')
-                }
-              >
-                <Text style={styles.linkTxt}>
-                  {mode === 'register' ? 'Sign In' : 'Register'}
+              {/* CONTENT SECTION */}
+              <View style={styles.contentSection}>
+                <Text style={styles.label}>LATEST ISSUE</Text>
+
+                <Text style={styles.headline}>
+                  {data?.magazine?.magazine_name || 'Magazine'}
                 </Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
-        </KeyboardAvoidingView>
+
+                <Text style={styles.promoText}>
+                  Start Your <Text style={styles.redText}>Free Month Now</Text>
+                </Text>
+
+                {/* UPDATED CTA NAVIGATION */}
+                <TouchableOpacity
+                  style={styles.subscribeBtn}
+                  onPress={goToSubscription}
+                >
+                  <Text style={styles.subscribeBtnTxt}>
+                    Subscribe Now
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
+        </View>
       </View>
     </Modal>
   );
 };
 
+export default AuthPopup;
+
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  container: { width: '90%' },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 25,
-    minHeight: 480, //  Identical height for both modes
-    justifyContent: 'space-between',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    width: width * 0.88,
+    borderRadius: 16,
+    paddingTop: 45,
+    paddingBottom: 30,
+    paddingHorizontal: 22,
+    position: 'relative',
   },
-  topSection: { alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: '800', color: '#1a1a1a' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 5 },
-  formSection: { flex: 1, justifyContent: 'center', marginTop: 20 },
-  row: { flexDirection: 'row', marginBottom: 5 },
-  input: {
-    backgroundColor: '#f5f5f7',
-    padding: 15,
-    borderRadius: 12,
-    fontSize: 16,
-    marginTop: 10,
-  },
-  inputErr: {
-    borderWidth: 1,
-    borderColor: '#ff3b30',
-    backgroundColor: '#fff8f8',
-  },
-  errTxt: {
-    color: '#ff3b30',
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
-    marginLeft: 5,
-  },
-  btn: {
-    backgroundColor: '#c9060a',
-    padding: 16,
-    borderRadius: 12,
+  closeBtn: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    backgroundColor: '#eee',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    zIndex: 10,
   },
-  btnTxt: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 15 },
-  footerTxt: { color: '#666', fontSize: 14 },
-  linkTxt: { color: '#c9060a', fontWeight: '700', fontSize: 14 },
+  closeBtnTxt: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  imageContainer: {
+    height: 250,
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  bigImg: {
+    width: '100%',
+    height: '100%',
+  },
+  contentSection: {},
+  label: {
+    color: '#c9060a',
+    fontWeight: '800',
+    fontSize: 12,
+    marginBottom: 5,
+  },
+  headline: {
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 15,
+  },
+  promoText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  redText: {
+    color: '#c9060a',
+  },
+  subscribeBtn: {
+    backgroundColor: '#c9060a',
+    paddingVertical: 14,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  subscribeBtnTxt: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
-
-export default AuthPopup;

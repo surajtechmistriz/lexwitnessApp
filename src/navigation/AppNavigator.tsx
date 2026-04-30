@@ -5,51 +5,32 @@ import {
 } from '@react-navigation/native';
 import { Animated } from 'react-native';
 
-// Context
-import { useAuth } from '../context/AuthContext';
-
 // UI
 import Header from '../components/common/Header';
 import SearchOverlay from '../components/common/SearchOverlay';
-import AuthPopup from '../modal/AuthPopup';
 import SplashScreen from 'react-native-splash-screen';
 
 // Drawer
 import AppDrawer from './drawer/AppDrawer';
+import GlobalPopup from '../modal/GlobalPopup';
 
 export const navigationRef = createNavigationContainerRef();
 
 const AppNavigator = () => {
-  const { isLoggedIn, isAuthLoading } = useAuth();
-
-  const [authMode, setAuthMode] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-
   const [isAppReady, setIsAppReady] = useState(false);
-
   const opacity = useRef(new Animated.Value(0)).current;
 
-  // 🔹 Handle auth mode
-  useEffect(() => {
-    if (!isAuthLoading) {
-      setAuthMode(isLoggedIn ? null : 'register');
-    }
-  }, [isLoggedIn, isAuthLoading]);
-
-  // 🔥 Prepare app before showing UI
+  //  Prepare app before showing UI
   useEffect(() => {
     const prepareApp = async () => {
-      if (isAuthLoading) return;
-
       try {
-        // 👉 you can preload APIs here if needed
-        // await Promise.all([getHeroPost(), getEditorPick()]);
+        // Preload any critical data here if needed
       } catch (e) {
         console.log('Prepare error:', e);
       } finally {
         setIsAppReady(true);
-
-        // smooth delay
+        // smooth delay before hiding splash
         setTimeout(() => {
           SplashScreen.hide();
         }, 250);
@@ -57,9 +38,9 @@ const AppNavigator = () => {
     };
 
     prepareApp();
-  }, [isAuthLoading]);
+  }, []);
 
-  // 🔥 Fade-in animation
+  //  Fade-in animation once app is ready
   useEffect(() => {
     if (isAppReady) {
       Animated.timing(opacity, {
@@ -70,24 +51,25 @@ const AppNavigator = () => {
     }
   }, [isAppReady]);
 
-  // ❌ Block UI until ready (no flicker)
+  // ❌ Block UI until ready (prevent flicker)
   if (!isAppReady) return null;
 
   return (
     <Animated.View style={{ flex: 1, opacity }}>
       <NavigationContainer ref={navigationRef}>
+        {/* Global Header */}
         <Header onSearchPress={() => setIsSearchVisible(true)} />
 
+        {/* Main Navigation Stack / Drawer */}
         <AppDrawer />
 
+        {/* Global Search Overlay */}
         <SearchOverlay
           visible={isSearchVisible}
           onClose={() => setIsSearchVisible(false)}
         />
 
-        {authMode && (
-          <AuthPopup visible mode={authMode} setMode={setAuthMode} />
-        )}
+          <GlobalPopup />
       </NavigationContainer>
     </Animated.View>
   );

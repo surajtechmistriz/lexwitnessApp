@@ -10,22 +10,22 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-// import AsyncStorage from '@react-native-async-storage/async-storage'; // You'll need to install this
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import DynamicBanner from '../../../components/common/DynamicBanner';
-import Header from '../../../components/common/Header';
-import TopMenu from '../../../components/common/Menubar';
-import { AsyncStorage } from 'react-native';
-import Footer from '../../../components/common/Footer';
 import MainLayout from '../../../components/layout/MainLayout';
-// import Banner from '../components/Banner'; // Use the Banner we made
-// import { loginUser } from '../lib/auth/auth'; // Ensure path is correct
+
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ FIXED
+import { useDispatch } from 'react-redux';
+// import { loginSuccess } from '../../../store/slices/authSlice';
+
+// 👉 Replace with your real API
+import axios from 'axios';
+import { loginSuccess } from '../../../redux/slices/authSlice';
 
 const SignInScreen = () => {
   const navigation = useNavigation<any>();
-  
-  // States matching your Next.js logic
+  const dispatch = useDispatch();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,26 +33,38 @@ const SignInScreen = () => {
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleLogin = async () => {
-    // if (!email || !password) {
-    //   setError("Please fill in all fields");
-    //   return;
-    // }
+    if (!email || !password) {
+      setError("Please fill all fields");
+      return;
+    }
 
-    // setError("");
     setLoading(true);
+    setError("");
 
     try {
-      const res = loginUser(email.trim(), password);
+      // ✅ REAL API CALL
+      const res = await axios.post('/auth/login', {
+        email: email.trim(),
+        password,
+      });
 
-      // Mobile equivalent of localStorage
-      await AsyncStorage.setItem("token", res.data.token);
-      await AsyncStorage.setItem("user", JSON.stringify(res.data.user));
+      const token = res.data.token;
+      const user = res.data.user;
 
-      // Redirect to Home
-      navigation.replace("Home"); 
+      // ✅ STORE
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('user', JSON.stringify(user));
+
+      // ✅ REDUX UPDATE (IMPORTANT)
+      dispatch(loginSuccess({ user, token }));
+
+      // ✅ NAVIGATION
+      navigation.replace('Home');
+
     } catch (err: any) {
-      setError(err?.message || "Login failed");
-      Alert.alert("Error", err?.message || "Login failed");
+      const msg = err?.response?.data?.message || "Login failed";
+      setError(msg);
+      Alert.alert("Error", msg);
     } finally {
       setLoading(false);
     }
@@ -60,88 +72,85 @@ const SignInScreen = () => {
 
   return (
     <MainLayout title="Sign In" showFilter={false} routeName="SignIn">
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View style={styles.content}>
+            <Text style={styles.header}>SIGN IN YOURSELF</Text>
+            <Text style={styles.subText}>
+              Welcome back! Login to continue.
+            </Text>
 
-  <SafeAreaView style={styles.container}>
-    
-    {/*  FIXED PART */}
-    {/* <Header /> */}
-    {/* <TopMenu /> */}
-    {/* <DynamicBanner title="Signin" /> */}
+            <View style={styles.redDivider} />
 
-    {/*  SCROLLABLE PART */}
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <View style={styles.content}>
-        <Text style={styles.header}>SIGN IN YOURSELF</Text>
-        <Text style={styles.subText}>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-        </Text>
-        <View style={styles.redDivider} />
+            <View style={styles.card}>
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <View style={styles.card}>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              <Text style={styles.label}>Email Address</Text>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                editable={!loading}
+                style={[styles.input, loading && styles.disabledInput]}
+                placeholder="Enter email"
+              />
 
-          <Text style={styles.label}>Email Address</Text>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            editable={!loading}
-            style={[styles.input, loading && styles.disabledInput]}
-            placeholder="Enter email"
-          />
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                editable={!loading}
+                style={[styles.input, loading && styles.disabledInput]}
+                placeholder="Enter password"
+              />
 
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!loading}
-            style={[styles.input, loading && styles.disabledInput]}
-            placeholder="Enter password"
-          />
+              <TouchableOpacity
+                style={styles.checkboxRow}
+                onPress={() => setRememberMe(!rememberMe)}
+                disabled={loading}
+              >
+                <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                  {rememberMe && (
+                    <Ionicons name="checkmark" size={12} color="#fff" />
+                  )}
+                </View>
+                <Text style={styles.checkboxText}>Remember Me</Text>
+              </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={styles.checkboxRow} 
-            onPress={() => setRememberMe(!rememberMe)}
-            disabled={loading}
-          >
-            <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-              {rememberMe && <Ionicons name="checkmark" size={12} color="#fff" />}
+              <TouchableOpacity
+                style={[styles.loginBtn, loading && styles.disabledBtn]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.loginBtnText}>Log In</Text>
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.footerLinks}>
+                <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+                  <Text style={styles.redLink}>Register</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.separator}> | </Text>
+
+                <TouchableOpacity onPress={() => navigation.navigate('PasswordReset')}>
+                  <Text style={styles.redLink}>Lost password?</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <Text style={styles.checkboxText}>Remember Me</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.loginBtn, loading && styles.disabledBtn]} 
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.loginBtnText}>Log In</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.footerLinks}>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.redLink}>Register</Text>
-            </TouchableOpacity>
-            <Text style={styles.separator}> | </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('PasswordReset')}>
-              <Text style={styles.redLink}>Lost your password?</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-
-      </View>
-        {/* <Footer /> */}
-    </ScrollView>
-  </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
     </MainLayout>
-);
+  );
 };
+
+export default SignInScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
@@ -199,8 +208,6 @@ const styles = StyleSheet.create({
   separator: { marginHorizontal: 5 }
 });
 
-export default SignInScreen;
 
-function loginUser(arg0: string, password: string) {
-  throw new Error('Function not implemented.');
-}
+
+

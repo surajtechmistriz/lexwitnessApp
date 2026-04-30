@@ -115,7 +115,7 @@ export default TopMenu;
 const styles = StyleSheet.create({
   wrapper: {
     height: 56,
-    backgroundColor: '#f5f5f7', // 🔥 subtle app bg
+    backgroundColor: '#f5f5f7', //  subtle app bg
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#eaeaea',

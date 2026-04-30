@@ -209,7 +209,7 @@ contentContainer: {
   flexDirection: 'row',
   alignItems: 'center',
   marginTop: 6,
-  flexWrap: 'wrap', // 🔥 important
+  flexWrap: 'wrap', //  important
 },
   authorText: {
     color: '#c9060a',

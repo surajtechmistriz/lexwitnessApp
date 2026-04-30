@@ -21,7 +21,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <View style={styles.container}>
       
-      {/* 🔥 Main Hero (Top Layer) */}
+      {/*  Main Hero (Top Layer) */}
       <View style={styles.mainCard}>
         <HeroCard
           category={firstCard.category}
@@ -32,7 +32,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
         />
       </View>
 
-      {/* 🔥 Secondary Cards (Stacked / layered feel) */}
+      {/*  Secondary Cards (Stacked / layered feel) */}
       <View style={styles.secondaryContainer}>
         {nextTwoCards.map((item, index) => (
           <View
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
 
-    // 🔥 Shadow for depth
+    //  Shadow for depth
     elevation: 6,
     shadowColor: '#000',
     shadowOpacity: 0.12,
