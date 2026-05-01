@@ -146,10 +146,10 @@ return (
   }
   stickyHeaderIndices={[1]} // Banner sticky
 >
-      {/* ✅ TopMenu scroll karega */}
+      {/*  TopMenu scroll karega */}
       <TopMenu />
 
-      {/* ✅ Banner sticky */}
+      {/*  Banner sticky */}
       <Banner
         title={author?.name || slug?.replace(/-/g, ' ')}
         renderFilter={(close) => (
@@ -165,7 +165,7 @@ return (
         )}
       />
 
-      {/* ✅ CONTENT */}
+      {/*  CONTENT */}
       <View style={styles.content}>
         {loading && !refreshing ? (
           <View style={styles.skeletonWrapper}>

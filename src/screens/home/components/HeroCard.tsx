@@ -26,7 +26,7 @@ const HeroCard = ({
   date,
   image,
   height = 260,
-  onLoadEnd, // ✅ use prop directly
+  onLoadEnd, //  use prop directly
 }: HeroCardProps) => {
   const navigation = useNavigation<any>();
 
@@ -49,7 +49,7 @@ const HeroCard = ({
       <ImageBackground
         source={{ uri: image }}
         style={styles.image}
-        onLoadEnd={onLoadEnd} // ✅ correct
+        onLoadEnd={onLoadEnd} //  correct
       >
         <LinearGradient
           colors={[

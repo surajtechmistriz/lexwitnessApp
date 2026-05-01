@@ -12,15 +12,16 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import MainLayout from '../../../components/layout/MainLayout';
+// import MainLayout from '../../../components/layout/MainLayout';
 
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ✅ FIXED
+import AsyncStorage from '@react-native-async-storage/async-storage'; //  FIXED
 import { useDispatch } from 'react-redux';
 // import { loginSuccess } from '../../../store/slices/authSlice';
 
 // 👉 Replace with your real API
 import axios from 'axios';
 import { loginSuccess } from '../../../redux/slices/authSlice';
+import MainLayout from '../../../MainLayout';
 
 const SignInScreen = () => {
   const navigation = useNavigation<any>();
@@ -42,7 +43,7 @@ const SignInScreen = () => {
     setError("");
 
     try {
-      // ✅ REAL API CALL
+      //  REAL API CALL
       const res = await axios.post('/auth/login', {
         email: email.trim(),
         password,
@@ -51,14 +52,14 @@ const SignInScreen = () => {
       const token = res.data.token;
       const user = res.data.user;
 
-      // ✅ STORE
+      //  STORE
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('user', JSON.stringify(user));
 
-      // ✅ REDUX UPDATE (IMPORTANT)
+      //  REDUX UPDATE (IMPORTANT)
       dispatch(loginSuccess({ user, token }));
 
-      // ✅ NAVIGATION
+      //  NAVIGATION
       navigation.replace('Home');
 
     } catch (err: any) {

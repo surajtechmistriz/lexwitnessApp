@@ -20,8 +20,9 @@ import YearFilter from '../../components/common/YearFilter';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
-import MainLayout from '../../components/layout/MainLayout';
+// import MainLayout from '../../components/layout/MainLayout';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
+import MainLayout from '../../MainLayout';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

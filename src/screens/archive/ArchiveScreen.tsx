@@ -28,7 +28,8 @@ import Footer from '../../components/common/Footer';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
-import MainLayout from '../../components/layout/MainLayout';
+import MainLayout from '../../MainLayout';
+// import MainLayout from '../../components/layout/MainLayout';
 
 export default function ArchiveScreen() {
   const route = useRoute<any>();

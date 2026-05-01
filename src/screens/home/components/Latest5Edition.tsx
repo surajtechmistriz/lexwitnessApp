@@ -40,28 +40,40 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
     if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  if (loading)
-    return <ActivityIndicator style={styles.loader} color={COLORS.primary} />;
+  if (loading) {
+    return (
+      <ActivityIndicator
+        style={styles.loader}
+        color={COLORS.primary}
+      />
+    );
+  }
+
   if (editions.length === 0) return null;
 
   return (
     <View style={styles.wrapper}>
       {/* Header */}
-      <Text style={styles.heading}>More Editions</Text>
+      <Text style={styles.heading}>Latest Editions</Text>
       <View style={styles.redLine} />
 
+      {/* Carousel */}
       <Carousel
         loop={false}
         width={ITEM_WIDTH}
-        height={260}
-        style={{ width }}
+        height={220}
         data={editions}
+        style={{ width }}
+        enabled
+        pagingEnabled
+        scrollAnimationDuration={600}
         panGestureHandlerProps={{
-          activeOffsetX: [-10, 10],
+          activeOffsetX: [-20, 20],   // require stronger horizontal swipe
+          failOffsetY: [-10, 10],     // allow vertical scroll
         }}
-        onProgressChange={(_, absoluteProgress) =>
-          (progressValue.value = absoluteProgress)
-        }
+        onProgressChange={(_, absoluteProgress) => {
+          progressValue.value = absoluteProgress;
+        }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
@@ -69,9 +81,7 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
             onPress={() =>
               navigation.navigate('Magazines', {
                 screen: 'MagazineDetail',
-                params: {
-                  slug: item.slug,
-                },
+                params: { slug: item.slug },
               })
             }
           >
@@ -84,10 +94,6 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
               style={styles.image}
               resizeMode="contain"
             />
-
-            {/* <Text style={styles.title} numberOfLines={2}>
-            {item.title}
-          </Text> */}
           </TouchableOpacity>
         )}
       />
@@ -104,6 +110,7 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
       {/* CTA */}
       <TouchableOpacity
         style={styles.cta}
+        activeOpacity={0.85}
         onPress={() => navigation.navigate('Magazines')}
       >
         <Text style={styles.ctaText}>View All Editions</Text>
@@ -112,6 +119,9 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
   );
 };
 
+export default LatestEditions;
+
+
 const styles = StyleSheet.create({
   wrapper: {
     marginTop: 20,
@@ -119,54 +129,43 @@ const styles = StyleSheet.create({
   },
 
   heading: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#111',
-
     alignSelf: 'center',
-    paddingHorizontal: 12,
   },
+
   redLine: {
-    width: 60,
-    height: 4,
+    width: 50,
+    height: 3,
     backgroundColor: COLORS.primary,
-    marginTop: 5,
-    marginLeft: 1,
     alignSelf: 'center',
-    marginBottom: 18,
+    marginTop: 6,
+    marginBottom: 16,
+    borderRadius: 2,
+  },
+
+  loader: {
+    marginTop: 30,
   },
 
   card: {
     width: ITEM_WIDTH - 12,
     marginLeft: 12,
-    borderRadius:8,
-
-    // borderRadius: 8,
+    borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: '#fff',
-
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
     elevation: 3,
   },
 
   image: {
     width: '100%',
-    height: 208,
-  },
-
-  title: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#111',
-    padding: 10,
-    lineHeight: 18,
+    height: 200,
   },
 
   pagination: {
     marginTop: 10,
-    marginBottom: 16,
+    marginBottom: 14,
     justifyContent: 'center',
   },
 
@@ -176,12 +175,10 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#ddd',
     marginHorizontal: 3,
-    marginTop: -15,
-    marginBottom: 15,
   },
 
   activeDot: {
-    width: 16,
+    width: 14,
     height: 6,
     borderRadius: 3,
     backgroundColor: COLORS.primary,
@@ -194,7 +191,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 10,
-    marginBottom: 15,
   },
 
   ctaText: {
@@ -203,5 +199,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-export default LatestEditions;

@@ -3,16 +3,20 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import BottomTabs from '../BotttomTabs/BottomTabs';
-import Subscription from '../../features/auth/screens/Subscription';
-import Register from '../../features/auth/screens/Register';
-import CustomDrawer from './CustomDrawer';
+// import Subscription from '../../features/auth/screens/Subscription';
+// import Register from '../../features/auth/screens/Register';
+import CustomDrawer from '../../components/common/CustomDrawer';
+import Subscription from '../../screens/auth/screens/Subscription';
+import Register from '../../screens/auth/screens/Register';
+import SignIn from '../../screens/auth/screens/SignIn';
+import MagazinesScreen from '../../screens/magazines/MagazinesScreen';
 
 // GLOBAL SCREENS
-import ArticleDetailPage from '../../features/article/ArticleScreen';
-import AuthorScreen from '../../features/author/AuthorScreen';
-import EditorialDetail from '../../features/editorial/EditorialDetail';
-import MagazineDetailScreen from '../../features/magazines/MagazineDetailScreen';
-import SignIn from '../../features/auth/screens/SignIn';
+// import ArticleDetailPage from '../../features/article/ArticleScreen';
+// import AuthorScreen from '../../features/author/AuthorScreen';
+// import EditorialDetail from '../../features/editorial/EditorialDetail';
+// import MagazineDetailScreen from '../../features/magazines/MagazineDetailScreen';
+// import SignIn from '../../features/auth/screens/SignIn';
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -35,6 +39,7 @@ const AppDrawer = () => {
       <Drawer.Screen name="Subscription" component={Subscription} />
       <Drawer.Screen name="Register" component={Register} />
        <Drawer.Screen name="SignIn" component={SignIn} />
+       <Drawer.Screen name="Magazines" component={MagazinesScreen} />
     </Drawer.Navigator>
   );
 };

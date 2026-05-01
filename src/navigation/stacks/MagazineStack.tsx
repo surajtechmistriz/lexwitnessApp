@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import MagazinesScreen from '../../features/magazines/MagazinesScreen';
-import MagazineDetailScreen from '../../features/magazines/MagazineDetailScreen';
+import MagazinesScreen from '../../screens/magazines/MagazinesScreen';
+import MagazineDetailScreen from '../../screens/magazines/MagazineDetailScreen';
 
 const Stack = createNativeStackNavigator();
 

@@ -51,7 +51,7 @@ const AppNavigator = () => {
     }
   }, [isAppReady]);
 
-  // ❌ Block UI until ready (prevent flicker)
+  // Block UI until ready (prevent flicker)
   if (!isAppReady) return null;
 
   return (

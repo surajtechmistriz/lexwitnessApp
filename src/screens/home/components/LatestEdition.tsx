@@ -277,7 +277,7 @@ articleCard: {
 
 articleImage: {
   width: 110,
-  aspectRatio: 16 / 9,   // ✅ MAIN FIX
+  aspectRatio: 16 / 9,   //  MAIN FIX
   borderRadius: 10,
   margin: 10,
   backgroundColor: '#eee',

@@ -9,7 +9,8 @@ import {
   Alert,
   SafeAreaView,
 } from "react-native";
-import MainLayout from "../../../components/layout/MainLayout";
+import MainLayout from "../../../MainLayout";
+// import MainLayout from "../../../components/layout/MainLayout";
 
 const plansData = [
   { id: "1", name: "FREE", price: 0 },

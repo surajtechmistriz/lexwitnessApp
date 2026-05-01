@@ -16,10 +16,11 @@ import YearFilter from '../../components/common/YearFilter';
 import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+import { RootStackParamList } from '../../navigation//AppNavigator';
 import Pagination from '../../components/common/Pagination';
-import MainLayout from '../../components/layout/MainLayout';
+// import MainLayout from '../../components/layout/MainLayout';
 import Footer from '../../components/common/Footer';
+import MainLayout from '../../MainLayout';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;

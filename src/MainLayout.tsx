@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import Banner from '../common/DynamicBanner';
-import TopMenu from '../common/Menubar';
-import AuthPopup from '../../modal/AuthPopup';
+// import Banner from '../common/DynamicBanner';
+// import TopMenu from '../common/Menubar';
+// import AuthPopup from '../../modal/AuthPopup';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/store';
+import { RootState } from './redux/store';
+import Banner from './components/common/DynamicBanner';
+import AuthPopup from './modal/AuthPopup';
+import TopMenu from './components/common/Menubar';
+// import { RootState } from '../../redux/store';
 
 type Props = {
   children: React.ReactNode;
@@ -40,7 +44,7 @@ const MainLayout = ({
     'Archive',
   ];
 
-  // ✅ FIX: Added 'Subscription' here to prevent the popup from appearing
+  //  FIX: Added 'Subscription' here to prevent the popup from appearing
   // while the user is trying to pay/choose a plan.
   const disablePopupScreens = ['Register', 'SignIn', 'Subscription'];
 
