@@ -102,12 +102,12 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   };
 
   const goToMagazine = () => {
-      navigation.navigate('Magazines', {
-                screen: 'MagazineDetail',
-                params: {
-                  slug: data.magazine?.slug ?? String(data.magazine.id),
-                },
-              })
+    navigation.navigate('Magazines', {
+      screen: 'MagazineDetail',
+      params: {
+        slug: data.magazine?.slug ?? String(data.magazine.id),
+      },
+    });
   };
 
   return (
@@ -121,7 +121,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
         <Image
           source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
           style={styles.magImage}
-          resizeMode='contain'
+          resizeMode="contain"
         />
 
         <View style={styles.magContent}>
@@ -136,7 +136,10 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
 
       {/* Subscribe – always visible but safe */}
       <TouchableOpacity
-        style={[styles.subscribeBtn, !data.magazine?.link && styles.disabledBtn]}
+        style={[
+          styles.subscribeBtn,
+          !data.magazine?.link && styles.disabledBtn,
+        ]}
         onPress={() => {
           if (data.magazine?.link) {
             Linking.openURL(data.magazine.link);
@@ -149,7 +152,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
 
       {/* Articles – as cards */}
       <View style={styles.articleList}>
-        {data.posts.slice(0, 3).map((item) => (
+        {data.posts.slice(0, 3).map(item => (
           <TouchableOpacity
             key={item.id}
             style={styles.articleCard}
@@ -187,13 +190,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginTop: 16,
     marginBottom: 12,
+    marginHorizontal: -12,
   },
 
   heading: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
+    marginBottom: 12,
     color: '#111',
-    marginBottom: 8,
   },
   redLine: {
     width: 36,
@@ -214,12 +218,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
 
-magImage: {
-  width: '100%',
-  aspectRatio: 4 / 3,
-  // aspectRatio: 16 / 9,
-  backgroundColor: '#f5f5f5',
-},
+  magImage: {
+    width: '100%',
+    aspectRatio: 4 / 3,
+    // aspectRatio: 16 / 9,
+    backgroundColor: '#f5f5f5',
+  },
   magContent: {
     padding: 12,
   },
@@ -261,34 +265,34 @@ magImage: {
     gap: 12,
   },
 
-articleCard: {
-  backgroundColor: '#fff',
-  borderRadius: 12,
-  flexDirection: 'row',
-  overflow: 'hidden',
-  marginBottom: 10,
+  articleCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    marginBottom: 10,
 
-  shadowColor: '#000',
-  shadowOpacity: 0.05,
-  shadowRadius: 6,
-  elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
     alignItems: 'center',
-},
+  },
 
-articleImage: {
-  width: 110,
-  aspectRatio: 16 / 9,   //  MAIN FIX
-  borderRadius: 10,
-  margin: 10,
-  backgroundColor: '#eee',
-},
+  articleImage: {
+    width: 110,
+    aspectRatio: 16 / 9, //  MAIN FIX
+    borderRadius: 10,
+    margin: 10,
+    backgroundColor: '#eee',
+  },
 
-articleContent: {
-  flex: 1,
-  paddingVertical: 10,
-  paddingRight: 10,
-  justifyContent: 'center',
-},
+  articleContent: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingRight: 10,
+    justifyContent: 'center',
+  },
   articleTitle: {
     fontSize: 13,
     fontWeight: '600',

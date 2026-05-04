@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
   wrapper: {
     marginVertical: 20,
     paddingHorizontal: 12,
+    marginHorizontal:-12
   },
 
   card: {

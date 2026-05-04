@@ -14,7 +14,10 @@ import Config from 'react-native-config';
 import LatestEditions from '../home/components/Latest5Edition';
 import Header from '../../components/common/Header';
 import Menubar from '../../components/common/Menubar';
-import { navigationRef, RootStackParamList } from '../../navigation/AppNavigator';
+import {
+  navigationRef,
+  RootStackParamList,
+} from '../../navigation/AppNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Footer from '../../components/common/Footer';
 
@@ -72,7 +75,6 @@ export default function MagazineDetailScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView showsVerticalScrollIndicator={false}>
-
         {/* MAGAZINE HERO */}
         <View style={styles.heroSection}>
           <View style={styles.heroCard}>
@@ -85,13 +87,9 @@ export default function MagazineDetailScreen() {
 
           {/* DETAILS */}
           <View style={styles.content}>
-            <Text style={styles.kicker}>
-              {magazine.magazine_name}
-            </Text>
+            <Text style={styles.kicker}>{magazine.magazine_name}</Text>
 
-            <Text style={styles.title}>
-              {magazine.title}
-            </Text>
+            <Text style={styles.title}>{magazine.title}</Text>
 
             <View style={styles.divider} />
 
@@ -120,14 +118,13 @@ export default function MagazineDetailScreen() {
                 key={post.id}
                 style={styles.card}
                 activeOpacity={0.85}
-               onPress={() =>
-  navigation.navigate('Home', {
-    screen: 'ArticleDetail',
-    params: {
-      slug: post.slug,
-    },
-  })
-
+                onPress={() =>
+                  navigation.navigate('Home', {
+                    screen: 'ArticleDetail',
+                    params: {
+                      slug: post.slug,
+                    },
+                  })
                 }
               >
                 <Image
@@ -151,7 +148,8 @@ export default function MagazineDetailScreen() {
 
         {/* MORE EDITIONS */}
         <View style={styles.moreSection}>
-          {magazine?.id && <LatestEditions
+          {magazine?.id && (
+           <LatestEditions
   skipId={magazine.id}
   onPressItem={(item) =>
     navigation.push('MagazineDetail', {
@@ -159,13 +157,13 @@ export default function MagazineDetailScreen() {
     })
   }
   onPressViewAll={() =>
-   navigation.navigate('Home', {
-  screen: 'Magazines',
-})
+    // This tells navigation: Go to the 'Magazines' screen 
+    // If 'Magazines' is inside a stack, use the logic below:
+    navigation.navigate('Magazines') 
   }
-/>}
+/>
+          )}
         </View>
-
       </ScrollView>
     </View>
   );
@@ -194,12 +192,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
- heroImage: {
-  width: '100%',
-  height: undefined,
-  aspectRatio: 3 / 4,   //  key fix (adjusts naturally like magazine cover)
-  backgroundColor: '#f9f9f9',
-},
+  heroImage: {
+    width: '100%',
+    height: undefined,
+    aspectRatio: 3 / 4, //  key fix (adjusts naturally like magazine cover)
+    backgroundColor: '#f9f9f9',
+  },
 
   /* CONTENT */
   content: {
@@ -284,22 +282,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-card: {
-  width: '48%',
-  backgroundColor: '#fff',
-  borderRadius: 12,
-  overflow: 'hidden',
-  marginBottom: 14,
+  card: {
+    width: '48%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 14,
 
-  borderWidth: 1,
-  borderColor: '#e5e5e5', //  light gray border
+    borderWidth: 1,
+    borderColor: '#e5e5e5', //  light gray border
 
-  elevation: 2, // Android subtle shadow (keep optional)
-  shadowColor: '#000', // iOS shadow
-  shadowOpacity: 0.05,
-  shadowRadius: 6,
-  shadowOffset: { width: 0, height: 2 },
-},
+    elevation: 2, // Android subtle shadow (keep optional)
+    shadowColor: '#000', // iOS shadow
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+  },
 
   cardImage: {
     width: '100%',

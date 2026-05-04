@@ -50,7 +50,7 @@ const Home = () => {
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
 
   // const [isSearchVisible, setIsSearchVisible] = useState(false);
-const navigation = useNavigation<any>();
+  const navigation = useNavigation<any>();
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
@@ -58,40 +58,43 @@ const navigation = useNavigation<any>();
     return unsubscribe;
   }, []);
 
-  const fetchHomeData = useCallback(async (force = false) => {
-    try {
-      const cached = await getCache('HOME_DATA');
+  const fetchHomeData = useCallback(
+    async (force = false) => {
+      try {
+        const cached = await getCache('HOME_DATA');
 
-      if (cached?.data && !force) {
-        setArticles(cached.data.articles || []);
-        setEditorPicks(cached.data.editorPicks || []);
+        if (cached?.data && !force) {
+          setArticles(cached.data.articles || []);
+          setEditorPicks(cached.data.editorPicks || []);
+          setHeroLoading(false);
+          setRestLoading(false);
+
+          if (!isCacheExpired(cached.timestamp)) return;
+        }
+
+        if (!isConnected) return;
+
+        const heroRes = await getHeroPost();
+        setArticles(heroRes || []);
         setHeroLoading(false);
+
+        const editorRes = await getEditorPick();
+        setEditorPicks(editorRes || []);
         setRestLoading(false);
 
-        if (!isCacheExpired(cached.timestamp)) return;
+        await setCache('HOME_DATA', {
+          articles: heroRes || [],
+          editorPicks: editorRes || [],
+        });
+      } catch (e) {
+        console.log('Home error:', e);
+      } finally {
+        setHeroLoading(false);
+        setRestLoading(false);
       }
-
-      if (!isConnected) return;
-
-      const heroRes = await getHeroPost();
-      setArticles(heroRes || []);
-      setHeroLoading(false);
-
-      const editorRes = await getEditorPick();
-      setEditorPicks(editorRes || []);
-      setRestLoading(false);
-
-      await setCache('HOME_DATA', {
-        articles: heroRes || [],
-        editorPicks: editorRes || [],
-      });
-    } catch (e) {
-      console.log('Home error:', e);
-    } finally {
-      setHeroLoading(false);
-      setRestLoading(false);
-    }
-  }, [isConnected]);
+    },
+    [isConnected],
+  );
 
   useEffect(() => {
     fetchHomeData();
@@ -181,18 +184,22 @@ const navigation = useNavigation<any>();
 
         <LatestEdition onData={setLatestEditionData} />
         <EditorialCard />
-<LatestEditions
-  skipId={latestEditionData?.magazine?.id}
-  onPressItem={(item) =>
-    navigation.navigate('Magazines', {
-      screen: 'MagazineDetail',
-      params: { slug: item.slug },
-    })
-  }
-  onPressViewAll={() =>
-    navigation.navigate('Magazines')
-  }
-/>
+        <LatestEditions
+          skipId={latestEditionData?.magazine?.id}
+          onPressItem={item =>
+            navigation.navigate('Magazines', {
+              // This refers to the Stack name
+              screen: 'MagazineDetail', // This refers to the Screen inside the stack
+              params: { slug: item.slug },
+            })
+          }
+          onPressViewAll={() =>
+            navigation.navigate('Magazines', {
+              // Navigates to the Stack
+              screen: 'Magazines', // Navigates specifically to the list screen
+            })
+          }
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -206,10 +213,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 12,
     // paddingTop: 10,
-    paddingBottom: 40,
+    // paddingBottom: 40,
   },
   carouselWrapper: {
-    marginBottom: 20,
+    // marginBottom: 20,
     alignItems: 'center',
   },
   fullWidth: {
@@ -229,6 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
+    marginTop:20,
     color: '#333',
   },
   loadingBlock: {

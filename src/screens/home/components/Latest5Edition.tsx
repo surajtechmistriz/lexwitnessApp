@@ -10,26 +10,24 @@ import {
 } from 'react-native';
 import { getLatestMagazines } from '../api/home.api';
 import Config from 'react-native-config';
-import { useSharedValue } from 'react-native-reanimated';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  interpolate, 
+  Extrapolate 
+} from 'react-native-reanimated';
 import Carousel from 'react-native-reanimated-carousel';
-import { COLORS } from '../../../theme/colors';
-
-type Props = {
-  skipId?: number;
-  onPressItem?: (item: any) => void;
-  onPressViewAll?: () => void;
-};
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.47;
+// Modern magazine ratio is usually 3:4 or 1:1.41
+const ITEM_WIDTH = width * 0.42; 
+const ITEM_HEIGHT = ITEM_WIDTH * 1.4; 
+const BRAND_RED = '#c9060a';
+const BRAND_DARK = '#333';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
-const LatestEditions = ({
-  skipId,
-  onPressItem,
-  onPressViewAll,
-}: Props) => {
+const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
   const [editions, setEditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const progressValue = useSharedValue<number>(0);
@@ -37,10 +35,7 @@ const LatestEditions = ({
   useEffect(() => {
     const fetchEditions = async () => {
       try {
-        const response = await getLatestMagazines({
-          skipId,
-          limit: 5,
-        });
+        const response = await getLatestMagazines({ skipId, limit: 6 });
         setEditions(response || []);
       } catch (error) {
         console.log('Latest Editions Error:', error);
@@ -48,169 +43,189 @@ const LatestEditions = ({
         setLoading(false);
       }
     };
-
     if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  if (loading) {
-    return (
-      <ActivityIndicator style={styles.loader} color={COLORS.primary} />
-    );
-  }
-
+  if (loading) return <ActivityIndicator style={styles.loader} color={BRAND_RED} />;
   if (!editions.length) return null;
 
   return (
     <View style={styles.wrapper}>
-      {/* HEADER */}
-      <Text style={styles.heading}>Latest Editions</Text>
-      <View style={styles.redLine} />
-
-      {/* CAROUSEL */}
-      <Carousel
-        loop={false}
-        width={ITEM_WIDTH}
-        height={260}
-        style={{ width }}
-        data={editions}
-        panGestureHandlerProps={{
-          activeOffsetX: [-10, 10],
-        }}
-        onProgressChange={(_, absoluteProgress) => {
-          progressValue.value = absoluteProgress;
-        }}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            activeOpacity={0.9}
-            onPress={() => onPressItem?.(item)}
-          >
-            <Image
-              source={{
-                uri: item.image
-                  ? `${imgUrl}/${item.image}`
-                  : 'https://via.placeholder.com/300x400',
-              }}
-              style={styles.image}
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        )}
-      />
-
-      {/* DOTS */}
-      <View style={styles.dotsContainer}>
-        {editions.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.dot,
-              // simple active indicator (optional improvement later)
-            ]}
-          />
-        ))}
+      {/* HEADER SECTION */}
+      <View style={styles.headerRow}>
+        <View>
+          <Text style={styles.heading}>Latest Editions</Text>
+          <View style={styles.accentBar} />
+        </View>
+        <TouchableOpacity onPress={onPressViewAll}>
+          <Text style={styles.viewAllText}>View All</Text>
+        </TouchableOpacity>
       </View>
 
-      {/* CTA */}
-      <TouchableOpacity
-        style={styles.cta}
-        onPress={() => onPressViewAll?.()}
-      >
-        <Text style={styles.ctaText}>View All Editions</Text>
-      </TouchableOpacity>
+      {/* CAROUSEL */}
+     <Carousel
+  loop={false}
+  autoPlay={false}
+  style={styles.carouselStyle}
+  width={ITEM_WIDTH + 16}
+  height={ITEM_HEIGHT + 40}
+  data={editions}
+  pagingEnabled
+  onConfigurePanGesture={(gesture) => {
+    gesture.activeOffsetX([-10, 10]);
+  }}
+  onProgressChange={(_, absoluteProgress) => {
+    progressValue.value = absoluteProgress;
+  }}
+  renderItem={({ item, index }) => (
+    <EditionCard 
+      item={item}
+      index={index}
+      progressValue={progressValue}
+      onPress={() => onPressItem?.(item)}
+    />
+  )}
+/>
+
+      {/* DYNAMIC PAGINATION */}
+      <View style={styles.paginationContainer}>
+        {editions.map((_, index) => {
+          return (
+            <PaginationDot 
+                key={index} 
+                index={index} 
+                progressValue={progressValue} 
+            />
+          );
+        })}
+      </View>
     </View>
   );
 };
 
+// Internal component for the animated card
+const EditionCard = ({ item, index, progressValue, onPress }: any) => {
+  const animatedStyle = useAnimatedStyle(() => {
+    const scale = interpolate(
+      progressValue.value,
+      [index - 1, index, index + 1],
+      [0.95, 1, 0.95],
+      Extrapolate.CLAMP
+    );
+    return { transform: [{ scale }] };
+  });
+
+  return (
+    <Animated.View style={[styles.cardWrapper, animatedStyle]}>
+      <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.card}>
+        <Image
+          source={{ uri: item.image ? `${imgUrl}/${item.image}` : 'https://via.placeholder.com/300x400' }}
+          style={styles.image}
+        />
+        <View style={styles.imageOverlay} />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
+// Internal component for the dynamic dots
+const PaginationDot = ({ index, progressValue }: any) => {
+    const dotStyle = useAnimatedStyle(() => {
+        const width = interpolate(
+            progressValue.value,
+            [index - 1, index, index + 1],
+            [8, 20, 8],
+            Extrapolate.CLAMP
+        );
+        const opacity = interpolate(
+            progressValue.value,
+            [index - 1, index, index + 1],
+            [0.3, 1, 0.3],
+            Extrapolate.CLAMP
+        );
+        return { width, opacity };
+    });
+
+    return <Animated.View style={[styles.dot, dotStyle]} />;
+};
+
 const styles = StyleSheet.create({
   wrapper: {
-    marginTop: 20,
-    paddingBottom: 10,
-  },
-
-  heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#111',
-
-    alignSelf: 'center',
-    paddingHorizontal: 12,
-  },
-  redLine: {
-    width: 60,
-    height: 4,
-    backgroundColor: COLORS.primary,
-    marginTop: 5,
-    marginLeft: 1,
-    alignSelf: 'center',
-    marginBottom: 18,
-  },
-
-  card: {
-    width: ITEM_WIDTH - 12,
-    marginLeft: 12,
-    borderRadius:8,
-
-    // borderRadius: 8,
-    overflow: 'hidden',
+    paddingVertical: 20,
     backgroundColor: '#fff',
-
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 4,
+    marginHorizontal:-12
   },
-
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  heading: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#111',
+  },
+  accentBar: {
+    width: 30,
+    height: 3,
+    backgroundColor: BRAND_RED,
+    marginTop: 4,
+  },
+  viewAllText: {
+    color: BRAND_RED,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  carouselStyle: {
+    width: width,
+    paddingLeft: 20, // Modern offset look
+  },
+  cardWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    width: ITEM_WIDTH,
+    height: ITEM_HEIGHT,
+    borderRadius: 12,
+    backgroundColor: '#eee',
+    // High-end shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
   image: {
     width: '100%',
-    height: 208,
+    height: '100%',
+    borderRadius: 12,
   },
-
-  title: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#111',
-    padding: 10,
-    lineHeight: 18,
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)', // Subtle border to define edges
   },
-
-  pagination: {
-    marginTop: 10,
-    marginBottom: 16,
+  paginationContainer: {
+    flexDirection: 'row',
+    height: 10,
     justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
   },
-
   dot: {
-    width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#ddd',
-    marginHorizontal: 3,
-    marginTop: -15,
-    marginBottom: 15,
+    backgroundColor: BRAND_RED,
+    marginHorizontal: 4,
   },
-
-  activeDot: {
-    width: 16,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.primary,
-    marginHorizontal: 3,
-  },
-
-  cta: {
-    alignSelf: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-
-  ctaText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
+  loader: {
+    marginVertical: 40,
   },
 });
 
