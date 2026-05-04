@@ -1,51 +1,40 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Dimensions,
-  Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.75;
-const SPACING = 12;
 
 const STATIC_PLANS = [
   {
     id: 1,
     name: 'Free',
     price: '0',
-    tag: 'Beginner',
-    features: ['Basic Access', 'Web Only', 'Ads Included'],
-    color: '#94a3b8',
+    tag: 'STARTER',
+    features: ['No Edition Print', '1 Month Access', 'Trial Access'],
+    color: '#6366f1',
   },
   {
     id: 2,
     name: 'Silver',
-    price: '1,000',
-    tag: 'Popular',
-    features: ['Digital Edition', 'Full Archive', 'Mobile App'],
-    color: '#475569',
+    price: '1000',
+    tag: 'MOST POPULAR',
+    features: ['12 Print Editions', '1 Year Access', 'Digital Library'],
+    color: '#ec4899',
+    highlight: true,
   },
   {
     id: 3,
     name: 'Gold',
-    price: '1,800',
-    tag: 'Best Value',
-    features: ['Print + Digital', 'Priority Support', 'No Ads'],
-    color: '#b45309',
+    price: '1800',
+    tag: 'BEST VALUE',
+    features: ['24 Print Editions', '2 Year Access', 'Full Archive'],
+    color: '#f59e0b',
   },
   {
     id: 4,
     name: 'Platinum',
-    price: '2,500',
-    tag: 'Elite',
-    features: ['Corporate Access', 'Event Invites', 'Legal Directory'],
-    color: '#4338ca',
+    price: '2500',
+    tag: 'ELITE',
+    features: ['36 Print Editions', '3 Year Access', 'Premium Support'],
+    color: '#06b6d4',
   },
 ];
 
@@ -53,23 +42,22 @@ const PricingCard = () => {
   const [selectedPlanId, setSelectedPlanId] = useState(2);
   const navigation = useNavigation<any>();
 
-  const handleSubscribe = () => {
-    navigation.navigate('Register', { selectedPlanId: String(selectedPlanId) });
-  };
+  const selectedPlan = STATIC_PLANS.find(p => p.id === selectedPlanId);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Choose your Plan</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Membership Plans</Text>
+        <View style={styles.divider}/>
+        <Text style={styles.subtitle}>
+          Choose the perfect plan for your needs
+        </Text>
+      </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={CARD_WIDTH + SPACING}
-        decelerationRate="fast"
-        contentContainerStyle={styles.cardList}
-      >
+      <View style={styles.plansGrid}>
         {STATIC_PLANS.map(plan => {
           const isSelected = selectedPlanId === plan.id;
+
           return (
             <TouchableOpacity
               key={plan.id}
@@ -77,128 +65,355 @@ const PricingCard = () => {
               onPress={() => setSelectedPlanId(plan.id)}
               style={[
                 styles.card,
-                {
-                  width: CARD_WIDTH,
-                  borderColor: isSelected ? '#c9060a' : '#e2e8f0',
-                },
-                isSelected && styles.activeCard,
+                isSelected && styles.cardActive,
+                { borderTopColor: '#c9060a' }
               ]}
             >
-              {isSelected && (
-                <View style={styles.selectedTick}>
-                  <Text style={styles.tickText}>✓</Text>
+              {/* POPULAR BADGE */}
+              {plan.highlight && (
+                <View style={styles.popularBadge}>
+                  <Text style={styles.popularText}>🔥 {plan.tag}</Text>
                 </View>
               )}
 
-              <Text style={[styles.planTag, { color: plan.color }]}>
-                {plan.tag}
-              </Text>
-              <Text style={styles.planName}>{plan.name}</Text>
+              {/* PLAN ICON / HEADER */}
+              {/* <View style={[styles.cardHeader, { backgroundColor: `${plan.color}10` }]}>
+                <View style={[styles.iconContainer, { backgroundColor: plan.color }]}>
+                  <Text style={styles.iconText}>
+                    {plan.name === 'Free' ? '🎁' : plan.name === 'Silver' ? '🥈' : plan.name === 'Gold' ? '🥇' : '💎'}
+                  </Text>
+                </View>
+              </View> */}
 
-              <View style={styles.priceRow}>
+              {/* PLAN NAME */}
+              <Text style={styles.planName}>{plan.name}</Text>
+              
+              {!plan.highlight && plan.tag !== 'ELITE' && (
+                <View style={styles.tagContainer}>
+                  <Text style={[styles.tagText, { color: plan.color }]}>{plan.tag}</Text>
+                </View>
+              )}
+
+              {/* PRICE */}
+              <View style={styles.priceContainer}>
                 <Text style={styles.currency}>₹</Text>
                 <Text style={styles.price}>{plan.price}</Text>
-                <Text style={styles.duration}>/yr</Text>
+                <Text style={styles.period}>/year</Text>
               </View>
 
-              <View style={styles.divider} />
-
-              <View style={styles.featureContainer}>
-                {plan.features.map((feat, idx) => (
-                  <View key={idx} style={styles.featureRow}>
-                    <Text style={styles.featureDot}>✦</Text>
-                    <Text style={styles.featureText}>{feat}</Text>
+              {/* FEATURES */}
+              <View style={styles.featuresContainer}>
+                {plan.features.map((f, i) => (
+                  <View key={i} style={styles.featureRow}>
+                    <Text style={[styles.checkMark, { color: plan.color }]}>✓</Text>
+                    <Text style={styles.featureText}>{f}</Text>
                   </View>
                 ))}
+              </View>
+
+              {/* SELECT INDICATOR */}
+              <View style={[
+                styles.selectIndicator,
+                isSelected && styles.selectIndicatorActive,
+                { backgroundColor: isSelected ? plan.color : '#f0f0f0' }
+              ]}>
+                <Text style={[
+                  styles.selectText,
+                  isSelected && styles.selectTextActive
+                ]}>
+                  {isSelected ? 'Selected' : 'Select Plan'}
+                </Text>
               </View>
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
 
-      <TouchableOpacity style={styles.mainCta} onPress={handleSubscribe}>
-        <Text style={styles.mainCtaText}>
-          Continue with {STATIC_PLANS.find(p => p.id === selectedPlanId)?.name}
+      {/* CTA BUTTON */}
+      <View style={styles.ctaContainer}>
+        <TouchableOpacity
+          style={[styles.ctaButton, { backgroundColor: '#c9060a' }]}
+          onPress={() =>
+            navigation.navigate('Register', {
+              selectedPlanId: String(selectedPlanId),
+            })
+          }
+        >
+          {/* <Text style={styles.ctaText}>
+            Continue with {selectedPlan?.name} Plan
+          </Text> */}
+          <Text style={styles.ctaText}>
+            SUBSCRIBE NOW
+          </Text>
+          <Text style={styles.ctaArrow}>→</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.footerText}>
+          Cancel anytime • Free trial available
         </Text>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </ScrollView>
   );
 };
 
+export default PricingCard;
+
 const styles = StyleSheet.create({
-  container: { marginTop: 20, paddingBottom: 0 },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1a1a1a',
-    marginBottom: 20,
-    textAlign: 'center',
+  container: {
+    flex: 1,
+    backgroundColor: '#fafaf9',
+    marginTop:30,
+    marginHorizontal:-12
   },
-  cardList: { paddingLeft: 0, paddingRight: 20 },
+
+  header: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    backgroundColor: '#fafaf9',
+    // borderBo/ttomLeftRadius: 24,
+    // borderBottomRightRadius: 24,
+    borderRadius: 24,
+    marginBottom: 16,
+
+  },
+
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    textAlign: 'center',
+    color: '#333',
+    letterSpacing: -0.5,
+  },
+divider: {
+  width: 60,
+  height: 4,
+  backgroundColor: '#c9060a',
+  borderRadius: 2,
+  marginTop: 4,
+  alignSelf: 'center',
+},
+
+  subtitle: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#64748b',
+    marginTop: 8,
+    lineHeight: 20,
+  },
+
+  plansGrid: {
+    paddingHorizontal: 16,
+    gap: 16,
+    paddingBottom: 20,
+  },
+
   card: {
     backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 24,
-    marginRight: SPACING,
-    borderWidth: 2,
-    position: 'relative',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderTopWidth: 4,
+    overflow: 'hidden',
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowRadius: 8,
     elevation: 2,
+    marginHorizontal:12
   },
-  activeCard: {
-    elevation: 8,
-    shadowOpacity: 0.15,
-    backgroundColor: '#fff',
+
+  cardActive: {
+    borderColor: '#cbd5e1',
+    borderTopWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 6,
+    transform: [{ scale: 1.02 }],
   },
-  selectedTick: {
+
+  popularBadge: {
     position: 'absolute',
-    right: 16,
-    top: 4,
-    backgroundColor: '#c9060a',
-    width: 24,
-    height: 24,
+    top: 0,
+    right: 4,
+    backgroundColor: '#fef3c7',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
+    zIndex: 9999,
+  },
+
+  popularText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#d97706',
+  },
+
+  cardHeader: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  tickText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
-  planTag: {
-    fontSize: 11,
+
+  iconText: {
+    fontSize: 28,
+  },
+
+  planName: {
+    fontSize: 22,
     fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    color: '#0f172a',
+    textAlign: 'center',
+    marginTop: 16,
+    letterSpacing: -0.3,
+  },
+
+  tagContainer: {
+    alignItems: 'center',
+    marginTop: 4,
+  },
+
+  tagText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginTop: 12,
     marginBottom: 8,
   },
-  planName: { fontSize: 26, fontWeight: '800', color: '#111' },
-  priceRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 15 },
-  currency: { fontSize: 18, fontWeight: '700', color: '#111' },
-  price: { fontSize: 32, fontWeight: '900', color: '#111' },
-  duration: { fontSize: 14, color: '#666', marginLeft: 4 },
-  divider: { height: 1, backgroundColor: '#f1f5f9', marginVertical: 20 },
-  featureContainer: { gap: 12 },
-  featureRow: { flexDirection: 'row', alignItems: 'center' },
-  featureDot: { color: '#c9060a', marginRight: 10, fontSize: 14 },
-  featureText: { fontSize: 14, color: '#475569', fontWeight: '500' },
-  mainCta: {
-    backgroundColor: '#c9060a',
-    marginHorizontal: 0,
-    marginTop: 30,
+
+  currency: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#475569',
+  },
+
+  price: {
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginLeft: 4,
+    letterSpacing: -1,
+  },
+
+  period: {
+    fontSize: 14,
+    color: '#94a3b8',
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+
+  featuresContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+
+  checkMark: {
+    fontSize: 16,
+    fontWeight: '700',
+    width: 20,
+  },
+
+  featureText: {
+    fontSize: 13,
+    color: '#334155',
+    fontWeight: '500',
+  },
+
+  selectIndicator: {
+    margin: 16,
+    marginTop: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+
+  selectIndicatorActive: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
+  selectText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+
+  selectTextActive: {
+    color: '#fff',
+  },
+
+  ctaContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 32,
+  },
+
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 18,
     borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#c9060a',
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  mainCtaText: {
+
+  ctaText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
+  },
+
+  ctaArrow: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '600',
+  },
+
+  footerText: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#94a3b8',
+    marginTop: 16,
   },
 });
-
-export default PricingCard;

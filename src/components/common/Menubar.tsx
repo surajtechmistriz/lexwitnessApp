@@ -80,6 +80,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
+        
         {menuItems.map(item => {
           const isActive = currentSlug === item.slug;
 

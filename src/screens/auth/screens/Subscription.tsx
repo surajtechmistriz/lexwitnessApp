@@ -9,11 +9,17 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Dimensions,
-  Platform,
+  StatusBar,
 } from 'react-native';
 import Config from 'react-native-config';
+import LinearGradient from 'react-native-linear-gradient';
 
-// --- Types ---
+import Icon from 'react-native-vector-icons/Ionicons';
+
+import PricingCard from '../../../components/common/PricingCard';
+import { latesteEdition } from '../../../services/api/latestedition';
+import MainLayout from '../../../MainLayout';
+
 type Magazine = {
   id: number;
   title: string;
@@ -21,16 +27,7 @@ type Magazine = {
   description?: string;
 };
 
-// --- Components ---
-import PricingCard from '../../../components/common/PricingCard';
-import TopMenu from '../../../components/common/Menubar';
-import Header from '../../../components/common/Header';
-import { latesteEdition } from '../../../services/api/latestedition';
-import Footer from '../../../components/common/Footer';
-import LatestEditions from '../../home/components/Latest5Edition';
-import MainLayout from '../../../MainLayout';
-
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 export default function SubscriptionPage() {
   const [magazine, setMagazine] = useState<Magazine | null>(null);
@@ -64,39 +61,36 @@ export default function SubscriptionPage() {
     : 'https://via.placeholder.com/300x400';
 
   return (
-    <MainLayout
-      title="Subscription"
-      showFilter={false}
-      routeName="Subscription"
-    >
+    <MainLayout title="Subscription" showFilter={false} routeName="Subscription">
+      <StatusBar barStyle="light-content" />
+
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero Section with Gradient Background */}
-          <View style={styles.heroGradient}>
+          {/* --- HERO SECTION --- */}
+          <LinearGradient
+            colors={['#1a1a1a', '#c9060a', '#9e0508']}
+            style={styles.heroGradient}
+          >
             <View style={styles.heroContent}>
-              <Text style={styles.heroTitle}>Making Sense of India</Text>
-              <Text style={styles.heroSub}>
-                From breaking news to in-depth analysis, we bring clarity.
-              </Text>
-              {/*               
-              <View style={styles.issueCard}>
-                <Text style={styles.issueHeader}>
-                  How Delhi should deal with the reset in Dhaka
-                </Text>
-                <Text style={styles.issueBody}>
-                  The new Tarique Rahman regime in Dhaka gives India a fresh chance 
-                  to resolve longstanding disputes with its neighbour.
-                </Text>
-              </View> */}
+              <Text style={styles.premiumBadge}>PREMIUM ACCESS</Text>
 
+              <Text style={styles.heroTitle}>
+                Making Sense{"\n"}of India
+              </Text>
+
+              <Text style={styles.heroSub}>
+                Unbiased journalism, deep-dive analysis, and the stories that define our nation.
+              </Text>
+
+              {/* IMAGE */}
               <View style={styles.imageWrapper}>
                 <View style={styles.imageContainer}>
                   {loading ? (
-                    <ActivityIndicator color="#c9060a" size="large" />
+                    <ActivityIndicator color="#fff" size="large" />
                   ) : (
                     <Image
                       source={{ uri: imageUrl }}
@@ -107,20 +101,21 @@ export default function SubscriptionPage() {
                 </View>
               </View>
 
+              {/* BUTTONS */}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={styles.primaryBtn}
+                  activeOpacity={0.9}
                   onPress={scrollToPricing}
                 >
-                  <View style={styles.gradientBtn}>
-                    <Text style={styles.primaryBtnText}>
-                      Your First Year is on Us
-                    </Text>
-                  </View>
+                  <Text style={styles.primaryBtnText}>
+                    Your First Year is on Us
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.secondaryBtn}
+                  activeOpacity={0.7}
                   onPress={scrollToPricing}
                 >
                   <Text style={styles.secondaryBtnText}>
@@ -129,47 +124,52 @@ export default function SubscriptionPage() {
                 </TouchableOpacity>
               </View>
             </View>
+          </LinearGradient>
+
+          {/* --- TRUST BAR --- */}
+          <View style={styles.trustBar}>
+            <Text style={styles.trustText}>
+              Join 100,000+ Premium Readers
+            </Text>
           </View>
 
-          <LatestEditions skipId={magazine?.id} />
-
-          {/* Benefits Section - Modern Cards */}
+          {/* --- BENEFITS --- */}
           <View style={styles.benefitsSection}>
-            <Text style={styles.sectionTitle}>Why Subscribe?</Text>
-            <Text style={styles.sectionSubtitle}>
-              Get the most out of your reading experience
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                Subscription Benefits
+              </Text>
+              <View style={styles.titleUnderline} />
+            </View>
 
             <View style={styles.benefitsGrid}>
               <BenefitItem
-                icon="📱"
+                icon="book-outline"
                 title="Unlimited Access"
-                text="Access full website and app content"
+                text="Read all articles across web and app without limits"
               />
+
               <BenefitItem
-                icon="📰"
+                icon="newspaper-outline"
                 title="Weekly Magazine"
-                text="Get physical print delivered to your doorstep"
+                text="Get the latest print edition delivered to your doorstep"
               />
+
               <BenefitItem
-                icon="🔍"
+                icon="analytics-outline"
                 title="Premium Analysis"
-                text="Deep insights & complete archives access"
+                text="Expert opinions and deep-dive editorial insights"
               />
             </View>
           </View>
 
-          {/* Pricing Section */}
+          {/* --- PRICING --- */}
           <View
-            onLayout={event => {
-              pricingYPos.current = event.nativeEvent.layout.y;
+            onLayout={e => {
+              pricingYPos.current = e.nativeEvent.layout.y;
             }}
             style={styles.pricingSection}
           >
-            {/* <Text style={styles.sectionTitle}>Choose Your Plan</Text>
-            <Text style={styles.sectionSubtitle}>
-              Flexible plans to suit your reading needs
-            </Text> */}
             <PricingCard />
           </View>
         </ScrollView>
@@ -178,6 +178,7 @@ export default function SubscriptionPage() {
   );
 }
 
+/* -------------------- BENEFIT ITEM -------------------- */
 const BenefitItem = ({
   icon,
   title,
@@ -188,9 +189,8 @@ const BenefitItem = ({
   text: string;
 }) => (
   <View style={styles.benefitCard}>
-    <View style={styles.benefitIconContainer}>
-      <Text style={styles.benefitIcon}>{icon}</Text>
-    </View>
+    <Icon name={icon} size={28} color="#c9060a" style={styles.benefitIcon} />
+
     <View style={styles.benefitContent}>
       <Text style={styles.benefitTitle}>{title}</Text>
       <Text style={styles.benefitText}>{text}</Text>
@@ -198,204 +198,166 @@ const BenefitItem = ({
   </View>
 );
 
+/* -------------------- STYLES -------------------- */
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
+  safeArea: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: { paddingBottom: 60 },
 
-  // Hero Section
+  /* HERO */
   heroGradient: {
-    backgroundColor: '#c9060a',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    paddingTop: Platform.OS === 'ios' ? 20 : 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    marginBottom:20
+    paddingTop: 40,
+    paddingBottom: 50,
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
   },
   heroContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  premiumBadge: {
+    color: '#FFD700',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 2,
+    marginBottom: 10,
+    backgroundColor: 'rgba(255,215,0,0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   heroTitle: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: '#ffffff',
+    fontSize: 38,
+    fontWeight: '900',
+    color: '#fff',
     textAlign: 'center',
-    marginBottom: 12,
-    letterSpacing: -0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    lineHeight: 44,
+    marginBottom: 15,
   },
   heroSub: {
     fontSize: 16,
-    color: '#ffebeb',
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
     marginBottom: 30,
-    opacity: 0.95,
-    fontWeight: '400',
+    lineHeight: 24,
   },
 
-  issueCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 25,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  issueHeader: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: 28,
-  },
-  issueBody: {
-    fontSize: 14,
-    color: '#4a4a4a',
-    textAlign: 'center',
-    lineHeight: 22,
-    fontWeight: '400',
-  },
-
+  /* IMAGE */
   imageWrapper: {
+    marginBottom: 35,
     alignItems: 'center',
-    marginBottom: 30,
   },
   imageContainer: {
-    width: width * 0.5,
-    height: width * 0.66,
-    borderRadius: 20,
+    width: width * 0.55,
+    height: width * 0.75,
+    borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#222',
   },
   heroImage: {
     width: '100%',
     height: '100%',
   },
 
+  /* BUTTONS */
   buttonContainer: {
     width: '100%',
-    gap: 12,
+    gap: 15,
   },
   primaryBtn: {
-    borderRadius: 15,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  gradientBtn: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 16,
+    backgroundColor: '#fff',
+    paddingVertical: 18,
+    borderRadius: 12,
     alignItems: 'center',
   },
   primaryBtnText: {
     color: '#c9060a',
-    fontWeight: '800',
+    fontWeight: 'bold',
     fontSize: 16,
-    letterSpacing: 0.5,
   },
   secondaryBtn: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingVertical: 14,
-    borderRadius: 15,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   secondaryBtnText: {
-    color: '#ffffff',
+    color: '#fff',
     fontWeight: '600',
     fontSize: 15,
   },
 
-  // Benefits Section
-  benefitsSection: {
+  /* TRUST */
+  trustBar: {
+    marginTop: -20,
+    alignSelf: 'center',
+    backgroundColor: '#f8f9fa',
     paddingHorizontal: 20,
-    paddingVertical: 40,
-    marginVertical: 20,
-    backgroundColor: '#ffffff',
+    paddingVertical: 10,
+    borderRadius: 30,
+    borderWidth: 1,
+    borderColor: '#eee',
   },
-  sectionTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
+  trustText: {
+    fontSize: 12,
     color: '#666',
-    textAlign: 'center',
+    fontWeight: '600',
+  },
+
+  /* BENEFITS */
+  benefitsSection: {
+    paddingHorizontal: 24,
+    marginTop: 40,
+  },
+  sectionHeader: {
+    alignItems: 'center',
     marginBottom: 30,
   },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1a1a1a',
+  },
+  titleUnderline: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#c9060a',
+    marginTop: 8,
+  },
   benefitsGrid: {
-    gap: 16,
+    gap: 20,
   },
   benefitCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
     flexDirection: 'row',
-    alignItems: 'center',
-  },
-  benefitIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#fee2e2',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 15,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    alignItems: 'flex-start',
   },
   benefitIcon: {
-    fontSize: 24,
+    marginRight: 16,
+    marginTop: 2,
   },
   benefitContent: {
     flex: 1,
   },
   benefitTitle: {
+    fontSize: 17,
     fontWeight: '700',
-    fontSize: 16,
     color: '#1a1a1a',
     marginBottom: 4,
   },
   benefitText: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#666',
-    lineHeight: 18,
+    lineHeight: 20,
   },
 
-  // Pricing Section
+  /* PRICING */
   pricingSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-    backgroundColor: '#f8f9fa',
+    marginTop: 20,
+    paddingHorizontal: 16,
   },
 });

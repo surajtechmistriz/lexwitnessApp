@@ -6,16 +6,18 @@ import { DrawerActions } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { navigationRef } from '../../navigation/AppNavigator';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type HeaderProps = {
   onSearchPress: () => void;
 };
 
 const Header = ({ onSearchPress }: HeaderProps) => {
+  const insets = useSafeAreaInsets();
+
   const { isLoggedIn, isHydrated } = useSelector(
     (state: RootState) => state.auth
   );
-
 
   const handleToggleDrawer = () => {
     if (navigationRef.isReady()) {
@@ -42,9 +44,16 @@ const Header = ({ onSearchPress }: HeaderProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      
-      {/* LEFT - ALWAYS MENU */}
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top,
+          height: 60 + insets.top,
+        },
+      ]}
+    >
+      {/* LEFT */}
       <View style={styles.left}>
         <TouchableOpacity onPress={handleToggleDrawer}>
           <Ionicons name="menu" size={28} color="#c9060a" />
@@ -68,7 +77,6 @@ const Header = ({ onSearchPress }: HeaderProps) => {
           <Entypo name="magnifying-glass" size={24} color="#c9060a" />
         </TouchableOpacity>
       </View>
-
     </View>
   );
 };
@@ -77,14 +85,12 @@ export default Header;
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderColor: '#eee',
     paddingHorizontal: 20,
-    position: 'relative',
   },
 
   left: {
@@ -92,7 +98,6 @@ const styles = StyleSheet.create({
     left: 20,
     flexDirection: 'row',
     alignItems: 'center',
-   
   },
 
   center: {
@@ -103,7 +108,7 @@ const styles = StyleSheet.create({
 
   right: {
     position: 'absolute',
-    right: 30,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
   },

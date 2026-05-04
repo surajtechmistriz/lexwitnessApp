@@ -36,7 +36,7 @@ const CustomDrawer = ({ navigation }) => {
           </>
         ) : (
           <>
-            <Text style={styles.userName}>Welcome Guest</Text>
+            <Text style={styles.userName}>Welcome Guest2</Text>
           </>
         )}
       </View>

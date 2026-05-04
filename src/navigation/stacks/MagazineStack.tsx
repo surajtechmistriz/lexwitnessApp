@@ -7,10 +7,8 @@ const Stack = createNativeStackNavigator();
 export const MagazineStack = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Magazines" component={MagazinesScreen} />
-
-            <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
-
+  <Stack.Screen name="Magazines" component={MagazinesScreen} />
+    <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
     </Stack.Navigator>
   );
 };

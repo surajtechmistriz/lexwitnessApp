@@ -121,7 +121,7 @@ export default function MagazineDetailScreen() {
                 style={styles.card}
                 activeOpacity={0.85}
                onPress={() =>
-  navigation.navigate('HomeTab', {
+  navigation.navigate('Home', {
     screen: 'ArticleDetail',
     params: {
       slug: post.slug,
@@ -151,7 +151,19 @@ export default function MagazineDetailScreen() {
 
         {/* MORE EDITIONS */}
         <View style={styles.moreSection}>
-          {magazine?.id && <LatestEditions skipId={magazine.id} />}
+          {magazine?.id && <LatestEditions
+  skipId={magazine.id}
+  onPressItem={(item) =>
+    navigation.push('MagazineDetail', {
+      slug: item.slug,
+    })
+  }
+  onPressViewAll={() =>
+   navigation.navigate('Home', {
+  screen: 'Magazines',
+})
+  }
+/>}
         </View>
 
       </ScrollView>

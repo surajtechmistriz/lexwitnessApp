@@ -13,6 +13,10 @@ import Carousel from 'react-native-reanimated-carousel';
 import Config from 'react-native-config';
 import NetInfo from '@react-native-community/netinfo';
 
+import Header from '../../components/common/Header';
+// import SearchOverlay from '../../components/common/SearchOverlay';
+import TopMenu from '../../components/common/Menubar';
+
 import HeroCard from './components/HeroCard';
 import ListCard from './components/ListCard';
 import EditorPicksSection from './sections/EditorPickSection';
@@ -24,13 +28,13 @@ import EditorialCard from './components/Editorial';
 
 import { getHeroPost } from '../../services/api/heroCard';
 import { getEditorPick } from '../../services/api/editorpicks';
-import TopMenu from '../../components/common/Menubar';
 
 import { getCache, setCache, isCacheExpired } from '../../utils/cache';
 import { useRefresh } from '../../hooks/useRefresh';
 
 import HeroSkeleton from '../../skeleton/HeroSkeleton';
 import ListSkeleton from '../../skeleton/ListSkeleton';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
@@ -45,7 +49,8 @@ const Home = () => {
   const [heroReady, setHeroReady] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
 
-  // monitor network
+  // const [isSearchVisible, setIsSearchVisible] = useState(false);
+const navigation = useNavigation<any>();
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(state.isConnected);
@@ -53,67 +58,47 @@ const Home = () => {
     return unsubscribe;
   }, []);
 
-  // fetch data (hero first, then rest)
-  const fetchHomeData = useCallback(
-    async (force = false) => {
-      try {
-        const cached = await getCache('HOME_DATA');
+  const fetchHomeData = useCallback(async (force = false) => {
+    try {
+      const cached = await getCache('HOME_DATA');
 
-        // use cache immediately
-        if (cached?.data && !force) {
-          setArticles(cached.data.articles || []);
-          setEditorPicks(cached.data.editorPicks || []);
-          setHeroLoading(false);
-          setRestLoading(false);
-
-          if (!isCacheExpired(cached.timestamp)) return;
-        }
-
-        if (!isConnected) return;
-
-        // fetch hero first
-        const heroRes = await getHeroPost();
-        setArticles(heroRes || []);
-        setHeroLoading(false);
-
-        // fetch remaining data
-        const editorRes = await getEditorPick();
-        setEditorPicks(editorRes || []);
-        setRestLoading(false);
-
-        // cache data
-        await setCache('HOME_DATA', {
-          articles: heroRes || [],
-          editorPicks: editorRes || [],
-        });
-      } catch (e) {
-        console.log('Home error:', e);
-      } finally {
+      if (cached?.data && !force) {
+        setArticles(cached.data.articles || []);
+        setEditorPicks(cached.data.editorPicks || []);
         setHeroLoading(false);
         setRestLoading(false);
+
+        if (!isCacheExpired(cached.timestamp)) return;
       }
-    },
-    [isConnected],
-  );
 
-  // initial load
+      if (!isConnected) return;
+
+      const heroRes = await getHeroPost();
+      setArticles(heroRes || []);
+      setHeroLoading(false);
+
+      const editorRes = await getEditorPick();
+      setEditorPicks(editorRes || []);
+      setRestLoading(false);
+
+      await setCache('HOME_DATA', {
+        articles: heroRes || [],
+        editorPicks: editorRes || [],
+      });
+    } catch (e) {
+      console.log('Home error:', e);
+    } finally {
+      setHeroLoading(false);
+      setRestLoading(false);
+    }
+  }, [isConnected]);
+
   useEffect(() => {
     fetchHomeData();
   }, [fetchHomeData]);
 
-  // pull-to-refresh
-  const { refreshing, onRefresh } = useRefresh(() =>
-    fetchHomeData(true),
-  );
+  const { refreshing, onRefresh } = useRefresh(() => fetchHomeData(true));
 
-  // prefetch next page
-  useEffect(() => {
-    if (articles.length > 0) {
-      getHeroPost({ page: 2 }).catch(() => {});
-    }
-  }, [articles]);
-
-  // memoized data
   const sliderData = useMemo(() => articles.slice(0, 3), [articles]);
   const remainingCards = useMemo(() => articles.slice(3), [articles]);
 
@@ -124,12 +109,14 @@ const Home = () => {
   };
 
   const getImage = (img: string) => `${IMAGE_BASE_URL}/${img}`;
-
   const HERO_HEIGHT = ((width - 24) * 9) / 16;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
+
+      {/* ✅ HEADER */}
+      {/* <Header onSearchPress={() => setIsSearchVisible(true)} /> */}
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -145,7 +132,6 @@ const Home = () => {
       >
         <TopMenu />
 
-        {/* Hero section */}
         {heroLoading ? (
           <HeroSkeleton />
         ) : (
@@ -163,65 +149,50 @@ const Home = () => {
                   slug={item.slug}
                   date={formatDate(item)}
                   image={getImage(item.image)}
-                  onLoadEnd={
-                    index === 0 ? () => setHeroReady(true) : undefined
-                  }
+                  onLoadEnd={index === 0 ? () => setHeroReady(true) : undefined}
                 />
               )}
             />
           </View>
         )}
 
-        {/* List section */}
         {!heroReady ? (
           <ListSkeleton />
         ) : (
-          <View style={styles.listContainer}>
+          <View>
             <Text style={styles.heading}>Latest Articles</Text>
-
             {remainingCards.slice(0, 4).map(item => (
-              <ListCard
-                key={item.id}
-                category={item?.category}
-                title={item.title}
-                date={formatDate(item)}
-                slug={item.slug}
-                image={item.image}
-              />
+              <ListCard key={item.id} {...item} date={formatDate(item)} />
             ))}
           </View>
         )}
 
-        {/* Advertisement */}
         <View style={styles.graySectionWrapper}>
           <HomeAdvertisement />
         </View>
 
-        {/* Editor picks */}
         {restLoading ? (
-          <View style={styles.loadingBlock}>
-            <Text>Loading...</Text>
-          </View>
+          <Text style={{ padding: 20 }}>Loading...</Text>
         ) : (
-          <EditorPicksSection
-            data={editorPicks}
-            getImage={getImage}
-          />
+          <EditorPicksSection data={editorPicks} getImage={getImage} />
         )}
 
         <HomeBanner />
 
-        <View style={styles.fullWidth}>
-          <LatestEdition onData={setLatestEditionData} />
-        </View>
-
+        <LatestEdition onData={setLatestEditionData} />
         <EditorialCard />
-
-        <View style={styles.fullWidth}>
-          <LatestEditions
-            skipId={latestEditionData?.magazine?.id}
-          />
-        </View>
+<LatestEditions
+  skipId={latestEditionData?.magazine?.id}
+  onPressItem={(item) =>
+    navigation.navigate('Magazines', {
+      screen: 'MagazineDetail',
+      params: { slug: item.slug },
+    })
+  }
+  onPressViewAll={() =>
+    navigation.navigate('Magazines')
+  }
+/>
       </ScrollView>
     </SafeAreaView>
   );

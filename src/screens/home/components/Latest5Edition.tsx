@@ -10,28 +10,40 @@ import {
 } from 'react-native';
 import { getLatestMagazines } from '../api/home.api';
 import Config from 'react-native-config';
-import { useNavigation } from '@react-navigation/native';
-import Carousel, { Pagination } from 'react-native-reanimated-carousel';
 import { useSharedValue } from 'react-native-reanimated';
+import Carousel from 'react-native-reanimated-carousel';
 import { COLORS } from '../../../theme/colors';
+
+type Props = {
+  skipId?: number;
+  onPressItem?: (item: any) => void;
+  onPressViewAll?: () => void;
+};
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width * 0.47;
+
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
-const LatestEditions = ({ skipId }: { skipId?: number }) => {
+const LatestEditions = ({
+  skipId,
+  onPressItem,
+  onPressViewAll,
+}: Props) => {
   const [editions, setEditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const progressValue = useSharedValue<number>(0);
-  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const fetchEditions = async () => {
       try {
-        const response = await getLatestMagazines({ skipId, limit: 5 });
+        const response = await getLatestMagazines({
+          skipId,
+          limit: 5,
+        });
         setEditions(response || []);
       } catch (error) {
-        console.error('Fetch Error:', error);
+        console.log('Latest Editions Error:', error);
       } finally {
         setLoading(false);
       }
@@ -42,34 +54,27 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
 
   if (loading) {
     return (
-      <ActivityIndicator
-        style={styles.loader}
-        color={COLORS.primary}
-      />
+      <ActivityIndicator style={styles.loader} color={COLORS.primary} />
     );
   }
 
-  if (editions.length === 0) return null;
+  if (!editions.length) return null;
 
   return (
     <View style={styles.wrapper}>
-      {/* Header */}
+      {/* HEADER */}
       <Text style={styles.heading}>Latest Editions</Text>
       <View style={styles.redLine} />
 
-      {/* Carousel */}
+      {/* CAROUSEL */}
       <Carousel
         loop={false}
         width={ITEM_WIDTH}
-        height={220}
-        data={editions}
+        height={260}
         style={{ width }}
-        enabled
-        pagingEnabled
-        scrollAnimationDuration={600}
+        data={editions}
         panGestureHandlerProps={{
-          activeOffsetX: [-20, 20],   // require stronger horizontal swipe
-          failOffsetY: [-10, 10],     // allow vertical scroll
+          activeOffsetX: [-10, 10],
         }}
         onProgressChange={(_, absoluteProgress) => {
           progressValue.value = absoluteProgress;
@@ -78,12 +83,7 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
           <TouchableOpacity
             style={styles.card}
             activeOpacity={0.9}
-            onPress={() =>
-              navigation.navigate('Magazines', {
-                screen: 'MagazineDetail',
-                params: { slug: item.slug },
-              })
-            }
+            onPress={() => onPressItem?.(item)}
           >
             <Image
               source={{
@@ -92,35 +92,35 @@ const LatestEditions = ({ skipId }: { skipId?: number }) => {
                   : 'https://via.placeholder.com/300x400',
               }}
               style={styles.image}
-              resizeMode="contain"
+              resizeMode="cover"
             />
           </TouchableOpacity>
         )}
       />
 
-      {/* Pagination */}
-      <Pagination.Basic
-        progress={progressValue}
-        data={editions}
-        dotStyle={styles.dot}
-        activeDotStyle={styles.activeDot}
-        containerStyle={styles.pagination}
-      />
+      {/* DOTS */}
+      <View style={styles.dotsContainer}>
+        {editions.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              // simple active indicator (optional improvement later)
+            ]}
+          />
+        ))}
+      </View>
 
       {/* CTA */}
       <TouchableOpacity
         style={styles.cta}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('Magazines')}
+        onPress={() => onPressViewAll?.()}
       >
         <Text style={styles.ctaText}>View All Editions</Text>
       </TouchableOpacity>
     </View>
   );
 };
-
-export default LatestEditions;
-
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -132,40 +132,51 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#111',
-    alignSelf: 'center',
-  },
 
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+  },
   redLine: {
-    width: 50,
-    height: 3,
+    width: 60,
+    height: 4,
     backgroundColor: COLORS.primary,
+    marginTop: 5,
+    marginLeft: 1,
     alignSelf: 'center',
-    marginTop: 6,
-    marginBottom: 16,
-    borderRadius: 2,
-  },
-
-  loader: {
-    marginTop: 30,
+    marginBottom: 18,
   },
 
   card: {
     width: ITEM_WIDTH - 12,
     marginLeft: 12,
-    borderRadius: 10,
+    borderRadius:8,
+
+    // borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: '#fff',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
     elevation: 3,
   },
 
   image: {
     width: '100%',
-    height: 200,
+    height: 208,
+  },
+
+  title: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#111',
+    padding: 10,
+    lineHeight: 18,
   },
 
   pagination: {
     marginTop: 10,
-    marginBottom: 14,
+    marginBottom: 16,
     justifyContent: 'center',
   },
 
@@ -175,10 +186,12 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#ddd',
     marginHorizontal: 3,
+    marginTop: -15,
+    marginBottom: 15,
   },
 
   activeDot: {
-    width: 14,
+    width: 16,
     height: 6,
     borderRadius: 3,
     backgroundColor: COLORS.primary,
@@ -191,6 +204,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 10,
+    marginBottom: 15,
   },
 
   ctaText: {
@@ -199,3 +213,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default LatestEditions;

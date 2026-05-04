@@ -126,7 +126,10 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     }
 
     onClose?.();
-    navigation.navigate('Archive', params);
+    navigation.navigate('Home', {
+  screen: 'Archive',
+  params,
+})
   };
 
   return (

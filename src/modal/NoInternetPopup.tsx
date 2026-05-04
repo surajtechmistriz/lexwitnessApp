@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: 9999,
+    zIndex: 99999,
   },
   toast: {
     flexDirection: 'row',

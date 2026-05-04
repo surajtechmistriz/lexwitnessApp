@@ -9,11 +9,11 @@ import {
   Dimensions,
   Pressable,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+
 import { latesteEdition } from '../services/api/latestedition';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Config from 'react-native-config';
 import PopupSkeleton from '../skeleton/PopupSkeleton';
+import { navigate } from '../utils/helper/navigationHelper';
 
 // --- Types ---
 type Magazine = {
@@ -28,17 +28,10 @@ type EditionResponse = {
   magazine: Magazine;
 };
 
-type RootStackParamList = {
-  Magazines: { screen: string; params: { slug: string } };
-  Subscription: undefined; // Target for CTA
-};
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 const { width } = Dimensions.get('window');
 const MagimgUrl = Config.MAGAZINES_BASE_URL;
 
-const AuthPopup = ({
+const Popup = ({
   visible,
   onClose,
 }: {
@@ -47,8 +40,6 @@ const AuthPopup = ({
 }) => {
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const navigation = useNavigation<NavigationProp>();
 
   /* ---------------- FETCH DATA ---------------- */
   useEffect(() => {
@@ -75,15 +66,18 @@ const AuthPopup = ({
   };
 
   /* ---------------- NAVIGATION ---------------- */
+
   const goToSubscription = () => {
-    handleClose(); // Close modal before navigating
-    navigation.navigate('Subscription');
+    handleClose();
+    navigate('Subscription');
   };
 
   const goToMagazine = () => {
     if (!data?.magazine) return;
+
     handleClose();
-    navigation.navigate('Magazines', {
+
+    navigate('Magazines', {
       screen: 'MagazineDetail',
       params: {
         slug: data.magazine.slug || String(data.magazine.id),
@@ -111,7 +105,7 @@ const AuthPopup = ({
             <PopupSkeleton />
           ) : (
             <>
-              {/* IMAGE SECTION */}
+              {/* IMAGE */}
               <TouchableOpacity
                 onPress={goToMagazine}
                 style={styles.imageContainer}
@@ -126,8 +120,8 @@ const AuthPopup = ({
                 />
               </TouchableOpacity>
 
-              {/* CONTENT SECTION */}
-              <View style={styles.contentSection}>
+              {/* CONTENT */}
+              <View>
                 <Text style={styles.label}>LATEST ISSUE</Text>
 
                 <Text style={styles.headline}>
@@ -136,9 +130,11 @@ const AuthPopup = ({
 
                 <Text style={styles.promoText}>
                   Start Your <Text style={styles.redText}>Free Month Now</Text>
+                </Text>  
+                <Text style={styles.credit}>
+                 No credit card required
                 </Text>
 
-                {/* UPDATED CTA NAVIGATION */}
                 <TouchableOpacity
                   style={styles.subscribeBtn}
                   onPress={goToSubscription}
@@ -156,7 +152,8 @@ const AuthPopup = ({
   );
 };
 
-export default AuthPopup;
+export default Popup;
+
 
 const styles = StyleSheet.create({
   overlay: {
@@ -215,7 +212,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-  },
+  }, 
+ credit: {
+  fontSize: 12,
+  fontWeight: '500',
+  fontStyle: 'italic',
+  marginBottom: 15,
+},
   redText: {
     color: '#c9060a',
   },

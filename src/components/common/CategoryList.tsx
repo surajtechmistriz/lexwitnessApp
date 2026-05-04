@@ -62,11 +62,13 @@ const renderItem = ({ item, index }: any) => {
       style={styles.card}
       activeOpacity={0.8}
       onPress={() =>
-        navigation.navigate('HomeTab', {
-          screen: 'Category',
-          params: { category: item.name, slug: item.slug },
-        })
-      }
+     
+  navigation.navigate('Home', {
+    screen: 'Category',
+    params: { category: item.name, slug: item.slug },
+  })
+}
+      
     >
       {/* Top Accent Bar for visual distinction */}
       <View style={[styles.accentBar, { backgroundColor: design.color }]} />
