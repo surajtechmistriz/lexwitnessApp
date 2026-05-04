@@ -14,12 +14,15 @@ const GlobalPopup = () => {
   useEffect(() => {
     if (!isHydrated) return;
 
-    // 👇 Show ONLY on app open
     if (!isLoggedIn && !shownOnce) {
-      setVisible(true);
-      setShownOnce(true);
+      const timer = setTimeout(() => {
+        setVisible(true);
+        setShownOnce(true);
+      }, 800); // optional delay
+
+      return () => clearTimeout(timer);
     }
-  }, [isHydrated, isLoggedIn]);
+  }, [isHydrated, isLoggedIn, shownOnce]);
 
   return (
     <Popup

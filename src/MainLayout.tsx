@@ -32,7 +32,7 @@ const MainLayout = ({
     (state: RootState) => state.auth
   );
 
-  const [showPopup, setShowPopup] = useState(false);
+  // const [showPopup, setShowPopup] = useState(false);
 
   const hiddenTopMenu = [
     'Magazines',
@@ -42,29 +42,29 @@ const MainLayout = ({
     'Archive',
   ];
 
-  const disablePopupScreens = ['Register', 'SignIn', 'Subscription'];
+  // const disablePopupScreens = ['Register', 'SignIn', 'Subscription'];
 
-  const shouldShowPopup =
-    !isLoggedIn && !disablePopupScreens.includes(routeName || '');
+  // const shouldShowPopup =
+  //   !isLoggedIn && !disablePopupScreens.includes(routeName || '');
 
-  useEffect(() => {
-    if (!isHydrated) return;
+  // useEffect(() => {
+  //   if (!isHydrated) return;
 
-    if (disablePopupScreens.includes(routeName || '')) {
-      setShowPopup(false);
-      return;
-    }
+  //   if (disablePopupScreens.includes(routeName || '')) {
+  //     setShowPopup(false);
+  //     return;
+  //   }
 
-    if (shouldShowPopup) {
-      const timer = setTimeout(() => {
-        setShowPopup(true);
-      }, 800);
+  //   if (shouldShowPopup) {
+  //     const timer = setTimeout(() => {
+  //       setShowPopup(true);
+  //     }, 800);
 
-      return () => clearTimeout(timer);
-    } else {
-      setShowPopup(false);
-    }
-  }, [isHydrated, isLoggedIn, routeName]);
+  //     return () => clearTimeout(timer);
+  //   } else {
+  //     setShowPopup(false);
+  //   }
+  // }, [isHydrated, isLoggedIn, routeName]);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -98,10 +98,10 @@ const MainLayout = ({
       </ScrollView>
 
       {/* Popup */}
-      <Popup
+      {/* <Popup
         visible={showPopup}
         onClose={() => setShowPopup(false)}
-      />
+      /> */}
     </SafeAreaView>
   );
 };
