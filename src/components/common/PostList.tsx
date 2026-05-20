@@ -58,6 +58,8 @@ export default function PostList({
     );
   }
 
+  console.log('Articles', posts);
+
   return (
     <View style={styles.container}>
       {posts.map((article, index) => (
@@ -90,30 +92,43 @@ export default function PostList({
 
             {/* Meta Row */}
             <View style={styles.metaRow}>
-              <TouchableOpacity
-                onPress={() => {
-                  if (article.author?.slug) {
-                    navigation.navigate('Author', {
-                      slug: article.author.slug,
-                    });
-                  }
-                }}
-              >
-                <Text style={styles.authorText} numberOfLines={1}>
-                  {typeof article.author === 'string'
-                    ? article.author
-                    : article.author?.name || 'Unknown'}
-                </Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                {Array.isArray(article.authors) &&
+                article.authors.length > 0 ? (
+                  article.authors.map((author: any, index: number) => (
+                    <TouchableOpacity
+                      key={author.slug || index}
+                      onPress={() => {
+                        if (author?.slug) {
+                          navigation.navigate('Author', {
+                            slug: author.slug,
+                          });
+                        }
+                      }}
+                    >
+                      <Text style={styles.authorText}>
+                        {author?.name || 'Unknown'}
+                        {index < article.authors.length - 1 ? ', ' : ''}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <Text style={styles.authorText}>Unknown</Text>
+                )}
+              </View>
 
               <Text style={styles.dot}>•</Text>
 
- <Text style={styles.dateText} numberOfLines={1} ellipsizeMode="tail">
-  {formatMonthYear(
-    article.magazine?.month?.name,
-    article.magazine?.year
-  )}
-</Text>
+              <Text
+                style={styles.dateText}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {formatMonthYear(
+                  article.magazine?.month?.name,
+                  article.magazine?.year,
+                )}
+              </Text>
             </View>
 
             {/* Action Indicator */}
@@ -151,29 +166,29 @@ const styles = StyleSheet.create({
     color: '#888',
   },
 
- card: {
-  flexDirection: 'row',
-  backgroundColor: '#fff',
-  borderRadius: 14,
-  marginBottom: 12,
-  padding: 12,
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    marginBottom: 12,
+    padding: 12,
 
-  borderWidth: 1,
-  borderColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
 
-  // cleaner shadow
-  ...Platform.select({
-    ios: {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
-    },
-    android: {
-      elevation: 2,
-    },
-  }),
-},
+    // cleaner shadow
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
   imageWrapper: {
     width: 90,
     height: 90,
@@ -194,23 +209,23 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 10,
   },
-contentContainer: {
-  flex: 1,
-  marginLeft: 12,
-  justifyContent: 'center',
-},
+  contentContainer: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'center',
+  },
   title: {
     fontSize: 15,
     fontWeight: '700',
     color: '#111',
     lineHeight: 20,
   },
- metaRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginTop: 6,
-  flexWrap: 'wrap', //  important
-},
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    flexWrap: 'wrap', //  important
+  },
   authorText: {
     color: '#c9060a',
     fontWeight: '600',
@@ -221,11 +236,11 @@ contentContainer: {
     color: '#ccc',
     fontSize: 14,
   },
-dateText: {
-  fontSize: 12,
-  color: '#777',
-  flexShrink: 1,
-},
+  dateText: {
+    fontSize: 12,
+    color: '#777',
+    flexShrink: 1,
+  },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,85 +1,114 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useWindowDimensions, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React from "react";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import { useSelector } from "react-redux";
 
-import HomeStack from './stacks/HomeStack';
-import { MagazineStack } from './stacks/MagazineStack';
-import CategoryList from '../components/common/CategoryList';
+import HomeStack from "./stacks/HomeStack";
+import { MagazineStack } from "./stacks/MagazineStack";
+import CategoryList from "../components/common/CategoryList";
+import AuthStack from "./stacks/AuthStack";
+
+import DashboardScreen from "../screens/dashboard/DashboardScreen";
+
+import { RootState } from "../redux/store";
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabs() {
-  const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-
-  const isTablet = width >= 768;
-
-  // ✅ Responsive sizes
-  const TAB_HEIGHT = isTablet ? 70 : 60;
-  const ICON_SIZE = isTablet ? 26 : 22;
-  const LABEL_SIZE = isTablet ? 13 : 11;
+  const { isLoggedIn } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-
-        tabBarActiveTintColor: '#c9060a',
-        tabBarInactiveTintColor: '#999',
-
-        tabBarStyle: {
-          height: TAB_HEIGHT + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 5,
-          backgroundColor: '#fff',
-          borderTopWidth: 0.5,
-          borderTopColor: '#eee',
-
-          // subtle shadow
-          ...Platform.select({
-            ios: {
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: -2 },
-              shadowOpacity: 0.05,
-              shadowRadius: 6,
-            },
-            android: {
-              elevation: 8,
-            },
-          }),
-        },
-
-        tabBarLabelStyle: {
-          fontSize: LABEL_SIZE,
-          fontWeight: '600',
-          marginBottom: 2,
-        },
-
-        tabBarItemStyle: {
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
+        tabBarActiveTintColor: "#c9060a",
+        tabBarInactiveTintColor: "#999",
 
         tabBarIcon: ({ color, focused }) => {
-          let iconName = 'home-outline';
+          let icon = "home-outline";
 
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Categories') {
-            iconName = focused ? 'grid' : 'grid-outline';
-          } else if (route.name === 'Magazines') {
-            iconName = focused ? 'book' : 'book-outline';
+          if (route.name === "HomeTab") {
+            icon = focused ? "home" : "home-outline";
+          } else if (route.name === "CategoriesTab") {
+            icon = focused ? "grid" : "grid-outline";
+          } else if (route.name === "MagazinesTab") {
+            icon = focused ? "book" : "book-outline";
+          } else if (route.name === "AccountTab") {
+            icon = focused ? "person" : "person-outline";
           }
 
-          return <Ionicons name={iconName} size={ICON_SIZE} color={color} />;
+          return (
+            <Ionicons
+              name={icon}
+              size={22}
+              color={color}
+            />
+          );
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Categories" component={CategoryList} />
-      <Tab.Screen name="Magazines" component={MagazineStack} />
+      {/* HOME */}
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeStack}
+        options={{ title: "Home" }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+
+            navigation.navigate("HomeTab", {
+              screen: "Home",
+            });
+          },
+        })}
+      />
+
+      {/* CATEGORIES */}
+      <Tab.Screen
+        name="CategoriesTab"
+        component={CategoryList}
+        options={{ title: "Categories" }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+
+            navigation.navigate("CategoriesTab");
+          },
+        })}
+      />
+
+      {/* MAGAZINES */}
+      <Tab.Screen
+        name="MagazinesTab"
+        component={MagazineStack}
+        options={{ title: "Magazines" }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+
+            navigation.navigate("MagazinesTab", {
+              screen: "Magazines",
+            });
+          },
+        })}
+      />
+
+      {/* PROFILE / ACCOUNT */}
+      <Tab.Screen
+        name="AccountTab"
+        component={
+          isLoggedIn
+            ? DashboardScreen
+            : AuthStack
+        }
+        options={{
+          title: isLoggedIn
+            ? "Dashboard"
+            : "Profile",
+        }}
+      />
     </Tab.Navigator>
   );
 }

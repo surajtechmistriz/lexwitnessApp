@@ -1,5 +1,6 @@
 declare module 'react-native-config' {
   export interface NativeConfig {
+    BASE_URL: string | undefined;
     ADMIN_IMAGE_URL: any;
     BANNER_BASE_URL: any;
     NEXT_PUBLIC_BANNER_BASE_URL: any;

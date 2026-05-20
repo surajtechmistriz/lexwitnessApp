@@ -8,6 +8,7 @@ import SplashScreen from 'react-native-splash-screen';
 
 import DrawerNavigator from './DrawerNavigator';
 import GlobalPopup from '../modal/GlobalPopup';
+import RootStack from './RootStack';
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -37,9 +38,9 @@ const AppNavigator = () => {
 
   return (
     <Animated.View style={{ flex: 1, opacity }}>
-      <NavigationContainer ref={navigationRef}>
-        <DrawerNavigator />
-      </NavigationContainer>
+     <NavigationContainer>
+  <RootStack />
+</NavigationContainer>
 
       {/* Global things only */}
       <GlobalPopup />

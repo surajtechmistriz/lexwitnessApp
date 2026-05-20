@@ -186,19 +186,29 @@ const Home = () => {
         <EditorialCard />
         <LatestEditions
           skipId={latestEditionData?.magazine?.id}
-          onPressItem={item =>
-            navigation.navigate('Magazines', {
-              // This refers to the Stack name
-              screen: 'MagazineDetail', // This refers to the Screen inside the stack
-              params: { slug: item.slug },
-            })
-          }
+         onPressItem={item =>
+  navigation.navigate('MainApp', {
+    screen: 'MainTabs',
+    params: {
+      screen: 'MagazinesTab',
+      params: {
+        screen: 'MagazineDetail',
+        params: { slug: item.slug },
+      },
+    },
+  })
+}
           onPressViewAll={() =>
-            navigation.navigate('Magazines', {
-              // Navigates to the Stack
-              screen: 'Magazines', // Navigates specifically to the list screen
-            })
-          }
+  navigation.navigate('MainApp', {
+    screen: 'MainTabs',
+    params: {
+      screen: 'MagazinesTab',
+      params: {
+        screen: 'Magazines',
+      },
+    },
+  })
+}
         />
       </ScrollView>
     </SafeAreaView>

@@ -130,11 +130,11 @@ export default function Category() {
         </View>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <LatestEditionImageOnly />
-          <HomeBanner />
-          <HomeAdvertisement />
-        </View>
+        {/* <View style={styles.footer}> */}
+          {/* <LatestEditionImageOnly /> */}
+          {/* <HomeBanner /> */}
+          {/* <HomeAdvertisement /> */}
+        {/* </View> */}
       </View>
     </MainLayout>
   );

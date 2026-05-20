@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,30 +7,20 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Linking,
-  Share,
   useWindowDimensions,
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Config from 'react-native-config';
 
 import { getArticleBySlug, getRelatedPosts } from '../../services/api/posts';
-import {
-  navigationRef,
-  RootStackParamList,
-} from '../../navigation/AppNavigator';
+import { RootStackParamList } from '../../navigation/AppNavigator';
 
 import TestimonialCard from './components/Testimonial';
-import Header from '../../components/common/Header';
-import TopMenu from '../../components/common/Menubar';
 import SocialShare from './components/SocialShare';
-import Icon from 'react-native-vector-icons/FontAwesome6';
-import HomeAdvertisement from '../home/components/HomeAdvertisement';
-import Footer from '../../components/common/Footer';
-import HomeBanner from '../home/components/HomeBanner';
-import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import RenderHtml from 'react-native-render-html';
-import { navigateToAuthor } from '../../utils/helper/navigationHelper';
+
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -46,8 +36,20 @@ export default function ArticleDetailPage() {
   const [article, setArticle] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSubscribed] = useState(true);
-  const [authorImage, setAuthorImage] = useState('');
+
+  const dispatch = useDispatch();
+
+  const { user, token, subscription } = useSelector(
+    (state: RootState) => state.auth,
+  );
+
+  const isSubscribed = Boolean(
+    user &&
+      subscription &&
+      subscription.status === 'ACTIVE' &&
+      subscription.end_date &&
+      new Date(subscription.end_date) >= new Date(),
+  );
 
   useEffect(() => {
     let alive = true;
@@ -130,16 +132,6 @@ export default function ArticleDetailPage() {
     };
   }, [article]);
 
-  useEffect(() => {
-    const author = article?.author;
-
-    if (author && typeof author !== 'string' && author.image?.trim()) {
-      setAuthorImage(`${Config.ADMIN_IMAGE_URL}${author.image}`);
-    } else {
-      setAuthorImage('');
-    }
-  }, [article]);
-
   if (loading) {
     return (
       <View style={styles.center}>
@@ -158,13 +150,19 @@ export default function ArticleDetailPage() {
 
   const articleUrl = `https://lwsubscription.vercel.app/${article.slug}`;
 
+  const plainText = article.description?.replace(/<[^>]+>/g, '') || '';
+
+  const previewText = plainText.split(' ').slice(0, 60).join(' ');
+
+  const handleSubscribe = () => {
+    navigation.navigate('Subscription');
+  };
+
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.scrollWrap}>
-
         {/* 📰 Magazine Container */}
         <View style={styles.magazineCard}>
-
           {/* HERO IMAGE */}
           {article.image && (
             <Image
@@ -199,21 +197,25 @@ export default function ArticleDetailPage() {
 
           {/* META */}
           <View style={styles.metaRow}>
-            <TouchableOpacity
-              onPress={() => {
-                if (article.author?.slug && navigationRef.isReady()) {
-                  navigationRef.navigate('Author', {
-                    slug: article.author.slug,
-                  });
-                }
-              }}
-            >
-              <Text style={styles.authorName}>
-                {typeof article.author === 'string'
-                  ? article.author
-                  : article.author?.name || 'Unknown'}
-              </Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', flex: 1 }}>
+              {article.authors?.map((author: any, index: number) => (
+                <TouchableOpacity
+                  key={author.slug || index}
+                  onPress={() => {
+                    if (author?.slug) {
+                      navigation.navigate('Author', {
+                        slug: author.slug,
+                      });
+                    }
+                  }}
+                >
+                  <Text style={styles.authorName}>
+                    {author?.name}
+                    {index !== article.authors.length - 1 ? ', ' : ''}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
             <Text style={styles.dot}>•</Text>
 
@@ -231,10 +233,25 @@ export default function ArticleDetailPage() {
                 tagsStyles={tagsStyles}
               />
             ) : (
-              <View style={styles.lockBox}>
-                <Text style={styles.lockText}>
-                  Subscribe to Read Full Article
-                </Text>
+              <View>
+                {/* PREVIEW TEXT */}
+                <Text style={styles.previewText}>{previewText}...</Text>
+
+                {/* CTA BOX */}
+                <View style={styles.lockBox}>
+                  <Text style={styles.lockTitle}>Continue Reading</Text>
+
+                  <Text style={styles.lockSubtext}>
+                    Subscribe to unlock full access to this article.
+                  </Text>
+
+                  <TouchableOpacity
+                    style={styles.subscribeBtn}
+                    onPress={handleSubscribe}
+                  >
+                    <Text style={styles.subscribeBtnText}>SUBSCRIBE NOW</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </View>
@@ -259,32 +276,61 @@ export default function ArticleDetailPage() {
               ))}
           </View>
 
-          {/* AUTHOR */}
-          {article.author && typeof article.author !== 'string' && (
-            <View style={styles.authorSection}>
-              <Text style={styles.sectionTitle}>ABOUT AUTHOR</Text>
+          {/* TAGS */}
+          {article.tags?.length > 0 && (
+            <View style={styles.tagsSection}>
+              <Text style={styles.sectionTitle}>TAGS</Text>
 
-              <View style={styles.authorCard}>
-                <Image
-                  source={
-                    authorImage
-                      ? { uri: authorImage }
-                      : require('../../assets/avatar.jpg')
-                  }
-                  style={styles.avatar}
-                  onError={() => setAuthorImage('')}
-                />
-
-                <View style={styles.authorInfo}>
-                  <Text style={styles.authorTitle}>
-                    {article.author.name?.toUpperCase()}
-                  </Text>
-                  <Text style={styles.bio}>
-                    {article.author.bio ||
-                      `${article.author.name} is a contributor at Lex Witness.`}
-                  </Text>
-                </View>
+              <View style={styles.tagsWrap}>
+                {article.tags.map((tag: any, index: number) => (
+                  <TouchableOpacity
+                    key={tag.id || index}
+                    style={styles.tagPill}
+                    onPress={() =>
+                      navigation.navigate('Tag', {
+                        slug: tag.slug,
+                      })
+                    }
+                  >
+                    <Text style={styles.tagText}>#{tag.name}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
+            </View>
+          )}
+
+          {/* AUTHORS */}
+          {article.authors?.length > 0 && (
+            <View style={styles.authorSection}>
+              <Text style={styles.sectionTitle}>
+                ABOUT AUTHOR{article.authors.length > 1 ? 'S' : ''}
+              </Text>
+
+              {article.authors.map((author: any, index: number) => (
+                <View key={author.id || index} style={styles.authorCard}>
+                  <Image
+                    source={
+                      author.image
+                        ? {
+                            uri: `${Config.ADMIN_IMAGE_URL}${author.image}`,
+                          }
+                        : require('../../assets/avatar.jpg')
+                    }
+                    style={styles.avatar}
+                  />
+
+                  <View style={styles.authorInfo}>
+                    <Text style={styles.authorTitle}>
+                      {author.name?.toUpperCase()}
+                    </Text>
+
+                    <Text style={styles.bio}>
+                      {author.bio ||
+                        `${author.name} is a contributor at Lex Witness.`}
+                    </Text>
+                  </View>
+                </View>
+              ))}
             </View>
           )}
 
@@ -326,12 +372,12 @@ export default function ArticleDetailPage() {
           )}
 
           {/* ADS */}
-          <View style={styles.adContainer}>
+          {/* <View style={styles.adContainer}>
             <HomeAdvertisement />
-          </View>
+          </View> */}
 
-          <HomeBanner />
-          <LatestEditionImageOnly />
+          {/* <HomeBanner /> */}
+          {/* <LatestEditionImageOnly /> */}
         </View>
       </ScrollView>
     </View>
@@ -372,7 +418,7 @@ const styles = StyleSheet.create({
   },
 
   scrollWrap: {
-    padding: 14,
+    // padding: 14,
   },
 
   magazineCard: {
@@ -441,7 +487,10 @@ const styles = StyleSheet.create({
   },
 
   lockBox: {
-    padding: 20,
+    marginTop: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#eee',
     backgroundColor: '#fafafa',
     alignItems: 'center',
     borderRadius: 10,
@@ -546,5 +595,67 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  tagsSection: {
+    marginTop: 24,
+    paddingHorizontal: 14,
+  },
+
+  tagsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+
+  tagPill: {
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e5e5',
+  },
+
+  tagText: {
+    color: '#c9060a',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  previewText: {
+    fontSize: 16,
+    lineHeight: 28,
+    color: '#333',
+    textAlign: 'justify',
+  },
+
+  lockTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 10,
+  },
+
+  lockSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 18,
+    lineHeight: 22,
+  },
+
+  subscribeBtn: {
+    backgroundColor: '#c9060a',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 6,
+  },
+
+  subscribeBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

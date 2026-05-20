@@ -1,8 +1,7 @@
-// src/redux/AppInitializer.tsx
-
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { hydrateAuth } from './slices/authSlice';
 
 const AppInitializer = ({ children }: any) => {
@@ -12,14 +11,21 @@ const AppInitializer = ({ children }: any) => {
     const init = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+
         const user = await AsyncStorage.getItem('user');
+
+        const subscription =
+          await AsyncStorage.getItem('subscription');
 
         if (token && user) {
           dispatch(
             hydrateAuth({
               token,
               user: JSON.parse(user),
-            })
+              subscription: subscription
+                ? JSON.parse(subscription)
+                : null,
+            }),
           );
         } else {
           dispatch(hydrateAuth(null));

@@ -18,10 +18,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage'; //  FIXED
 import { useDispatch } from 'react-redux';
 // import { loginSuccess } from '../../../store/slices/authSlice';
 
-// 👉 Replace with your real API
-import axios from 'axios';
+// Replace with your real API
 import { loginSuccess } from '../../../redux/slices/authSlice';
 import MainLayout from '../../../MainLayout';
+import { loginApi } from '../api/auth';
 
 const SignInScreen = () => {
   const navigation = useNavigation<any>();
@@ -33,43 +33,65 @@ const SignInScreen = () => {
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      setError("Please fill all fields");
-      return;
+const handleLogin = async () => {
+  if (!email || !password) {
+    setError('Please fill all fields');
+    return;
+  }
+
+  setLoading(true);
+  setError('');
+
+  try {
+    const res = await loginApi({
+      email: email.trim(),
+      password,
+    });
+
+    const data = res?.data;
+
+    if (!data?.token || !data?.user) {
+      throw new Error('Invalid login response');
     }
 
-    setLoading(true);
-    setError("");
+    // STORAGE
+    await AsyncStorage.setItem('token', data.token);
 
-    try {
-      //  REAL API CALL
-      const res = await axios.post('/auth/login', {
-        email: email.trim(),
-        password,
-      });
+    await AsyncStorage.setItem(
+      'user',
+      JSON.stringify(data.user),
+    );
 
-      const token = res.data.token;
-      const user = res.data.user;
+    await AsyncStorage.setItem(
+      'subscription',
+      JSON.stringify(data.subscription),
+    );
 
-      //  STORE
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('user', JSON.stringify(user));
+    // REDUX
+    dispatch(
+      loginSuccess({
+        user: data.user,
+        token: data.token,
+        subscription: data.subscription,
+      }),
+    );
 
-      //  REDUX UPDATE (IMPORTANT)
-      dispatch(loginSuccess({ user, token }));
+    navigation.navigate('MainTabs', {
+  screen: 'HomeTab',
+  params: {
+    screen: 'Dashboard',
+  },
+});
+  } catch (err: any) {
+    const msg = err?.message || 'Login failed';
 
-      //  NAVIGATION
-      navigation.replace('Home');
+    setError(msg);
 
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || "Login failed";
-      setError(msg);
-      Alert.alert("Error", msg);
-    } finally {
-      setLoading(false);
-    }
-  };
+    Alert.alert('Error', msg);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <MainLayout title="Sign In" showFilter={false} routeName="SignIn">

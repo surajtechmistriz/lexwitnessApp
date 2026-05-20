@@ -5,21 +5,40 @@ import ArchiveScreen from "../../screens/archive/ArchiveScreen";
 import CategoryScreen from "../../screens/category/CategoryScreen";
 import ArticleDetailPage from "../../screens/article/ArticleScreen";
 import AuthorScreen from "../../screens/author/AuthorScreen";
+import DashboardScreen from "../../screens/dashboard/DashboardScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false, // ✅ Header handled by Drawer
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Home" component={Home} />
-      <Stack.Screen name="Category" component={CategoryScreen} />
-      <Stack.Screen name="Archive" component={ArchiveScreen} />
-      <Stack.Screen name="ArticleDetail" component={ArticleDetailPage} />
-      <Stack.Screen name="Author" component={AuthorScreen} />
+
+      <Stack.Screen
+        name="Archive"
+        component={ArchiveScreen}
+      />
+
+      <Stack.Screen
+        name="Category"
+        component={CategoryScreen}
+      />
+
+      <Stack.Screen
+        name="ArticleDetail"
+        component={ArticleDetailPage}
+      />
+
+      <Stack.Screen
+        name="Author"
+        component={AuthorScreen}
+      />
+
+      {/* ADD DASHBOARD HERE */}
+      <Stack.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+      />
     </Stack.Navigator>
   );
 }

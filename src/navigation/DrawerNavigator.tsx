@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import React, { useState } from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 
-import Subscription from '../screens/auth/screens/Subscription';
-import MagazinesScreen from '../screens/magazines/MagazinesScreen';
-import SignIn from '../screens/auth/screens/SignIn';
-import Register from '../screens/auth/screens/Register';
+import BottomTabs from "./BottomTabs";
+import Subscription from "../screens/auth/screens/Subscription";
 
-import CustomDrawer from '../components/common/CustomDrawer';
-import BottomTabs from './BottomTabs';
-
-// ✅ GLOBAL UI
-import Header from '../components/common/Header';
-import SearchOverlay from '../components/common/SearchOverlay';
+import CustomDrawer from "../components/common/CustomDrawer";
+import Header from "../components/common/Header";
+import SearchOverlay from "../components/common/SearchOverlay";
 
 const Drawer = createDrawerNavigator();
 
@@ -20,28 +15,24 @@ export default function DrawerNavigator() {
 
   return (
     <>
-      <Drawer.Navigator
-        screenOptions={{
-          // ✅ GLOBAL HEADER FOR ALL SCREENS
-          header: () => (
-            <Header onSearchPress={() => setIsSearchVisible(true)} />
-          ),
-        }}
-        drawerContent={(props) => <CustomDrawer {...props} />}
-      >
-        {/* Main App */}
-        <Drawer.Screen name="Home" component={BottomTabs} />
+     <Drawer.Navigator
+  screenOptions={{
+   header: ({ navigation }) => (
+  <Header
+    navigation={navigation} //  pass navigation
+    onSearchPress={() => setIsSearchVisible(true)}
+  />
+)
+  }}
+  drawerContent={(props) => <CustomDrawer {...props} />}
+>
+        {/* MAIN APP */}
+        <Drawer.Screen name="MainTabs" component={BottomTabs} />
 
-        {/* Other Screens */}
+        {/* EXTRA */}
         <Drawer.Screen name="Subscription" component={Subscription} />
-        {/* <Drawer.Screen name="Magazines" component={MagazinesScreen} /> */}
-
-        {/* Auth */}
-        <Drawer.Screen name="SignIn" component={SignIn} />
-        <Drawer.Screen name="Register" component={Register} />
       </Drawer.Navigator>
 
-      {/* ✅ GLOBAL SEARCH */}
       <SearchOverlay
         visible={isSearchVisible}
         onClose={() => setIsSearchVisible(false)}

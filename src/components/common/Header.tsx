@@ -2,45 +2,40 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { DrawerActions } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
-import { navigationRef } from '../../navigation/AppNavigator';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type HeaderProps = {
+  navigation: any; // ✅ added
   onSearchPress: () => void;
 };
 
-const Header = ({ onSearchPress }: HeaderProps) => {
+const Header = ({ navigation, onSearchPress }: HeaderProps) => {
   const insets = useSafeAreaInsets();
 
   const { isLoggedIn, isHydrated } = useSelector(
     (state: RootState) => state.auth
   );
 
+  /* ---------------- DRAWER ---------------- */
   const handleToggleDrawer = () => {
-    if (navigationRef.isReady()) {
-      navigationRef.dispatch(DrawerActions.toggleDrawer());
-    }
+    navigation.openDrawer(); // ✅ fixed
   };
 
+  /* ---------------- GO HOME ---------------- */
   const handleGoHome = () => {
-    if (!navigationRef.isReady()) return;
-
-    navigationRef.navigate('Home', {
-      screen: 'HomeTabs',
+    navigation.navigate('MainTabs', {
+      screen: 'HomeTab',
       params: {
-        screen: 'HomeTab',
-        params: { screen: 'Home' },
+        screen: 'Home',
       },
     });
   };
 
+  /* ---------------- LOGIN ---------------- */
   const goToLogin = () => {
-    if (navigationRef.isReady()) {
-      navigationRef.navigate('SignIn');
-    }
+    navigation.navigate('SignIn');
   };
 
   return (
@@ -49,7 +44,7 @@ const Header = ({ onSearchPress }: HeaderProps) => {
         styles.container,
         {
           paddingTop: insets.top,
-          height: 60 + insets.top,
+          height: 70 + insets.top,
         },
       ]}
     >
@@ -114,7 +109,7 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 130,
+    width: 140,
     height: 65,
   },
 });
