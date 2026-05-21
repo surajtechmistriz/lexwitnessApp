@@ -9,22 +9,20 @@ export interface SubscriptionPlan {
   duration_value: number;
   duration_unit: string;
   tag?: string | null;
-  print_editions?: number;
   is_featured?: number;
-  is_trial?: number;
   status?: number;
 }
 
-export interface SubscriptionState {
-  selectedPlan: SubscriptionPlan | null;
+type SubscriptionState = {
   plans: SubscriptionPlan[];
-}
+  selectedPlan: SubscriptionPlan | null;
+};
 
 /* ---------------- INITIAL STATE ---------------- */
 
 const initialState: SubscriptionState = {
-  selectedPlan: null,
   plans: [],
+  selectedPlan: null,
 };
 
 /* ---------------- SLICE ---------------- */
@@ -33,24 +31,27 @@ const subscriptionSlice = createSlice({
   name: "subscription",
   initialState,
   reducers: {
-    /* SET ALL PLANS FROM API */
+    /* set all plans from API */
     setPlans(state, action: PayloadAction<SubscriptionPlan[]>) {
       state.plans = action.payload;
     },
 
-    /* SELECT SINGLE PLAN */
-    setSubscription(state, action: PayloadAction<SubscriptionPlan>) {
+    /* user selects a plan in UI */
+    selectPlan(state, action: PayloadAction<SubscriptionPlan>) {
       state.selectedPlan = action.payload;
     },
 
-    /* CLEAR SELECTION */
-    clearSubscription(state) {
+    /* clear selected plan */
+    clearSelectedPlan(state) {
       state.selectedPlan = null;
     },
   },
 });
 
-export const { setPlans, setSubscription, clearSubscription } =
-  subscriptionSlice.actions;
+export const {
+  setPlans,
+  selectPlan,
+  clearSelectedPlan,
+} = subscriptionSlice.actions;
 
 export default subscriptionSlice.reducer;

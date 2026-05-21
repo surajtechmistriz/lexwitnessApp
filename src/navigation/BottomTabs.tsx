@@ -106,7 +106,7 @@ export default function BottomTabs() {
         options={{
           title: isLoggedIn
             ? "Dashboard"
-            : "Profile",
+            : "SignIn",
         }}
       />
     </Tab.Navigator>

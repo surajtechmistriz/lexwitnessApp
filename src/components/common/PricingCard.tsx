@@ -1,127 +1,386 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
+
+import LinearGradient from 'react-native-linear-gradient';
+
+import RazorpayCheckout from 'react-native-razorpay';
+
 import { useNavigation } from '@react-navigation/native';
 
-const STATIC_PLANS = [
-  {
-    id: 1,
-    name: 'Free',
-    price: '0',
-    tag: 'STARTER',
-    features: ['No Edition Print', '1 Month Access', 'Trial Access'],
-    color: '#6366f1',
-  },
-  {
-    id: 2,
-    name: 'Silver',
-    price: '1000',
-    tag: 'MOST POPULAR',
-    features: ['12 Print Editions', '1 Year Access', 'Digital Library'],
-    color: '#ec4899',
-    highlight: true,
-  },
-  {
-    id: 3,
-    name: 'Gold',
-    price: '1800',
-    tag: 'BEST VALUE',
-    features: ['24 Print Editions', '2 Year Access', 'Full Archive'],
-    color: '#f59e0b',
-  },
-  {
-    id: 4,
-    name: 'Platinum',
-    price: '2500',
-    tag: 'ELITE',
-    features: ['36 Print Editions', '3 Year Access', 'Premium Support'],
-    color: '#06b6d4',
-  },
-];
+import { useDispatch, useSelector } from 'react-redux';
+import { getPlans } from '../../services/api/plans';
+import { renewPlan, upgradePlan, verifySubscriptionPayment } from '../../services/api/subscription';
+import { setSubscription } from '../../redux/slices/subscriptionSlice';
+
+// import {
+//   upgradePlan,
+//   renewPlan,
+//   verifySubscriptionPayment,
+// } from '../../services/subscription';
+
+// import { getPlans } from '../../services/plans';
+
+// import { setSubscription } from '../../redux/slices/authSlice';
 
 const PricingCard = () => {
-  const [selectedPlanId, setSelectedPlanId] = useState(2);
   const navigation = useNavigation<any>();
 
-  const selectedPlan = STATIC_PLANS.find(p => p.id === selectedPlanId);
+  const dispatch = useDispatch();
+
+  const { user, subscription, isAuthenticated } =
+    useSelector((state: any) => state.auth);
+
+  const [plans, setPlans] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(false);
+
+  const [selectedPlanId, setSelectedPlanId] =
+    useState<number>(2);
+
+  /* ---------------- FETCH PLANS ---------------- */
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const res = await getPlans();
+
+      const data = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+          ? res.data
+          : [];
+
+      setPlans(data);
+    } catch (error) {
+      console.log('PLANS ERROR =>', error);
+    }
+  };
+
+  /* ---------------- HELPERS ---------------- */
+
+  const parseFeatures = (feature: string) => {
+    if (!feature) return [];
+
+    return feature
+      .replace(/<[^>]*>/g, '')
+      .split('\n')
+      .filter(Boolean);
+  };
+
+  const activeSubscription = subscription;
+
+  const selectedPlan = useMemo(() => {
+    return plans.find(
+      p => Number(p.id) === Number(selectedPlanId),
+    );
+  }, [plans, selectedPlanId]);
+
+  const isFreePlanDisabled = useMemo(() => {
+    return isAuthenticated === true;
+  }, [isAuthenticated]);
+
+  /* ---------------- SUBSCRIBE ---------------- */
+
+const handleSubscribe = useCallback(async () => {
+  try {
+    const selectedPlan = plans.find(
+      (p) => Number(p.id) === Number(selectedPlanId)
+    );
+
+    if (!selectedPlan) return;
+
+    const isFreePlan = Number(selectedPlan.price) === 0;
+
+    // ❌ free plan blocked for logged users
+    if (isFreePlan && isAuthenticated) {
+      Alert.alert("Free Plan", "Not available for existing users");
+      return;
+    }
+
+    // 🔐 NOT LOGGED IN → REGISTER FLOW
+    if (!isAuthenticated) {
+      navigation.navigate("Register", {
+        selectedPlanId,
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    const subscriptionId = activeSubscription?.id;
+    const isExpired =
+      activeSubscription?.status?.toUpperCase() === "EXPIRED" ||
+      (activeSubscription?.end_date &&
+        new Date(activeSubscription.end_date) < new Date());
+
+    let apiResponse;
+    let purchaseType: "NEW" | "UPGRADE" = "NEW";
+
+    // ONLY TWO CASES NOW
+    if (!subscriptionId) {
+      purchaseType = "NEW";
+      apiResponse = await upgradePlan(selectedPlan.id);
+    } else {
+      purchaseType = "UPGRADE";
+      apiResponse = await upgradePlan(selectedPlan.id);
+    }
+
+    const paymentData = apiResponse?.data?.payment;
+
+    if (!paymentData) {
+      Alert.alert("Error", "Payment failed");
+      return;
+    }
+
+    const options = {
+      key: paymentData.razorpay_key,
+      amount: paymentData.amount,
+      currency: paymentData.currency || "INR",
+      order_id: paymentData.order_id,
+      name: "Lex Witness",
+      prefill: {
+        name: `${user?.first_name || ""} ${user?.last_name || ""}`,
+        email: user?.email,
+        contact: user?.contact,
+      },
+      theme: { color: "#c9060a" },
+    };
+
+    RazorpayCheckout.open(options)
+      .then(async (response) => {
+        const verifyPayload = {
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          membership_plan_id: selectedPlan.id,
+          purchase_type: purchaseType,
+        };
+
+        const verifyRes = await verifySubscriptionPayment(verifyPayload);
+
+        const sub = verifyRes?.data?.subscription;
+
+        if (sub) {
+          dispatch(setSubscription(sub));
+        }
+
+        Alert.alert("Success", "Payment successful");
+        navigation.navigate("Dashboard");
+      })
+      .catch(() => {
+        Alert.alert("Cancelled", "Payment cancelled");
+      });
+  } finally {
+    setLoading(false);
+  }
+}, [selectedPlanId, isAuthenticated, activeSubscription]);
+  /* ---------------- LOADER ---------------- */
+
+  if (!plans.length) {
+    return (
+      <View style={styles.loaderWrap}>
+        <ActivityIndicator
+          size="large"
+          color="#c9060a"
+        />
+      </View>
+    );
+  }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.header}>
-        <Text style={styles.title}>Membership Plans</Text>
-        <View style={styles.divider}/>
+        <Text style={styles.title}>
+          Membership Plans
+        </Text>
+
+        <View style={styles.divider} />
+
         <Text style={styles.subtitle}>
-          Choose the perfect plan for your needs
+          Choose your subscription
         </Text>
       </View>
 
       <View style={styles.plansGrid}>
-        {STATIC_PLANS.map(plan => {
-          const isSelected = selectedPlanId === plan.id;
+        {plans.map(plan => {
+          const isSelected =
+            selectedPlanId === plan.id;
+
+          const isFreePlanCard =
+            Number(plan.price) === 0;
+
+          const disableFreePlan =
+            isFreePlanCard &&
+            isFreePlanDisabled;
+
+          const features =
+            parseFeatures(plan.feature);
 
           return (
             <TouchableOpacity
               key={plan.id}
               activeOpacity={0.9}
-              onPress={() => setSelectedPlanId(plan.id)}
+              disabled={
+                disableFreePlan
+              }
+              onPress={() =>
+                setSelectedPlanId(
+                  plan.id,
+                )
+              }
               style={[
                 styles.card,
-                isSelected && styles.cardActive,
-                { borderTopColor: '#c9060a' }
+
+                isSelected &&
+                  styles.cardActive,
+
+                disableFreePlan && {
+                  opacity: 0.5,
+                },
               ]}
             >
-              {/* POPULAR BADGE */}
-              {plan.highlight && (
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularText}>🔥 {plan.tag}</Text>
-                </View>
-              )}
-
-              {/* PLAN ICON / HEADER */}
-              {/* <View style={[styles.cardHeader, { backgroundColor: `${plan.color}10` }]}>
-                <View style={[styles.iconContainer, { backgroundColor: plan.color }]}>
-                  <Text style={styles.iconText}>
-                    {plan.name === 'Free' ? '🎁' : plan.name === 'Silver' ? '🥈' : plan.name === 'Gold' ? '🥇' : '💎'}
+              {plan.tag && (
+                <View
+                  style={
+                    styles.badge
+                  }
+                >
+                  <Text
+                    style={
+                      styles.badgeText
+                    }
+                  >
+                    {disableFreePlan
+                      ? 'NOT AVAILABLE'
+                      : plan.tag}
                   </Text>
                 </View>
-              </View> */}
-
-              {/* PLAN NAME */}
-              <Text style={styles.planName}>{plan.name}</Text>
-              
-              {!plan.highlight && plan.tag !== 'ELITE' && (
-                <View style={styles.tagContainer}>
-                  <Text style={[styles.tagText, { color: plan.color }]}>{plan.tag}</Text>
-                </View>
               )}
 
-              {/* PRICE */}
-              <View style={styles.priceContainer}>
-                <Text style={styles.currency}>₹</Text>
-                <Text style={styles.price}>{plan.price}</Text>
-                <Text style={styles.period}>/year</Text>
+              <Text
+                style={
+                  styles.planName
+                }
+              >
+                {plan.name}
+              </Text>
+
+              {activeSubscription?.plan_id ===
+                plan.id && (
+                <Text
+                  style={
+                    styles.currentPlan
+                  }
+                >
+                  Current Plan
+                </Text>
+              )}
+
+              <View
+                style={
+                  styles.priceContainer
+                }
+              >
+                <Text
+                  style={
+                    styles.currency
+                  }
+                >
+                  ₹
+                </Text>
+
+                <Text
+                  style={
+                    styles.price
+                  }
+                >
+                  {plan.price}
+                </Text>
               </View>
 
-              {/* FEATURES */}
-              <View style={styles.featuresContainer}>
-                {plan.features.map((f, i) => (
-                  <View key={i} style={styles.featureRow}>
-                    <Text style={[styles.checkMark, { color: plan.color }]}>✓</Text>
-                    <Text style={styles.featureText}>{f}</Text>
-                  </View>
-                ))}
+              <View
+                style={
+                  styles.featuresContainer
+                }
+              >
+                {features
+                  .slice(0, 4)
+                  .map(
+                    (
+                      item: string,
+                      index: number,
+                    ) => (
+                      <View
+                        key={
+                          index
+                        }
+                        style={
+                          styles.featureRow
+                        }
+                      >
+                        <Text
+                          style={
+                            styles.check
+                          }
+                        >
+                          ✓
+                        </Text>
+
+                        <Text
+                          style={
+                            styles.featureText
+                          }
+                        >
+                          {item}
+                        </Text>
+                      </View>
+                    ),
+                  )}
               </View>
 
-              {/* SELECT INDICATOR */}
-              <View style={[
-                styles.selectIndicator,
-                isSelected && styles.selectIndicatorActive,
-                { backgroundColor: isSelected ? plan.color : '#f0f0f0' }
-              ]}>
-                <Text style={[
-                  styles.selectText,
-                  isSelected && styles.selectTextActive
-                ]}>
-                  {isSelected ? 'Selected' : 'Select Plan'}
+              <View
+                style={[
+                  styles.selectIndicator,
+
+                  isSelected && {
+                    backgroundColor:
+                      '#c9060a',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.selectText,
+
+                    isSelected && {
+                      color:
+                        '#fff',
+                    },
+                  ]}
+                >
+                  {isSelected
+                    ? 'Selected'
+                    : 'Select Plan'}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -129,29 +388,50 @@ const PricingCard = () => {
         })}
       </View>
 
-      {/* CTA BUTTON */}
-      <View style={styles.ctaContainer}>
-        <TouchableOpacity
-          style={[styles.ctaButton, { backgroundColor: '#c9060a' }]}
-          onPress={() =>
-            navigation.navigate('Register', {
-              selectedPlanId: String(selectedPlanId),
-            })
+      {/* CTA */}
+
+      <TouchableOpacity
+        style={styles.subscribeBtn}
+        activeOpacity={0.9}
+        disabled={loading}
+        onPress={handleSubscribe}
+      >
+        <LinearGradient
+          colors={[
+            '#c9060a',
+            '#8f0205',
+          ]}
+          style={
+            styles.subscribeGradient
           }
         >
-          {/* <Text style={styles.ctaText}>
-            Continue with {selectedPlan?.name} Plan
-          </Text> */}
-          <Text style={styles.ctaText}>
-            SUBSCRIBE NOW
-          </Text>
-          <Text style={styles.ctaArrow}>→</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.footerText}>
-          Cancel anytime • Free trial available
-        </Text>
-      </View>
+          {loading ? (
+            <ActivityIndicator
+              color="#fff"
+            />
+          ) : (
+            <>
+              <Text
+                style={
+                  styles.subscribeText
+                }
+              >
+                {isAuthenticated
+                  ? 'UPGRADE NOW'
+                  : 'SUBSCRIBE NOW'}
+              </Text>
+
+              <Text
+                style={
+                  styles.arrow
+                }
+              >
+                →
+              </Text>
+            </>
+          )}
+        </LinearGradient>
+      </TouchableOpacity>
     </ScrollView>
   );
 };
@@ -161,259 +441,156 @@ export default PricingCard;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fafaf9',
-    marginTop:30,
-    marginHorizontal:-12
+    marginTop: 30,
+  },
+
+  loaderWrap: {
+    paddingVertical: 40,
   },
 
   header: {
-    paddingTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    backgroundColor: '#fafaf9',
-    // borderBo/ttomLeftRadius: 24,
-    // borderBottomRightRadius: 24,
-    borderRadius: 24,
-    marginBottom: 16,
-
+    alignItems: 'center',
+    marginBottom: 20,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '800',
-    textAlign: 'center',
-    color: '#333',
-    letterSpacing: -0.5,
+    color: '#111',
   },
-divider: {
-  width: 60,
-  height: 4,
-  backgroundColor: '#c9060a',
-  borderRadius: 2,
-  marginTop: 4,
-  alignSelf: 'center',
-},
+
+  divider: {
+    width: 60,
+    height: 4,
+    backgroundColor: '#c9060a',
+    marginTop: 6,
+    borderRadius: 10,
+  },
 
   subtitle: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#64748b',
-    marginTop: 8,
-    lineHeight: 20,
+    color: '#777',
+    marginTop: 10,
   },
 
   plansGrid: {
-    paddingHorizontal: 16,
-    gap: 16,
-    paddingBottom: 20,
+    gap: 18,
   },
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 22,
+    padding: 22,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderTopWidth: 4,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    marginHorizontal:12
+    borderColor: '#eee',
   },
 
   cardActive: {
-    borderColor: '#cbd5e1',
-    borderTopWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    elevation: 6,
-    transform: [{ scale: 1.02 }],
+    borderColor: '#c9060a',
   },
 
-  popularBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 4,
-    backgroundColor: '#fef3c7',
+  badge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#c9060a',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    zIndex: 9999,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginBottom: 16,
   },
 
-  popularText: {
+  badgeText: {
+    color: '#fff',
     fontSize: 11,
     fontWeight: '700',
-    color: '#d97706',
-  },
-
-  cardHeader: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-
-  iconText: {
-    fontSize: 28,
   },
 
   planName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '800',
-    color: '#0f172a',
-    textAlign: 'center',
-    marginTop: 16,
-    letterSpacing: -0.3,
+    color: '#111',
   },
 
-  tagContainer: {
-    alignItems: 'center',
-    marginTop: 4,
-  },
-
-  tagText: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+  currentPlan: {
+    marginTop: 6,
+    color: '#18b76a',
+    fontWeight: '700',
   },
 
   priceContainer: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    marginTop: 12,
-    marginBottom: 8,
+    alignItems: 'flex-end',
+    marginTop: 18,
   },
 
   currency: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#475569',
+    fontSize: 22,
+    fontWeight: '700',
   },
 
   price: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginLeft: 4,
-    letterSpacing: -1,
-  },
-
-  period: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginLeft: 4,
-    fontWeight: '500',
+    fontSize: 46,
+    fontWeight: '900',
+    color: '#111',
   },
 
   featuresContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    marginTop: 24,
   },
 
   featureRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+    marginBottom: 12,
   },
 
-  checkMark: {
-    fontSize: 16,
-    fontWeight: '700',
-    width: 20,
+  check: {
+    color: '#18b76a',
+    fontWeight: '900',
+    marginRight: 10,
   },
 
   featureText: {
-    fontSize: 13,
-    color: '#334155',
+    flex: 1,
+    color: '#444',
     fontWeight: '500',
   },
 
   selectIndicator: {
-    margin: 16,
-    marginTop: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
+    marginTop: 20,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-  },
-
-  selectIndicatorActive: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
 
   selectText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#64748b',
+    fontWeight: '700',
+    color: '#555',
   },
 
-  selectTextActive: {
-    color: '#fff',
+  subscribeBtn: {
+    marginTop: 28,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: 50,
   },
 
-  ctaContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-
-  ctaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  subscribeGradient: {
     paddingVertical: 18,
-    borderRadius: 16,
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
   },
 
-  ctaText: {
+  subscribeText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '800',
-    letterSpacing: 0.3,
+    letterSpacing: 1,
   },
 
-  ctaArrow: {
+  arrow: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-
-  footerText: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 16,
+    fontSize: 22,
+    marginLeft: 12,
+    fontWeight: '700',
   },
 });

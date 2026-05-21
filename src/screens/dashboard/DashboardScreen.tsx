@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
   StatusBar,
 } from 'react-native';
 
@@ -16,7 +17,14 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { logout } from '../../redux/slices/authSlice';
+import {
+  logout,
+  setSubscription,
+  updateSubscription,
+} from '../../redux/slices/authSlice';
+
+import RazorpayCheckout from 'react-native-razorpay';
+import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
 
 const DashboardScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -24,11 +32,13 @@ const DashboardScreen = ({ navigation }: any) => {
   const { user, subscription } = useSelector((state: any) => state.auth);
 
   const handleLogout = async () => {
-    await AsyncStorage.clear();
+    try {
+      await AsyncStorage.clear();
 
-    dispatch(logout());
-
-    navigation.replace('SignIn');
+      dispatch(logout());
+    } catch (error) {
+      console.log('LOGOUT ERROR =>', error);
+    }
   };
 
   const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${
@@ -39,6 +49,134 @@ const DashboardScreen = ({ navigation }: any) => {
     subscription?.next_subscription?.plan?.duration_value || ''
   } ${subscription?.next_subscription?.plan?.duration_unit || ''}`;
 
+  const formatAmount = (amount?: number | string) => {
+    return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
+  };
+
+  const formatDate = (date?: string) => {
+    if (!date) return '—';
+
+    return new Date(date).toDateString();
+  };
+
+  const now = new Date();
+
+  const hasExpiredByDate = subscription?.end_date
+    ? new Date(subscription?.end_date) < now
+    : false;
+
+  const status = subscription?.status?.toUpperCase();
+
+  const isActive = status === 'ACTIVE' && !hasExpiredByDate;
+
+  const isExpired = hasExpiredByDate || status === 'EXPIRED';
+
+  const isFreePlan = subscription?.plan?.price
+    ? Number(subscription.plan.price) === 0
+    : Number(subscription?.total_amount || 0) === 0;
+
+  const isPaidPlan = !isFreePlan;
+
+  const remainingDays = subscription?.end_date
+    ? Math.ceil(
+        (new Date(subscription.end_date).getTime() - new Date().getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
+    : null;
+
+  const remainingDaysLabel =
+    remainingDays === null
+      ? '—'
+      : remainingDays <= 0
+      ? 'Expired'
+      : `${remainingDays} day${remainingDays > 1 ? 's' : ''} left`;
+
+  const handleRenewPlan = async () => {
+    try {
+      console.log('RENEW SUBSCRIPTION ID =>', subscription?.id);
+
+      /* STEP 1: CREATE RENEW ORDER */
+      const res = await renewPlan(subscription?.id);
+
+      console.log('RENEW API RESPONSE =>', res);
+
+      if (!res?.status) {
+        Alert.alert('Error', res?.message || 'Unable to renew plan');
+        return;
+      }
+
+      const payment = res?.data?.payment;
+
+      if (!payment) {
+        Alert.alert('Error', 'Payment data not received');
+        return;
+      }
+
+      /* STEP 2: OPEN RAZORPAY */
+      const options = {
+        key: payment?.razorpay_key,
+        amount: Number(payment?.amount),
+        currency: payment?.currency || 'INR',
+        order_id: payment?.order_id,
+
+        name: 'Lex Witness',
+
+        description: 'Subscription Renewal',
+
+        prefill: {
+          email: user?.email || '',
+          contact: user?.contact || '',
+          name: `${user?.first_name || ''} ${user?.last_name || ''}`,
+        },
+
+        theme: {
+          color: '#c9060a',
+        },
+      };
+
+      const razorpayResponse = await RazorpayCheckout.open(options);
+
+      console.log('RAZORPAY SUCCESS =>', razorpayResponse);
+
+      /* STEP 3: VERIFY PAYMENT */
+      const verifyRes = await verifyRenewPayment({
+        razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
+
+        razorpay_order_id: razorpayResponse?.razorpay_order_id,
+
+        razorpay_signature: razorpayResponse?.razorpay_signature,
+
+        membership_plan_id: subscription?.membership_plan_id,
+
+        purchase_type: 'RENEW',
+      });
+
+      console.log('VERIFY PAYMENT RESPONSE =>', verifyRes);
+
+      if (verifyRes?.status) {
+        dispatch(
+          updateSubscription({
+            next_subscription: verifyRes?.data?.subscription,
+          }),
+        );
+
+        Alert.alert('Success', 'Plan renewed successfully');
+      } else {
+        Alert.alert(
+          'Error',
+          verifyRes?.message || 'Payment verification failed',
+        );
+      }
+    } catch (error: any) {
+      console.log('RENEW FLOW ERROR =>', error?.response?.data || error);
+
+      Alert.alert(
+        'Error',
+        error?.response?.data?.message || error?.message || 'Renew failed',
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#b30404" />
@@ -48,10 +186,7 @@ const DashboardScreen = ({ navigation }: any) => {
         contentContainerStyle={styles.scrollContainer}
       >
         {/* HEADER */}
-        <LinearGradient
-          colors={['#d10a0f', '#8f0205']}
-          style={styles.header}
-        >
+        <LinearGradient colors={['#d10a0f', '#8f0205']} style={styles.header}>
           <View style={styles.profileRow}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
@@ -118,23 +253,53 @@ const DashboardScreen = ({ navigation }: any) => {
                   Current Subscription
                 </Text>
 
-                <Text style={styles.planName}>
-                  {subscription?.plan?.name}
-                </Text>
+                <Text style={styles.planName}>{subscription?.plan?.name}</Text>
               </View>
 
               <View style={styles.durationBadge}>
-                <Text style={styles.durationText}>
-                  {currentPlanDuration}
-                </Text>
+                <Text style={styles.durationText}>{currentPlanDuration}</Text>
               </View>
             </View>
 
             <View style={styles.statusRow}>
-              <View style={styles.activeDot} />
+              <View
+                style={[
+                  styles.activeDot,
+                  {
+                    backgroundColor: isActive ? '#18b76a' : '#c9060a',
+                  },
+                ]}
+              />
 
-              <Text style={styles.activeText}>
-                {subscription?.status}
+              <Text
+                style={[
+                  styles.activeText,
+                  {
+                    color: isActive ? '#18b76a' : '#c9060a',
+                  },
+                ]}
+              >
+                {isActive ? 'Active' : isExpired ? 'Expired' : status}
+              </Text>
+            </View>
+
+            {/* REMAINING DAYS CARD */}
+            <View style={styles.remainingContainer}>
+              <View style={styles.remainingLeft}>
+                <Icon name="clock" size={16} color="#c9060a" />
+
+                <Text style={styles.remainingLabel}>Remaining Time</Text>
+              </View>
+
+              <Text
+                style={[
+                  styles.remainingValue,
+                  remainingDays !== null && remainingDays <= 7
+                    ? { color: '#c9060a' }
+                    : {},
+                ]}
+              >
+                {remainingDaysLabel}
               </Text>
             </View>
 
@@ -152,9 +317,7 @@ const DashboardScreen = ({ navigation }: any) => {
               <View style={styles.detailBox}>
                 <Text style={styles.detailLabel}>End Date</Text>
 
-                <Text style={styles.detailValue}>
-                  {subscription?.end_date}
-                </Text>
+                <Text style={styles.detailValue}>{subscription?.end_date}</Text>
               </View>
 
               <View style={styles.detailBox}>
@@ -176,6 +339,121 @@ const DashboardScreen = ({ navigation }: any) => {
           </LinearGradient>
         </View>
 
+        {/* RENEW BUTTON */}
+        {isPaidPlan &&
+          isActive &&
+          remainingDays !== null &&
+          remainingDays <= 30 &&
+          remainingDays > 0 && (
+            <TouchableOpacity
+              style={styles.renewBtn}
+              activeOpacity={0.9}
+              onPress={handleRenewPlan}
+            >
+              <LinearGradient
+                colors={['#c9060a', '#8f0205']}
+                style={styles.renewGradient}
+              >
+                <Icon name="refresh-cw" size={18} color="#fff" />
+
+                <Text style={styles.renewText}>
+                  Renew Plan ({remainingDays} day
+                  {remainingDays > 1 ? 's' : ''} left)
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+        {/* CHANGE / UPGRADE PLAN BUTTON */}
+        <TouchableOpacity
+          style={styles.upgradeBtn}
+          activeOpacity={0.9}
+          onPress={() =>
+            navigation.navigate('Subscription', {
+              mode: 'upgrade',
+            })
+          }
+        >
+          <LinearGradient
+            colors={['#111827', '#1f2937']}
+            style={styles.upgradeGradient}
+          >
+            <Icon name="zap" size={18} color="#fff" />
+
+            <Text style={styles.upgradeText}>
+              {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
+            </Text>
+
+            <Icon
+              name="arrow-up-right"
+              size={18}
+              color="#fff"
+              style={{ marginLeft: 8 }}
+            />
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* PLAN STATUS CARD */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <View style={styles.statIconWrap}>
+              <Icon name="award" size={18} color="#c9060a" />
+            </View>
+
+            <Text style={styles.statLabel}>Current Plan</Text>
+
+            <Text style={styles.statValue}>
+              {subscription?.plan?.name || 'No Plan'}
+            </Text>
+
+            <Text style={styles.statSub}>{currentPlanDuration}</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconWrap}>
+              <Icon name="clock" size={18} color="#c9060a" />
+            </View>
+
+            <Text style={styles.statLabel}>Remaining</Text>
+
+            <Text
+              style={[
+                styles.statValue,
+                remainingDays !== null && remainingDays <= 7
+                  ? { color: '#c9060a' }
+                  : {},
+              ]}
+            >
+              {remainingDaysLabel}
+            </Text>
+
+            <Text style={styles.statSub}>until expiry</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={styles.statIconWrap}>
+              <Icon
+                name={isActive ? 'check-circle' : 'x-circle'}
+                size={18}
+                color={isActive ? '#18b76a' : '#c9060a'}
+              />
+            </View>
+
+            <Text style={styles.statLabel}>Status</Text>
+
+            <Text
+              style={[
+                styles.statValue,
+                {
+                  color: isActive ? '#18b76a' : '#c9060a',
+                },
+              ]}
+            >
+              {isActive ? 'Active' : isExpired ? 'Expired' : status}
+            </Text>
+          </View>
+        </View>
+
         {/* UPCOMING SUBSCRIPTION */}
         {subscription?.next_subscription && (
           <View style={styles.subscriptionCard}>
@@ -195,9 +473,7 @@ const DashboardScreen = ({ navigation }: any) => {
                 </View>
 
                 <View style={styles.durationBadge}>
-                  <Text style={styles.durationText}>
-                    {nextPlanDuration}
-                  </Text>
+                  <Text style={styles.durationText}>{nextPlanDuration}</Text>
                 </View>
               </View>
 
@@ -245,9 +521,7 @@ const DashboardScreen = ({ navigation }: any) => {
                 </View>
               </View>
 
-              <Text style={styles.gstText}>
-                GST Included (18%)
-              </Text>
+              <Text style={styles.gstText}>GST Included (18%)</Text>
             </LinearGradient>
           </View>
         )}
@@ -525,5 +799,139 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     marginLeft: 10,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 18,
+  },
+
+  statCard: {
+    width: '31%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 14,
+
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+
+    elevation: 3,
+  },
+
+  statIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#fff2f2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+
+  statLabel: {
+    fontSize: 11,
+    color: '#777',
+    marginBottom: 6,
+  },
+
+  statValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111',
+  },
+
+  statSub: {
+    fontSize: 11,
+    color: '#999',
+    marginTop: 4,
+  },
+
+  renewBtn: {
+    marginHorizontal: 16,
+    marginTop: 18,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+
+  renewGradient: {
+    paddingVertical: 18,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  renewText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+    marginLeft: 10,
+  },
+
+  upgradeBtn: {
+    marginHorizontal: 16,
+    marginTop: 14,
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+
+  upgradeGradient: {
+    paddingVertical: 18,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  upgradeText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 15,
+    marginLeft: 10,
+  },
+
+  remainingContainer: {
+    marginTop: 16,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+
+    elevation: 2,
+  },
+
+  remainingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  remainingLabel: {
+    marginLeft: 8,
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '600',
+  },
+
+  remainingValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#18b76a',
   },
 });
