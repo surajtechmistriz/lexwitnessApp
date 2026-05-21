@@ -10,18 +10,18 @@ import {
 } from 'react-native';
 import { getLatestMagazines } from '../api/home.api';
 import Config from 'react-native-config';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  interpolate, 
-  Extrapolate 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolate,
 } from 'react-native-reanimated';
 import Carousel from 'react-native-reanimated-carousel';
 
 const { width } = Dimensions.get('window');
 // Modern magazine ratio is usually 3:4 or 1:1.41
-const ITEM_WIDTH = width * 0.42; 
-const ITEM_HEIGHT = ITEM_WIDTH * 1.4; 
+const ITEM_WIDTH = width * 0.42;
+const ITEM_HEIGHT = ITEM_WIDTH * 1.4;
 const BRAND_RED = '#c9060a';
 const BRAND_DARK = '#333';
 
@@ -46,7 +46,8 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
     if (skipId !== undefined) fetchEditions();
   }, [skipId]);
 
-  if (loading) return <ActivityIndicator style={styles.loader} color={BRAND_RED} />;
+  if (loading)
+    return <ActivityIndicator style={styles.loader} color={BRAND_RED} />;
   if (!editions.length) return null;
 
   return (
@@ -63,38 +64,38 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
       </View>
 
       {/* CAROUSEL */}
-     <Carousel
-  loop={false}
-  autoPlay={false}
-  style={styles.carouselStyle}
-  width={ITEM_WIDTH + 16}
-  height={ITEM_HEIGHT + 40}
-  data={editions}
-  pagingEnabled
-  onConfigurePanGesture={(gesture) => {
-    gesture.activeOffsetX([-10, 10]);
-  }}
-  onProgressChange={(_, absoluteProgress) => {
-    progressValue.value = absoluteProgress;
-  }}
-  renderItem={({ item, index }) => (
-    <EditionCard 
-      item={item}
-      index={index}
-      progressValue={progressValue}
-      onPress={() => onPressItem?.(item)}
-    />
-  )}
-/>
+      <Carousel
+        loop={false}
+        autoPlay={false}
+        style={styles.carouselStyle}
+        width={ITEM_WIDTH + 16}
+        height={ITEM_HEIGHT + 40}
+        data={editions}
+        pagingEnabled
+        onConfigurePanGesture={gesture => {
+          gesture.activeOffsetX([-10, 10]);
+        }}
+        onProgressChange={(_, absoluteProgress) => {
+          progressValue.value = absoluteProgress;
+        }}
+        renderItem={({ item, index }) => (
+          <EditionCard
+            item={item}
+            index={index}
+            progressValue={progressValue}
+            onPress={() => onPressItem?.(item)}
+          />
+        )}
+      />
 
       {/* DYNAMIC PAGINATION */}
       <View style={styles.paginationContainer}>
         {editions.map((_, index) => {
           return (
-            <PaginationDot 
-                key={index} 
-                index={index} 
-                progressValue={progressValue} 
+            <PaginationDot
+              key={index}
+              index={index}
+              progressValue={progressValue}
             />
           );
         })}
@@ -110,16 +111,24 @@ const EditionCard = ({ item, index, progressValue, onPress }: any) => {
       progressValue.value,
       [index - 1, index, index + 1],
       [0.95, 1, 0.95],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     );
     return { transform: [{ scale }] };
   });
 
   return (
     <Animated.View style={[styles.cardWrapper, animatedStyle]}>
-      <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.card}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={onPress}
+        style={styles.card}
+      >
         <Image
-          source={{ uri: item.image ? `${imgUrl}/${item.image}` : 'https://via.placeholder.com/300x400' }}
+          source={{
+            uri: item.image
+              ? `${imgUrl}/${item.image}`
+              : 'https://via.placeholder.com/300x400',
+          }}
           style={styles.image}
         />
         <View style={styles.imageOverlay} />
@@ -130,31 +139,32 @@ const EditionCard = ({ item, index, progressValue, onPress }: any) => {
 
 // Internal component for the dynamic dots
 const PaginationDot = ({ index, progressValue }: any) => {
-    const dotStyle = useAnimatedStyle(() => {
-        const width = interpolate(
-            progressValue.value,
-            [index - 1, index, index + 1],
-            [8, 20, 8],
-            Extrapolate.CLAMP
-        );
-        const opacity = interpolate(
-            progressValue.value,
-            [index - 1, index, index + 1],
-            [0.3, 1, 0.3],
-            Extrapolate.CLAMP
-        );
-        return { width, opacity };
-    });
+  const dotStyle = useAnimatedStyle(() => {
+    const width = interpolate(
+      progressValue.value,
+      [index - 1, index, index + 1],
+      [8, 20, 8],
+      Extrapolate.CLAMP,
+    );
+    const opacity = interpolate(
+      progressValue.value,
+      [index - 1, index, index + 1],
+      [0.3, 1, 0.3],
+      Extrapolate.CLAMP,
+    );
+    return { width, opacity };
+  });
 
-    return <Animated.View style={[styles.dot, dotStyle]} />;
+  return <Animated.View style={[styles.dot, dotStyle]} />;
 };
 
 const styles = StyleSheet.create({
   wrapper: {
     paddingVertical: 20,
+    paddingHorizontal: 20,
     backgroundColor: '#fff',
     borderRadius: 4,
-    marginHorizontal:-12
+    marginHorizontal: -12,
   },
   headerRow: {
     flexDirection: 'row',

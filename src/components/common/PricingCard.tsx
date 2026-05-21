@@ -16,38 +16,29 @@ import {
 } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
-
 import RazorpayCheckout from 'react-native-razorpay';
 
 import { useNavigation } from '@react-navigation/native';
-
 import { useDispatch, useSelector } from 'react-redux';
+
 import { getPlans } from '../../services/api/plans';
-import { renewPlan, upgradePlan, verifySubscriptionPayment } from '../../services/api/subscription';
-import { setSubscription } from '../../redux/slices/subscriptionSlice';
 
-// import {
-//   upgradePlan,
-//   renewPlan,
-//   verifySubscriptionPayment,
-// } from '../../services/subscription';
+import {
+  upgradePlan,
+  verifySubscriptionPayment,
+} from '../../services/api/subscription';
 
-// import { getPlans } from '../../services/plans';
-
-// import { setSubscription } from '../../redux/slices/authSlice';
+import { setSubscription, updateSubscription } from '../../redux/slices/authSlice';
 
 const PricingCard = () => {
   const navigation = useNavigation<any>();
-
   const dispatch = useDispatch();
 
-  const { user, subscription, isAuthenticated } =
+  const { user, subscription } =
     useSelector((state: any) => state.auth);
 
   const [plans, setPlans] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(false);
-
   const [selectedPlanId, setSelectedPlanId] =
     useState<number>(2);
 
@@ -64,8 +55,8 @@ const PricingCard = () => {
       const data = Array.isArray(res)
         ? res
         : Array.isArray(res?.data)
-          ? res.data
-          : [];
+        ? res.data
+        : [];
 
       setPlans(data);
     } catch (error) {
@@ -75,16 +66,17 @@ const PricingCard = () => {
 
   /* ---------------- HELPERS ---------------- */
 
-  const parseFeatures = (feature: string) => {
-    if (!feature) return [];
+ const parseFeatures = (feature: string) => {
+  if (!feature) return [];
 
-    return feature
-      .replace(/<[^>]*>/g, '')
-      .split('\n')
-      .filter(Boolean);
-  };
+  const matches = feature.match(/<li>(.*?)<\/li>/g);
 
-  const activeSubscription = subscription;
+  if (!matches) return [];
+
+  return matches.map(item =>
+    item.replace(/<\/?li>/g, '').trim(),
+  );
+};
 
   const selectedPlan = useMemo(() => {
     return plans.find(
@@ -92,105 +84,196 @@ const PricingCard = () => {
     );
   }, [plans, selectedPlanId]);
 
-  const isFreePlanDisabled = useMemo(() => {
-    return isAuthenticated === true;
-  }, [isAuthenticated]);
+const isFreePlanDisabled = useMemo(() => {
+  return !!user;
+}, [user]);
 
   /* ---------------- SUBSCRIBE ---------------- */
 
 const handleSubscribe = useCallback(async () => {
   try {
-    const selectedPlan = plans.find(
-      (p) => Number(p.id) === Number(selectedPlanId)
-    );
-
     if (!selectedPlan) return;
 
-    const isFreePlan = Number(selectedPlan.price) === 0;
-
-    // ❌ free plan blocked for logged users
-    if (isFreePlan && isAuthenticated) {
-      Alert.alert("Free Plan", "Not available for existing users");
-      return;
-    }
-
-    // 🔐 NOT LOGGED IN → REGISTER FLOW
-    if (!isAuthenticated) {
-      navigation.navigate("Register", {
+    // GUEST USER
+    if (!user) {
+      navigation.navigate('Register', {
         selectedPlanId,
       });
+
       return;
     }
 
     setLoading(true);
 
-    const subscriptionId = activeSubscription?.id;
-    const isExpired =
-      activeSubscription?.status?.toUpperCase() === "EXPIRED" ||
-      (activeSubscription?.end_date &&
-        new Date(activeSubscription.end_date) < new Date());
+    console.log('UPGRADE PLAN =>', selectedPlan.id);
 
-    let apiResponse;
-    let purchaseType: "NEW" | "UPGRADE" = "NEW";
+    /* STEP 1 : CREATE ORDER */
+    const apiResponse = await upgradePlan(
+      selectedPlan.id,
+    );
 
-    // ONLY TWO CASES NOW
-    if (!subscriptionId) {
-      purchaseType = "NEW";
-      apiResponse = await upgradePlan(selectedPlan.id);
-    } else {
-      purchaseType = "UPGRADE";
-      apiResponse = await upgradePlan(selectedPlan.id);
-    }
+    console.log(
+      'UPGRADE API RESPONSE =>',
+      apiResponse,
+    );
 
-    const paymentData = apiResponse?.data?.payment;
+    const paymentData =
+      apiResponse?.data?.payment;
 
-    if (!paymentData) {
-      Alert.alert("Error", "Payment failed");
+    if (!paymentData?.order_id) {
+      Alert.alert(
+        'Error',
+        'Unable to create payment order',
+      );
+
       return;
     }
 
+    /* STEP 2 : OPEN RAZORPAY */
+
     const options = {
       key: paymentData.razorpay_key,
-      amount: paymentData.amount,
-      currency: paymentData.currency || "INR",
+
+      amount: Number(paymentData.amount),
+
+      currency:
+        paymentData.currency || 'INR',
+
       order_id: paymentData.order_id,
-      name: "Lex Witness",
+
+      name: 'Lex Witness',
+
+      description: 'Membership Upgrade',
+
       prefill: {
-        name: `${user?.first_name || ""} ${user?.last_name || ""}`,
-        email: user?.email,
-        contact: user?.contact,
+        name: `${user?.first_name || ''} ${
+          user?.last_name || ''
+        }`,
+
+        email: user?.email || '',
+
+        contact: user?.contact || '',
       },
-      theme: { color: "#c9060a" },
+
+      theme: {
+        color: '#c9060a',
+      },
     };
 
-    RazorpayCheckout.open(options)
-      .then(async (response) => {
-        const verifyPayload = {
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_signature: response.razorpay_signature,
-          membership_plan_id: selectedPlan.id,
-          purchase_type: purchaseType,
-        };
+    const razorpayResponse =
+      await RazorpayCheckout.open(
+        options,
+      );
 
-        const verifyRes = await verifySubscriptionPayment(verifyPayload);
+    console.log(
+      'RAZORPAY SUCCESS =>',
+      razorpayResponse,
+    );
 
-        const sub = verifyRes?.data?.subscription;
+    /* STEP 3 : VERIFY PAYMENT */
 
-        if (sub) {
-          dispatch(setSubscription(sub));
-        }
+    const verifyPayload = {
+      razorpay_payment_id:
+        razorpayResponse?.razorpay_payment_id,
 
-        Alert.alert("Success", "Payment successful");
-        navigation.navigate("Dashboard");
-      })
-      .catch(() => {
-        Alert.alert("Cancelled", "Payment cancelled");
-      });
+      razorpay_order_id:
+        razorpayResponse?.razorpay_order_id,
+
+      razorpay_signature:
+        razorpayResponse?.razorpay_signature,
+
+      membership_plan_id:
+        selectedPlan.id,
+
+      purchase_type: 'UPGRADE',
+    };
+
+    console.log(
+      'VERIFY PAYLOAD =>',
+      verifyPayload,
+    );
+
+    const verifyRes =
+      await verifySubscriptionPayment(
+        verifyPayload,
+      );
+
+    console.log(
+      'VERIFY RESPONSE =>',
+      verifyRes,
+    );
+
+    if (!verifyRes?.status) {
+      Alert.alert(
+        'Error',
+        verifyRes?.message ||
+          'Payment verification failed',
+      );
+
+      return;
+    }
+
+    const sub =
+      verifyRes?.data?.subscription;
+
+    //     if (sub) {
+    //   dispatch(setSubscription(sub));
+    // }
+
+    if (sub) {
+     dispatch(
+  updateSubscription({
+    next_subscription: sub,
+    next_subscription_id: sub?.id,
+  }),
+);
+    }
+
+    Alert.alert(
+      'Success',
+      'Plan upgraded successfully',
+    );
+
+   navigation.navigate('MainTabs', {
+  screen: 'AccountTab',
+});
+  } catch (error: any) {
+    console.log(
+      'SUBSCRIPTION FLOW ERROR =>',
+      error?.response?.data || error,
+    );
+
+    // Razorpay cancel
+    if (
+      error?.code === 0 ||
+      error?.description ===
+        'Payment Cancelled'
+    ) {
+      Alert.alert(
+        'Cancelled',
+        'Payment cancelled',
+      );
+
+      return;
+    }
+
+    Alert.alert(
+      'Error',
+      error?.response?.data?.message ||
+        error?.message ||
+        'Something went wrong',
+    );
   } finally {
     setLoading(false);
   }
-}, [selectedPlanId, isAuthenticated, activeSubscription]);
+}, [
+  selectedPlan,
+  selectedPlanId,
+  navigation,
+  user,
+  dispatch,
+]);
+
   /* ---------------- LOADER ---------------- */
 
   if (!plans.length) {
@@ -240,13 +323,9 @@ const handleSubscribe = useCallback(async () => {
             <TouchableOpacity
               key={plan.id}
               activeOpacity={0.9}
-              disabled={
-                disableFreePlan
-              }
+              disabled={disableFreePlan}
               onPress={() =>
-                setSelectedPlanId(
-                  plan.id,
-                )
+                setSelectedPlanId(plan.id)
               }
               style={[
                 styles.card,
@@ -260,11 +339,7 @@ const handleSubscribe = useCallback(async () => {
               ]}
             >
               {plan.tag && (
-                <View
-                  style={
-                    styles.badge
-                  }
-                >
+                <View style={styles.badge}>
                   <Text
                     style={
                       styles.badgeText
@@ -277,15 +352,11 @@ const handleSubscribe = useCallback(async () => {
                 </View>
               )}
 
-              <Text
-                style={
-                  styles.planName
-                }
-              >
+              <Text style={styles.planName}>
                 {plan.name}
               </Text>
 
-              {activeSubscription?.plan_id ===
+              {subscription?.plan_id ===
                 plan.id && (
                 <Text
                   style={
@@ -302,18 +373,12 @@ const handleSubscribe = useCallback(async () => {
                 }
               >
                 <Text
-                  style={
-                    styles.currency
-                  }
+                  style={styles.currency}
                 >
                   ₹
                 </Text>
 
-                <Text
-                  style={
-                    styles.price
-                  }
-                >
+                <Text style={styles.price}>
                   {plan.price}
                 </Text>
               </View>
@@ -331,9 +396,7 @@ const handleSubscribe = useCallback(async () => {
                       index: number,
                     ) => (
                       <View
-                        key={
-                          index
-                        }
+                        key={index}
                         style={
                           styles.featureRow
                         }
@@ -373,8 +436,7 @@ const handleSubscribe = useCallback(async () => {
                     styles.selectText,
 
                     isSelected && {
-                      color:
-                        '#fff',
+                      color: '#fff',
                     },
                   ]}
                 >
@@ -390,48 +452,33 @@ const handleSubscribe = useCallback(async () => {
 
       {/* CTA */}
 
-      <TouchableOpacity
-        style={styles.subscribeBtn}
-        activeOpacity={0.9}
-        disabled={loading}
-        onPress={handleSubscribe}
-      >
-        <LinearGradient
-          colors={[
-            '#c9060a',
-            '#8f0205',
-          ]}
-          style={
-            styles.subscribeGradient
-          }
-        >
-          {loading ? (
-            <ActivityIndicator
-              color="#fff"
-            />
-          ) : (
-            <>
-              <Text
-                style={
-                  styles.subscribeText
-                }
-              >
-                {isAuthenticated
-                  ? 'UPGRADE NOW'
-                  : 'SUBSCRIBE NOW'}
-              </Text>
+     <TouchableOpacity
+  style={styles.subscribeBtn}
+  activeOpacity={0.9}
+  disabled={loading}
+  onPress={handleSubscribe}
+>
+  <LinearGradient
+    colors={['#c9060a', '#8f0205']}
+    style={styles.subscribeGradient}
+  >
+    {loading ? (
+      <ActivityIndicator color="#fff" />
+    ) : (
+      <>
+        <Text style={styles.subscribeText}>
+         {user
+  ? 'UPGRADE NOW'
+  : 'SUBSCRIBE NOW'}
+        </Text>
 
-              <Text
-                style={
-                  styles.arrow
-                }
-              >
-                →
-              </Text>
-            </>
-          )}
-        </LinearGradient>
-      </TouchableOpacity>
+        <Text style={styles.arrow}>
+          →
+        </Text>
+      </>
+    )}
+  </LinearGradient>
+</TouchableOpacity>
     </ScrollView>
   );
 };

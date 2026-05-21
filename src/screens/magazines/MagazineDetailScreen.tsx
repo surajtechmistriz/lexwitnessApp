@@ -149,19 +149,19 @@ export default function MagazineDetailScreen() {
         {/* MORE EDITIONS */}
         <View style={styles.moreSection}>
           {magazine?.id && (
-           <LatestEditions
-  skipId={magazine.id}
-  onPressItem={(item) =>
-    navigation.push('MagazineDetail', {
-      slug: item.slug,
-    })
-  }
-  onPressViewAll={() =>
-    // This tells navigation: Go to the 'Magazines' screen 
-    // If 'Magazines' is inside a stack, use the logic below:
-    navigation.navigate('Magazines') 
-  }
-/>
+            <LatestEditions
+              skipId={magazine.id}
+              onPressItem={item =>
+                navigation.push('MagazineDetail', {
+                  slug: item.slug,
+                })
+              }
+              onPressViewAll={() =>
+                // This tells navigation: Go to the 'Magazines' screen
+                // If 'Magazines' is inside a stack, use the logic below:
+                navigation.navigate('Magazines')
+              }
+            />
           )}
         </View>
       </ScrollView>

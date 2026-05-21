@@ -30,7 +30,7 @@ export default function DrawerNavigator() {
         <Drawer.Screen name="MainTabs" component={BottomTabs} />
 
         {/* EXTRA */}
-        <Drawer.Screen name="Subscription" component={Subscription} />
+        {/* <Drawer.Screen name="Subscription" component={Subscription} /> */}
       </Drawer.Navigator>
 
       <SearchOverlay

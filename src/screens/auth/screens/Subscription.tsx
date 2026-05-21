@@ -61,7 +61,11 @@ export default function SubscriptionPage() {
     : 'https://via.placeholder.com/300x400';
 
   return (
-    <MainLayout title="Subscription" showFilter={false} routeName="Subscription">
+    <MainLayout
+      title="Subscription"
+      showFilter={false}
+      routeName="Subscription"
+    >
       <StatusBar barStyle="light-content" />
 
       <SafeAreaView style={styles.safeArea}>
@@ -78,12 +82,11 @@ export default function SubscriptionPage() {
             <View style={styles.heroContent}>
               <Text style={styles.premiumBadge}>PREMIUM ACCESS</Text>
 
-              <Text style={styles.heroTitle}>
-                Making Sense{"\n"}of India
-              </Text>
+              <Text style={styles.heroTitle}>Making Sense{'\n'}of India</Text>
 
               <Text style={styles.heroSub}>
-                Unbiased journalism, deep-dive analysis, and the stories that define our nation.
+                Unbiased journalism, deep-dive analysis, and the stories that
+                define our nation.
               </Text>
 
               {/* IMAGE */}
@@ -128,17 +131,13 @@ export default function SubscriptionPage() {
 
           {/* --- TRUST BAR --- */}
           <View style={styles.trustBar}>
-            <Text style={styles.trustText}>
-              Join 100,000+ Premium Readers
-            </Text>
+            <Text style={styles.trustText}>Join 100,000+ Premium Readers</Text>
           </View>
 
           {/* --- BENEFITS --- */}
           <View style={styles.benefitsSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                Subscription Benefits
-              </Text>
+              <Text style={styles.sectionTitle}>Subscription Benefits</Text>
               <View style={styles.titleUnderline} />
             </View>
 

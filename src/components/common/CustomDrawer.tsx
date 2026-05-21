@@ -15,23 +15,53 @@ import { logout } from '../../redux/slices/authSlice';
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
 
-  const { isLoggedIn, user, isHydrated } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const { isLoggedIn, user, isHydrated } =
+    useSelector((state: RootState) => state.auth);
 
   if (!isHydrated) return null;
+
+  /* ---------------- NAVIGATION HELPERS ---------------- */
+
+const goToSubscription = () => {
+  navigation.closeDrawer();
+
+  setTimeout(() => {
+    navigation.navigate('MainTabs', {
+      screen: 'HomeTab',
+      params: {
+        screen: 'Subscription',
+      },
+    });
+  }, 200);
+};
+
+  const goToDashboard = () => {
+    navigation.closeDrawer();
+
+    setTimeout(() => {
+      navigation.navigate('MainTabs', {
+        screen: 'AccountTab',
+      });
+    }, 250);
+  };
+
+  const goToSignIn = () => {
+    navigation.closeDrawer();
+
+    setTimeout(() => {
+      navigation.navigate('MainTabs', {
+        screen: 'AccountTab',
+        params: {
+          screen: 'SignIn',
+        },
+      });
+    }, 250);
+  };
 
   const handleLogout = () => {
     dispatch(logout());
 
-    navigation.closeDrawer();
-
-    navigation.navigate('MainTabs', {
-      screen: 'AccountTab',
-      params: {
-        screen: 'SignIn',
-      },
-    });
+    goToSignIn();
   };
 
   return (
@@ -57,21 +87,12 @@ const CustomDrawer = ({ navigation }: any) => {
         )}
       </View>
 
-      {/* MENU */}
+      {/* LOGGED IN MENU */}
       {isLoggedIn ? (
         <>
           {/* DASHBOARD */}
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('MainTabs', {
-                screen: 'HomeTab',
-                params: {
-                  screen: 'Dashboard',
-                },
-              });
-
-              navigation.closeDrawer();
-            }}
+            onPress={goToDashboard}
             style={styles.drawerItem}
           >
             <Text style={styles.menuText}>
@@ -79,33 +100,21 @@ const CustomDrawer = ({ navigation }: any) => {
             </Text>
           </TouchableOpacity>
 
-          {/* MY PLAN */}
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('Subscription');
-
-              navigation.closeDrawer();
-            }}
+          {/* SUBSCRIBE */}
+          {/* <TouchableOpacity
+            onPress={goToSubscription}
             style={styles.drawerItem}
           >
             <Text style={styles.menuText}>
-              My Plan
+              Subscribe
             </Text>
-          </TouchableOpacity>
-
-          {/* PROFILE */}
+          </TouchableOpacity> */}
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('MainTabs', {
-                screen: 'HomeTab',
-              });
-
-              navigation.closeDrawer();
-            }}
+            onPress={goToSubscription}
             style={styles.drawerItem}
           >
             <Text style={styles.menuText}>
-              Profile
+              Subscribe
             </Text>
           </TouchableOpacity>
 
@@ -126,16 +135,7 @@ const CustomDrawer = ({ navigation }: any) => {
         <>
           {/* SIGN IN */}
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('MainTabs', {
-                screen: 'AccountTab',
-                params: {
-                  screen: 'SignIn',
-                },
-              });
-
-              navigation.closeDrawer();
-            }}
+            onPress={goToSignIn}
             style={styles.drawerItem}
           >
             <Text style={styles.menuText}>
@@ -145,11 +145,7 @@ const CustomDrawer = ({ navigation }: any) => {
 
           {/* SUBSCRIBE */}
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate('Subscription');
-
-              navigation.closeDrawer();
-            }}
+            onPress={goToSubscription}
             style={styles.drawerItem}
           >
             <Text style={styles.menuText}>

@@ -32,6 +32,7 @@ const SignInScreen = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
 const handleLogin = async () => {
   if (!email || !password) {
@@ -120,14 +121,27 @@ const handleLogin = async () => {
               />
 
               <Text style={styles.label}>Password</Text>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!loading}
-                style={[styles.input, loading && styles.disabledInput]}
-                placeholder="Enter password"
-              />
+             <View style={styles.passwordWrapper}>
+  <TextInput
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!showPassword}
+    editable={!loading}
+    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+    placeholder="Enter password"
+  />
+
+  <TouchableOpacity
+    onPress={() => setShowPassword(prev => !prev)}
+    style={styles.eyeBtn}
+  >
+    <Ionicons
+      name={showPassword ? 'eye-off' : 'eye'}
+      size={20}
+      color="#666"
+    />
+  </TouchableOpacity>
+</View>
 
               <TouchableOpacity
                 style={styles.checkboxRow}
@@ -228,7 +242,20 @@ const styles = StyleSheet.create({
   loginBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   footerLinks: { flexDirection: 'row', marginTop: 15 },
   redLink: { color: '#c9060a', fontSize: 14 },
-  separator: { marginHorizontal: 5 }
+  separator: { marginHorizontal: 5 },
+  passwordWrapper: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  borderWidth: 1,
+  borderColor: '#e0e0e0',
+  borderRadius: 2,
+  marginBottom: 15,
+  paddingHorizontal: 10,
+},
+
+eyeBtn: {
+  padding: 6,
+},
 });
 
 

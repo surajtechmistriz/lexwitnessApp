@@ -6,6 +6,7 @@ import CategoryScreen from "../../screens/category/CategoryScreen";
 import ArticleDetailPage from "../../screens/article/ArticleScreen";
 import AuthorScreen from "../../screens/author/AuthorScreen";
 import DashboardScreen from "../../screens/dashboard/DashboardScreen";
+import Subscription from "../../screens/auth/screens/Subscription";
 
 const Stack = createNativeStackNavigator();
 
@@ -39,6 +40,11 @@ export default function HomeStack() {
         name="Dashboard"
         component={DashboardScreen}
       />
+
+      <Stack.Screen
+  name="Subscription"
+  component={Subscription}
+/>
     </Stack.Navigator>
   );
 }

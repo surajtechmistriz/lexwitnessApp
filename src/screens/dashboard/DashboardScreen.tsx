@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   View,
@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   Alert,
   StatusBar,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,7 +22,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
   logout,
-  setSubscription,
   updateSubscription,
 } from '../../redux/slices/authSlice';
 
@@ -30,6 +32,50 @@ const DashboardScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
 
   const { user, subscription } = useSelector((state: any) => state.auth);
+
+  const [expandedPlans, setExpandedPlans] = useState<number[]>([]);
+
+  useEffect(() => {
+  // if (
+  //   Platform.OS === 'android' &&
+  //   UIManager.setLayoutAnimationEnabledExperimental
+  // ) {
+  //   UIManager.setLayoutAnimationEnabledExperimental(true);
+  // }
+}, []);
+
+
+
+  
+ const togglePlan = (index: number) => {
+  LayoutAnimation.configureNext({
+    duration: 300,
+    update: {
+      type: LayoutAnimation.Types.easeInEaseOut,
+    },
+    create: {
+      type: LayoutAnimation.Types.easeInEaseOut,
+      property: LayoutAnimation.Properties.opacity,
+    },
+    delete: {
+      type: LayoutAnimation.Types.easeInEaseOut,
+      property: LayoutAnimation.Properties.opacity,
+    },
+  });
+
+  setExpandedPlans(prev =>
+    prev.includes(index)
+      ? prev.filter(i => i !== index)
+      : [...prev, index],
+  );
+};
+
+  const upcomingPlans = Array.isArray(subscription?.next_subscriptions)
+    ? subscription.next_subscriptions
+    : subscription?.next_subscription
+    ? [subscription.next_subscription]
+    : [];
+
 
   const handleLogout = async () => {
     try {
@@ -241,6 +287,63 @@ const DashboardScreen = ({ navigation }: any) => {
           </View>
         </View>
 
+        {/* RENEW BUTTON */}
+        {isPaidPlan &&
+          isActive &&
+          remainingDays !== null &&
+          remainingDays <= 30 &&
+          remainingDays > 0 && (
+            <TouchableOpacity
+              style={styles.renewBtn}
+              activeOpacity={0.9}
+              onPress={handleRenewPlan}
+            >
+              <LinearGradient
+                colors={['#c9060a', '#8f0205']}
+                style={styles.renewGradient}
+              >
+                <Icon name="refresh-cw" size={18} color="#fff" />
+
+                <Text style={styles.renewText}>
+                  Renew Plan ({remainingDays} day
+                  {remainingDays > 1 ? 's' : ''} left)
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
+        {/* CHANGE / UPGRADE PLAN BUTTON */}
+        <TouchableOpacity
+          style={styles.upgradeBtn}
+          activeOpacity={0.9}
+          onPress={() =>
+            navigation.navigate('HomeTab', {
+  screen: 'Subscription',
+  params: {
+    mode: 'upgrade',
+  },
+})
+          }
+        >
+          <LinearGradient
+            colors={['#111827', '#1f2937']}
+            style={styles.upgradeGradient}
+          >
+            <Icon name="zap" size={18} color="#fff" />
+
+            <Text style={styles.upgradeText}>
+              {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
+            </Text>
+
+            <Icon
+              name="arrow-up-right"
+              size={18}
+              color="#fff"
+              style={{ marginLeft: 8 }}
+            />
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* CURRENT SUBSCRIPTION */}
         <View style={styles.subscriptionCard}>
           <LinearGradient
@@ -339,62 +442,8 @@ const DashboardScreen = ({ navigation }: any) => {
           </LinearGradient>
         </View>
 
-        {/* RENEW BUTTON */}
-        {isPaidPlan &&
-          isActive &&
-          remainingDays !== null &&
-          remainingDays <= 30 &&
-          remainingDays > 0 && (
-            <TouchableOpacity
-              style={styles.renewBtn}
-              activeOpacity={0.9}
-              onPress={handleRenewPlan}
-            >
-              <LinearGradient
-                colors={['#c9060a', '#8f0205']}
-                style={styles.renewGradient}
-              >
-                <Icon name="refresh-cw" size={18} color="#fff" />
-
-                <Text style={styles.renewText}>
-                  Renew Plan ({remainingDays} day
-                  {remainingDays > 1 ? 's' : ''} left)
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
-
-        {/* CHANGE / UPGRADE PLAN BUTTON */}
-        <TouchableOpacity
-          style={styles.upgradeBtn}
-          activeOpacity={0.9}
-          onPress={() =>
-            navigation.navigate('Subscription', {
-              mode: 'upgrade',
-            })
-          }
-        >
-          <LinearGradient
-            colors={['#111827', '#1f2937']}
-            style={styles.upgradeGradient}
-          >
-            <Icon name="zap" size={18} color="#fff" />
-
-            <Text style={styles.upgradeText}>
-              {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
-            </Text>
-
-            <Icon
-              name="arrow-up-right"
-              size={18}
-              color="#fff"
-              style={{ marginLeft: 8 }}
-            />
-          </LinearGradient>
-        </TouchableOpacity>
-
         {/* PLAN STATUS CARD */}
-        <View style={styles.statsContainer}>
+        {/* <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <View style={styles.statIconWrap}>
               <Icon name="award" size={18} color="#c9060a" />
@@ -452,80 +501,125 @@ const DashboardScreen = ({ navigation }: any) => {
               {isActive ? 'Active' : isExpired ? 'Expired' : status}
             </Text>
           </View>
-        </View>
+        </View> */}
 
-        {/* UPCOMING SUBSCRIPTION */}
-        {subscription?.next_subscription && (
-          <View style={styles.subscriptionCard}>
-            <LinearGradient
-              colors={['#ffffff', '#fff7f0']}
-              style={styles.subscriptionInner}
-            >
-              <View style={styles.subscriptionHeader}>
-                <View>
-                  <Text style={styles.subscriptionTitle}>
-                    Upcoming Subscription
-                  </Text>
+        {/* UPCOMING PLANS */}
+        {upcomingPlans.length > 0 && (
+          <View style={styles.upcomingWrapper}>
+            {/* HEADING */}
+            <View style={styles.upcomingHeadingRow}>
+              <Icon name="clock" size={18} color="#c9060a" />
 
-                  <Text style={styles.planName}>
-                    {subscription?.next_subscription?.plan?.name}
-                  </Text>
-                </View>
+              <Text style={styles.upcomingHeading}>Upcoming Plans</Text>
 
-                <View style={styles.durationBadge}>
-                  <Text style={styles.durationText}>{nextPlanDuration}</Text>
-                </View>
-              </View>
-
-              <View style={styles.pendingRow}>
-                <Icon name="clock" size={14} color="#ff8a00" />
-
-                <Text style={styles.pendingText}>
-                  {subscription?.next_subscription?.status}
+              <View style={styles.upcomingCount}>
+                <Text style={styles.upcomingCountText}>
+                  {upcomingPlans.length}
                 </Text>
               </View>
+            </View>
 
-              <View style={styles.divider} />
+            {upcomingPlans.map((item: any, index: number) => {
+              const expanded = expandedPlans.includes(index);
 
-              <View style={styles.detailGrid}>
-                <View style={styles.detailBox}>
-                  <Text style={styles.detailLabel}>Starts</Text>
+              const duration = `${item?.plan?.duration_value || ''} ${
+                item?.plan?.duration_unit || ''
+              }`;
 
-                  <Text style={styles.detailValue}>
-                    {subscription?.next_subscription?.start_date}
-                  </Text>
+              return (
+                <View key={index} style={styles.todoCard}>
+                  {/* HEADER */}
+                  <TouchableOpacity
+                    activeOpacity={0.9}
+                    onPress={() => togglePlan(index)}
+                    style={styles.todoHeader}
+                  >
+                    <View
+                      style={{
+                        flex: 1,
+                      }}
+                    >
+                      <Text style={styles.todoTitle}>{item?.plan?.name}</Text>
+
+                      <Text style={styles.todoSub}>{duration}</Text>
+                    </View>
+
+                    <View style={styles.pendingBadge}>
+                      <Text style={styles.pendingBadgeText}>
+                        {item?.status}
+                      </Text>
+                    </View>
+
+                <View
+  style={{
+    transform: [
+      {
+        rotate: expanded ? '180deg' : '0deg',
+      },
+    ],
+  }}
+>
+  <Icon
+    name="chevron-down"
+    size={22}
+    color="#111"
+    style={{ marginLeft: 12 }}
+  />
+</View>
+                  </TouchableOpacity>
+
+                  {/* EXPANDED DETAILS */}
+                
+                  <View
+  style={[
+    styles.todoDetails,
+    {
+      maxHeight: expanded ? 500 : 0,
+      opacity: expanded ? 1 : 0,
+      paddingBottom: expanded ? 18 : 0,
+    },
+  ]}
+>
+  <View style={styles.detailGrid}>
+    <View style={styles.detailBox}>
+      <Text style={styles.detailLabel}>Starts</Text>
+
+      <Text style={styles.detailValue}>
+        {item?.start_date}
+      </Text>
+    </View>
+
+    <View style={styles.detailBox}>
+      <Text style={styles.detailLabel}>Ends</Text>
+
+      <Text style={styles.detailValue}>
+        {item?.end_date}
+      </Text>
+    </View>
+
+    <View style={styles.detailBox}>
+      <Text style={styles.detailLabel}>Amount</Text>
+
+      <Text style={styles.detailValue}>
+        ₹{item?.total_amount}
+      </Text>
+    </View>
+
+    <View style={styles.detailBox}>
+      <Text style={styles.detailLabel}>Purchase</Text>
+
+      <Text style={styles.detailValue}>
+        {item?.purchase_type}
+      </Text>
+    </View>
+  </View>
+</View>
+               
                 </View>
-
-                <View style={styles.detailBox}>
-                  <Text style={styles.detailLabel}>Ends</Text>
-
-                  <Text style={styles.detailValue}>
-                    {subscription?.next_subscription?.end_date}
-                  </Text>
-                </View>
-
-                <View style={styles.detailBox}>
-                  <Text style={styles.detailLabel}>Amount</Text>
-
-                  <Text style={styles.detailValue}>
-                    ₹{subscription?.next_subscription?.total_amount}
-                  </Text>
-                </View>
-
-                <View style={styles.detailBox}>
-                  <Text style={styles.detailLabel}>Purchase</Text>
-
-                  <Text style={styles.detailValue}>
-                    {subscription?.next_subscription?.purchase_type}
-                  </Text>
-                </View>
-              </View>
-
-              <Text style={styles.gstText}>GST Included (18%)</Text>
-            </LinearGradient>
+              );
+            })}
           </View>
         )}
-
         {/* LOGOUT BUTTON */}
         <TouchableOpacity
           style={styles.logoutBtn}
@@ -934,4 +1028,97 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#18b76a',
   },
+
+  upcomingWrapper: {
+    marginHorizontal: 16,
+    marginTop: 20,
+  },
+
+  upcomingHeadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+
+  upcomingHeading: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#111',
+    marginLeft: 8,
+  },
+
+  upcomingCount: {
+    marginLeft: 10,
+    backgroundColor: '#c9060a',
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+
+  upcomingCountText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+
+todoCard: {
+  backgroundColor: '#fff',
+  borderRadius: 20,
+  marginBottom: 14,
+  borderLeftWidth: 4,
+  borderLeftColor: '#c9060a',
+  overflow: 'hidden',
+
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+
+  shadowOpacity: 0.05,
+  shadowRadius: 5,
+
+  elevation: 3,
+},
+
+  todoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 18,
+  },
+
+  todoTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: '#111',
+  },
+
+  todoSub: {
+    marginTop: 4,
+    fontSize: 13,
+    color: '#777',
+    textTransform: 'capitalize',
+  },
+
+  pendingBadge: {
+    backgroundColor: '#fff3e8',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 30,
+  },
+
+  pendingBadgeText: {
+    color: '#ff8a00',
+    fontWeight: '700',
+    fontSize: 11,
+    textTransform: 'uppercase',
+  },
+
+todoDetails: {
+  overflow: 'hidden',
+  paddingHorizontal: 18,
+},
 });

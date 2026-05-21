@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native-gesture-handler';
 import { StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -29,7 +32,7 @@ const MainLayout = ({
   const insets = useSafeAreaInsets();
 
   const { isLoggedIn, isHydrated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   // const [showPopup, setShowPopup] = useState(false);
@@ -71,7 +74,7 @@ const MainLayout = ({
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: insets.top, // 🔥 KEY FIX (notch safe)
+          paddingTop: insets.top, //  KEY FIX (notch safe)
         }}
         stickyHeaderIndices={
           hiddenTopMenu.includes(routeName || '') ? [0] : [1]
