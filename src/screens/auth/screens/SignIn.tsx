@@ -121,13 +121,13 @@ const handleLogin = async () => {
               />
 
               <Text style={styles.label}>Password</Text>
-             <View style={styles.passwordWrapper}>
+            <View style={styles.passwordWrapper}>
   <TextInput
     value={password}
     onChangeText={setPassword}
     secureTextEntry={!showPassword}
     editable={!loading}
-    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+    style={styles.passwordInput}
     placeholder="Enter password"
   />
 
@@ -243,14 +243,25 @@ const styles = StyleSheet.create({
   footerLinks: { flexDirection: 'row', marginTop: 15 },
   redLink: { color: '#c9060a', fontSize: 14 },
   separator: { marginHorizontal: 5 },
-  passwordWrapper: {
+
+
+
+
+passwordWrapper: {
   flexDirection: 'row',
   alignItems: 'center',
   borderWidth: 1,
   borderColor: '#e0e0e0',
   borderRadius: 2,
-  marginBottom: 15,
   paddingHorizontal: 10,
+  marginBottom: 15,
+},
+
+passwordInput: {
+  flex: 1,
+  paddingVertical: 10,
+  fontSize: 14,
+  borderWidth: 0,  
 },
 
 eyeBtn: {
