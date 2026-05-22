@@ -45,68 +45,35 @@ const MainLayout = ({
     'Archive',
   ];
 
-  // const disablePopupScreens = ['Register', 'SignIn', 'Subscription'];
-
-  // const shouldShowPopup =
-  //   !isLoggedIn && !disablePopupScreens.includes(routeName || '');
-
-  // useEffect(() => {
-  //   if (!isHydrated) return;
-
-  //   if (disablePopupScreens.includes(routeName || '')) {
-  //     setShowPopup(false);
-  //     return;
-  //   }
-
-  //   if (shouldShowPopup) {
-  //     const timer = setTimeout(() => {
-  //       setShowPopup(true);
-  //     }, 800);
-
-  //     return () => clearTimeout(timer);
-  //   } else {
-  //     setShowPopup(false);
-  //   }
-  // }, [isHydrated, isLoggedIn, routeName]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: insets.top, //  KEY FIX (notch safe)
-        }}
-        stickyHeaderIndices={
-          hiddenTopMenu.includes(routeName || '') ? [0] : [1]
-        }
-      >
-        {/* Top Menu */}
-        {!hiddenTopMenu.includes(routeName || '') && (
-          <View>
-            <TopMenu activeSlug={activeSlug} />
-          </View>
-        )}
 
-        {/* Banner */}
-        <View>
-          <Banner
-            title={title}
-            renderFilter={renderFilter}
-            showFilter={showFilter}
-          />
-        </View>
+  <SafeAreaView style={styles.container} edges={['bottom']}>
+    
+    {/* Top Safe Space */}
+    <View style={{ paddingTop: insets.top }}>
 
-        {/* Content */}
-        <View style={styles.content}>{children}</View>
-      </ScrollView>
+      {/* Top Menu */}
+      {!hiddenTopMenu.includes(routeName || '') && (
+        <TopMenu activeSlug={activeSlug} />
+      )}
 
-      {/* Popup */}
-      {/* <Popup
-        visible={showPopup}
-        onClose={() => setShowPopup(false)}
-      /> */}
-    </SafeAreaView>
-  );
+      {/* Banner */}
+      <Banner
+        title={title}
+        renderFilter={renderFilter}
+        showFilter={showFilter}
+      />
+    </View>
+
+    {/* Content */}
+    <View style={styles.content}>
+      {children}
+    </View>
+
+  </SafeAreaView>
+);
+
 };
 
 export default MainLayout;

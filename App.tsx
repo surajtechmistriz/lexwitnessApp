@@ -1,6 +1,6 @@
-import 'react-native-gesture-handler'; //  MUST be first
+import 'react-native-gesture-handler';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -10,12 +10,80 @@ import NoInternetPopup from './src/modal/NoInternetPopup';
 import { Provider } from 'react-redux';
 import { store } from './src/redux/store';
 import AppInitializer from './src/redux/AppInitializer';
-// import SplashScreen from 'react-native-splash-screen';
+
+import Toast, {
+  BaseToast,
+  ErrorToast,
+} from 'react-native-toast-message';
+
+import NetInfo from '@react-native-community/netinfo';
+
+const toastConfig = {
+  success: (props: any) => (
+    <BaseToast
+      {...props}
+      style={{
+        borderLeftColor: 'green',
+        zIndex: 9999,
+        elevation: 9999,
+      }}
+    />
+  ),
+
+  error: (props: any) => (
+    <ErrorToast
+      {...props}
+      style={{
+        borderLeftColor: 'red',
+        zIndex: 9999,
+        elevation: 9999,
+      }}
+    />
+  ),
+};
 
 export default function App() {
-  // useEffect(() => {
-  //   SplashScreen.hide();
-  // }, []);
+  const wasOffline = useRef(false);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      const isConnected = state.isConnected;
+
+      // internet lost
+      if (!isConnected) {
+        wasOffline.current = true;
+
+        Toast.show({
+          type: 'error',
+          text1: 'No Internet',
+          text2: 'Connection lost',
+        });
+      }
+
+      // internet back
+      if (isConnected && wasOffline.current) {
+        wasOffline.current = false;
+
+        Toast.show({
+          type: 'success',
+          text1: 'Internet Connected',
+          text2: 'Refreshing app...',
+        });
+
+        // OPTIONAL REFRESH ACTIONS HERE
+        // dispatch(fetchHomeData())
+        // dispatch(fetchMagazines())
+
+        // OPTIONAL NAVIGATION RESET
+        // navigationRef.reset({
+        //   index: 0,
+        //   routes: [{ name: 'HomeTab' }],
+        // });
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -24,8 +92,14 @@ export default function App() {
           <AppInitializer>
             <AppNavigator />
 
-            {/* Global Popup */}
-            <NoInternetPopup />
+            {/* <NoInternetPopup /> */}
+
+            <Toast
+              position="top"
+              topOffset={60}
+              visibilityTime={3000}
+              config={toastConfig}
+            />
           </AppInitializer>
         </Provider>
       </SafeAreaProvider>

@@ -6,11 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
   Modal,
+  useWindowDimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import MainLayout from '../../../MainLayout';
@@ -20,9 +21,13 @@ import {
   sendOtpApi,
   registerApi,
   verifyPaymentApi,
-} from "../api/services";
+} from '../api/services';
 import { ActivityIndicator } from 'react-native';
-import RazorpayCheckout from "react-native-razorpay";
+import RazorpayCheckout from 'react-native-razorpay';
+import { useDispatch } from 'react-redux';
+import { CommonActions, useNavigation } from '@react-navigation/native';
+import { loginSuccess } from '../../../redux/slices/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Interface for membership plan
 interface MembershipPlan {
@@ -42,6 +47,11 @@ interface MembershipPlan {
 }
 
 const RegisterScreen = () => {
+  const dispatch = useDispatch();
+  const navigation = useNavigation<any>();
+
+  const { width } = useWindowDimensions();
+
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
@@ -159,7 +169,7 @@ const RegisterScreen = () => {
       };
 
       const res = await sendOtpApi(payload);
-
+      console.log('OTP data', res);
       if (res?.status) {
         setIsOtpSent(true);
 
@@ -204,129 +214,171 @@ const RegisterScreen = () => {
   };
 
   // Register User
-const registerUser = async () => {
-  try {
-    setLoading(true);
+  const registerUser = async () => {
+    try {
+      setLoading(true);
 
-    const payload = {
-      first_name: form.first_name,
-      last_name: form.last_name,
-      email: form.email,
-      contact: form.contact,
-      password: form.password,
-      password_confirmation: form.password_confirmation,
-      address: form.address,
-      membership_plan_id: form.plan_id,
-      dob: form.dob,
-      organisation: form.organisation_name,
-      city: form.city,
-      state: form.state,
-      country: form.country,
-      pincode: form.pincode,
-      otp: form.otp,
-    };
-
-    const res = await registerApi(payload);
-
-    if (!res?.status) {
-      showToast(
-        "error",
-        "Failed",
-        res?.message || "Registration failed"
-      );
-      return;
-    }
-
-    // FREE PLAN
-    if (!res?.data?.payment) {
-      showToast(
-        "success",
-        "Success",
-        "Registration completed successfully"
-      );
-
-      return;
-    }
-
-    // PAID PLAN
-    const payment = res.data.payment;
-
-    const options = {
-      description: "Membership Subscription",
-      image: "https://your-logo-url.com/logo.png",
-      currency: payment.currency,
-      key: payment.razorpay_key,
-      amount: payment.amount,
-      name: "Your App Name",
-      order_id: payment.order_id,
-      prefill: {
+      const payload = {
+        first_name: form.first_name,
+        last_name: form.last_name,
         email: form.email,
         contact: form.contact,
-        name: `${form.first_name} ${form.last_name}`,
-      },
-      theme: {
-        color: "#c9060a",
-      },
-    };
+        password: form.password,
+        password_confirmation: form.password_confirmation,
+        address: form.address,
+        membership_plan_id: form.plan_id,
+        dob: form.dob,
+        organisation: form.organisation_name,
+        city: form.city,
+        state: form.state,
+        country: form.country,
+        pincode: form.pincode,
+        otp: form.otp,
+      };
 
-    RazorpayCheckout.open(options)
-      .then(async (paymentResponse: any) => {
-        try {
-          const verifyPayload = {
-            purchase_type: res.data.purchase_type,
-            membership_plan_id:
-              res.data.membership_plan_id.toString(),
-            razorpay_payment_id:
-              paymentResponse.razorpay_payment_id,
-            razorpay_order_id:
-              paymentResponse.razorpay_order_id,
-            razorpay_signature:
-              paymentResponse.razorpay_signature,
-          };
+      const res = await registerApi(payload);
 
-          const verifyRes = await verifyPaymentApi(
-            verifyPayload
-          );
+      if (!res?.status) {
+        showToast('error', 'Failed', res?.message || 'Registration failed');
+        return;
+      }
 
-          if (verifyRes?.status) {
-            showToast(
-              "success",
-              "Success",
-              "Payment verified & subscription activated"
-            );
-          } else {
-            showToast(
-              "error",
-              "Verification Failed",
-              verifyRes?.message
-            );
-          }
-        } catch (err: any) {
-          showToast(
-            "error",
-            "Error",
-            err?.message || "Payment verification failed"
+      // FREE PLAN
+      if (!res?.data?.payment) {
+        const token = res?.data?.token;
+        const user = res?.data?.user;
+        const subscription = res?.data?.subscription;
+
+        // save to storage
+        await AsyncStorage.setItem('token', token);
+        await AsyncStorage.setItem('user', JSON.stringify(user));
+
+        if (subscription) {
+          await AsyncStorage.setItem(
+            'subscription',
+            JSON.stringify(subscription),
           );
         }
-      })
-      .catch((error: any) => {
-        showToast(
-          "error",
-          "Payment Failed",
-          error?.description || "User cancelled payment"
+
+        // redux login
+        dispatch(
+          loginSuccess({
+            token,
+            user,
+            subscription,
+          }),
         );
-      });
-  } catch (err: any) {
-    showToast(
-      "error",
-      "Error",
-      err?.message || "Something went wrong"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
- 
+
+        showToast('success', 'Success', 'Registration completed successfully');
+
+        // redirect dashboard
+        setTimeout(() => {
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'AccountTab' }],
+            }),
+          );
+        }, 100);
+
+        return;
+      }
+
+      // PAID PLAN
+      const payment = res.data.payment;
+
+      const options = {
+        description: 'Membership Subscription',
+        image: 'https://your-logo-url.com/logo.png',
+        currency: payment.currency,
+        key: payment.razorpay_key,
+        amount: payment.amount,
+        name: 'Your App Name',
+        order_id: payment.order_id,
+        prefill: {
+          email: form.email,
+          contact: form.contact,
+          name: `${form.first_name} ${form.last_name}`,
+        },
+        theme: {
+          color: '#c9060a',
+        },
+      };
+
+      try {
+        const paymentResponse: any = await RazorpayCheckout.open(options);
+
+        const verifyPayload = {
+          purchase_type: res.data.purchase_type,
+          membership_plan_id: res.data.membership_plan_id.toString(),
+          razorpay_payment_id: paymentResponse.razorpay_payment_id,
+          razorpay_order_id: paymentResponse.razorpay_order_id,
+          razorpay_signature: paymentResponse.razorpay_signature,
+        };
+
+        const verifyRes = await verifyPaymentApi(verifyPayload);
+
+        if (verifyRes?.status) {
+          const token = verifyRes?.data?.token || res?.data?.token;
+          const user = verifyRes?.data?.user || res?.data?.user;
+          const subscription =
+            verifyRes?.data?.subscription || res?.data?.subscription;
+
+          // save storage
+          await AsyncStorage.setItem('token', token);
+          await AsyncStorage.setItem('user', JSON.stringify(user));
+
+          if (subscription) {
+            await AsyncStorage.setItem(
+              'subscription',
+              JSON.stringify(subscription),
+            );
+          }
+
+          // redux login
+          dispatch(
+            loginSuccess({
+              token,
+              user,
+              subscription,
+            }),
+          );
+
+          showToast(
+            'success',
+            'Success',
+            'Payment verified & subscription activated',
+          );
+
+          // redirect
+          setTimeout(() => {
+            navigation.dispatch(
+              CommonActions.reset({
+                index: 0,
+                routes: [{ name: 'AccountTab' }],
+              }),
+            );
+          }, 100);
+        } else {
+          showToast(
+            'error',
+            'Verification Failed',
+            verifyRes?.message || 'Verification failed',
+          );
+        }
+      } catch (error: any) {
+        showToast(
+          'error',
+          'Payment Failed',
+          error?.description || error?.message || 'User cancelled payment',
+        );
+      }
+    } catch (err: any) {
+      showToast('error', 'Error', err?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getDurationText = (plan: MembershipPlan) => {
     return `${plan.duration_value} ${plan.duration_unit}${
@@ -397,11 +449,11 @@ const registerUser = async () => {
     return true;
   };
 
-const handleSubmit = async () => {
-  if (!validateForm()) return;
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
 
-  await registerUser();
-};
+    await registerUser();
+  };
 
   const selectedPlan = plans.find(p => p.id.toString() === form.plan_id);
   const otherPlans = plans.filter(p => p.id.toString() !== form.plan_id);
@@ -628,6 +680,7 @@ const handleSubmit = async () => {
                     {!!selectedPlan.feature && (
                       <View style={styles.featuresContainer}>
                         <RenderHTML
+                          contentWidth={width}
                           source={{ html: selectedPlan.feature }}
                           baseStyle={styles.featureText}
                         />
@@ -765,7 +818,7 @@ const handleSubmit = async () => {
               </Text>
               <Text style={styles.otpDisplay}>{receivedOtp}</Text>
               <Text style={styles.modalInfo}>
-                This OTP is valid for 5 minutes.{'\n'}
+                This OTP is valid for 1 minutes.{'\n'}
                 Use this OTP to complete your registration.
               </Text>
 
@@ -789,7 +842,7 @@ const handleSubmit = async () => {
         </View>
       </Modal>
 
-      <Toast />
+      {/* <Toast /> */}
     </MainLayout>
   );
 };
