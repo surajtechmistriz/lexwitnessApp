@@ -69,7 +69,9 @@ const Popup = ({
 
   const goToSubscription = () => {
     handleClose();
-    navigate('Subscription');
+  navigate('HomeTab', {
+  screen: 'Subscription',
+})
   };
 
   const goToMagazine = () => {
@@ -77,12 +79,12 @@ const Popup = ({
 
     handleClose();
 
-    navigate('Magazines', {
-      screen: 'MagazineDetail',
-      params: {
-        slug: data.magazine.slug || String(data.magazine.id),
-      },
-    });
+  navigate('MagazinesTab', {
+  screen: 'MagazineDetail',
+  params: {
+    slug: data.magazine.slug || String(data.magazine.id),
+  },
+})
   };
 
   return (

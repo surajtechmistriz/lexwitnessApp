@@ -38,12 +38,10 @@ const AppNavigator = () => {
 
   return (
     <Animated.View style={{ flex: 1, opacity }}>
-     <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
   <RootStack />
+  <GlobalPopup />
 </NavigationContainer>
-
-      {/* Global things only */}
-      <GlobalPopup />
     </Animated.View>
   );
 };

@@ -7,7 +7,7 @@ import { RootState } from '../../redux/store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type HeaderProps = {
-  navigation: any; // ✅ added
+  navigation: any; //  added
   onSearchPress: () => void;
 };
 
@@ -20,7 +20,7 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
 
   /* ---------------- DRAWER ---------------- */
   const handleToggleDrawer = () => {
-    navigation.openDrawer(); // ✅ fixed
+    navigation.openDrawer(); //  fixed
   };
 
   /* ---------------- GO HOME ---------------- */

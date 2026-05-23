@@ -112,11 +112,13 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     fetchMagazines(page, selectedYear);
   };
 
- const renderItem = ({ item }: any) => (
+  const renderItem = ({ item }: any) => (
     <TouchableOpacity
       style={styles.card}
       activeOpacity={0.9}
-      onPress={() => navigation.navigate('MagazineDetail', { slug: item?.slug })}
+      onPress={() =>
+        navigation.navigate('MagazineDetail', { slug: item?.slug })
+      }
     >
       <View style={styles.imageWrapper}>
         <Image
@@ -131,7 +133,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
         {/* Subtle overlay for realism */}
         <View style={styles.imageOverlay} />
       </View>
-      
+
       <View style={styles.cardContent}>
         <Text style={styles.title} numberOfLines={1}>
           {item.title || item.magazine_name}
@@ -146,7 +148,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   return (
     <MainLayout
       title="Magazines" // Changed to Library for a more "App" feel
-      routeName="Magazines" 
+      routeName="Magazines"
       renderFilter={close => (
         <YearFilter
           years={years}
@@ -164,7 +166,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
       <View style={styles.container}>
         {loading ? (
           <View style={styles.centerLoader}>
-             <ActivityIndicator size="large" color="#c9060a" />
+            <ActivityIndicator size="large" color="#c9060a" />
           </View>
         ) : (
           <FlatList
@@ -201,15 +203,25 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     </MainLayout>
   );
 };
-  
 
 export default MagazinesScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
-  centerLoader: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 },
+  centerLoader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
   headerArea: { paddingHorizontal: 16, paddingTop: 20, marginBottom: 10 },
-  heading: { fontSize: 13, fontWeight: '800', color: '#888', letterSpacing: 1.2, textTransform: 'uppercase' },
+  heading: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#888',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
   underline: {
     width: 30,
     height: 3,
@@ -221,14 +233,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   flatListContent: { paddingBottom: 40 },
-  
-  card: { 
-    width: ITEM_WIDTH, 
-    marginBottom: 24 
+
+  card: {
+    width: ITEM_WIDTH,
+    marginBottom: 24,
   },
-  imageWrapper: { 
-    width: '100%', 
-    aspectRatio: 3 / 4, 
+  imageWrapper: {
+    width: '100%',
+    aspectRatio: 3 / 4,
     borderRadius: 6,
     backgroundColor: '#eee',
     // Physical book shadow
@@ -252,22 +264,22 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.02)', // Soft overlay for texture
   },
-  cardContent: { 
-    paddingTop: 12, 
-    paddingHorizontal: 2 
+  cardContent: {
+    paddingTop: 12,
+    paddingHorizontal: 2,
   },
-  title: { 
-    fontSize: 14, 
-    fontWeight: '700', 
-    color: '#1A1A1B', 
-    textAlign: 'center' 
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1A1A1B',
+    textAlign: 'center',
   },
-  editionText: { 
-    fontSize: 12, 
-    color: '#6B7280', 
-    marginTop: 3, 
+  editionText: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginTop: 3,
     textAlign: 'left',
-    fontWeight: '500' 
+    fontWeight: '500',
   },
   footerWrapper: { marginTop: 10, paddingBottom: 20 },
 });

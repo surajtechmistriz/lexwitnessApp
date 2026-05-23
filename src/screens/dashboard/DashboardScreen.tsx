@@ -27,6 +27,7 @@ import {
 
 import RazorpayCheckout from 'react-native-razorpay';
 import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
+import Toast from 'react-native-toast-message';
 
 const DashboardScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -78,14 +79,29 @@ const DashboardScreen = ({ navigation }: any) => {
 
 
   const handleLogout = async () => {
-    try {
-      await AsyncStorage.clear();
+  try {
+    await AsyncStorage.clear();
 
-      dispatch(logout());
-    } catch (error) {
-      console.log('LOGOUT ERROR =>', error);
-    }
-  };
+    dispatch(logout());
+
+    //  ONLY TOAST
+    Toast.show({
+      type: 'info',
+      text1: '👋 Logged Out',
+      text2: 'You have been successfully logged out',
+      position: 'top',
+      visibilityTime: 2500,
+    });
+  } catch (error) {
+    console.log('LOGOUT ERROR =>', error);
+
+    Toast.show({
+      type: 'error',
+      text1: 'Logout Failed',
+      text2: 'Please try again',
+    });
+  }
+};
 
   const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${
     subscription?.plan?.duration_unit || ''

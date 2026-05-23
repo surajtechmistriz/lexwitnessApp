@@ -11,6 +11,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../../redux/store';
 
 import { logout } from '../../redux/slices/authSlice';
+import Toast from 'react-native-toast-message';
 
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -58,11 +59,21 @@ const goToSubscription = () => {
     }, 250);
   };
 
-  const handleLogout = () => {
-    dispatch(logout());
+const handleLogout = () => {
+  dispatch(logout());
 
-    goToSignIn();
-  };
+  // Toast
+  Toast.show({
+    type: 'info',
+    text1: '👋 Logged Out',
+    text2: 'You have been successfully logged out',
+    position: 'top',
+    visibilityTime: 2500,
+  });
+
+  goToSignIn();
+};
+
 
   return (
     <View style={styles.container}>

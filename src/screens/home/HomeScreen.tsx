@@ -118,7 +118,7 @@ const Home = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
 
-      {/* ✅ HEADER */}
+      {/*  HEADER */}
       {/* <Header onSearchPress={() => setIsSearchVisible(true)} /> */}
 
       <ScrollView

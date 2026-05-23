@@ -29,10 +29,6 @@ import TopMenu from '../../components/common/Menubar';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function Author() {
-
-
- 
-
   const route = useRoute<any>();
   const scrollRef = useRef<ScrollView>(null);
 
@@ -131,96 +127,98 @@ export default function Author() {
     }
   };
 
-return (
-  <SafeAreaView style={styles.safeArea}>
-   <ScrollView
-  ref={scrollRef}
-  style={styles.container}
-  contentContainerStyle={styles.scrollContent}
-  refreshControl={
-    <RefreshControl
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      colors={['#c9060a']}
-    />
-  }
-  stickyHeaderIndices={[1]} // Banner sticky
->
-      {/*  TopMenu scroll karega */}
-      <TopMenu />
-
-      {/*  Banner sticky */}
-      <Banner
-        title={author?.name || slug?.replace(/-/g, ' ')}
-        renderFilter={(close) => (
-          <YearFilter
-            years={years}
-            selectedYear={selectedYear}
-            onSelect={setSelectedYear}
-            onApply={() => {
-              handleApplyFilter();
-              close();
-            }}
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#c9060a']}
           />
-        )}
-      />
+        }
+        stickyHeaderIndices={[1]} // Banner sticky
+      >
+        {/*  TopMenu scroll karega */}
+        <TopMenu />
 
-      {/*  CONTENT */}
-      <View style={styles.content}>
-        {loading && !refreshing ? (
-          <View style={styles.skeletonWrapper}>
-            {[1, 2, 3, 4, 5].map((item) => (
-              <ArticleSkeleton key={item} />
-            ))}
+        {/*  Banner sticky */}
+        <Banner
+          title={author?.name || slug?.replace(/-/g, ' ')}
+          renderFilter={close => (
+            <YearFilter
+              years={years}
+              selectedYear={selectedYear}
+              onSelect={setSelectedYear}
+              onApply={() => {
+                handleApplyFilter();
+                close();
+              }}
+            />
+          )}
+        />
+
+        {/*  CONTENT */}
+        <View style={styles.content}>
+          {loading && !refreshing ? (
+            <View style={styles.skeletonWrapper}>
+              {[1, 2, 3, 4, 5].map(item => (
+                <ArticleSkeleton key={item} />
+              ))}
+            </View>
+          ) : (
+            <PostList
+              posts={posts}
+              loading={false}
+              postBaseUrl={postBaseUrl}
+              emptyMessage={
+                appliedYear
+                  ? `No posts by ${
+                      author?.name || 'this author'
+                    } for ${appliedYear}`
+                  : 'No posts available'
+              }
+            />
+          )}
+
+          {!loading && posts.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              lastPage={lastPage}
+              onPageChange={handlePageChange}
+              loading={loading}
+            />
+          )}
+        </View>
+
+        {/* FOOTER */}
+        <View style={styles.footerContainer}>
+          <View style={styles.magazine}>
+            <LatestEditionImageOnly />
           </View>
-        ) : (
-          <PostList
-            posts={posts}
-            loading={false}
-            postBaseUrl={postBaseUrl}
-            emptyMessage={
-              appliedYear
-                ? `No posts by ${author?.name || 'this author'} for ${appliedYear}`
-                : 'No posts available'
-            }
-          />
-        )}
-
-        {!loading && posts.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            lastPage={lastPage}
-            onPageChange={handlePageChange}
-            loading={loading}
-          />
-        )}
-      </View>
-
-      {/* FOOTER */}
-      <View style={styles.footerContainer}>
-        <View style={styles.magazine}>
-          <LatestEditionImageOnly />
+          <View style={styles.BannerContainer}>
+            <HomeBanner />
+          </View>
+          <View style={styles.adContainer}>
+            <HomeAdvertisement />
+          </View>
         </View>
-        <View style={styles.BannerContainer}>
-          <HomeBanner />
-        </View>
-        <View style={styles.adContainer}>
-          <HomeAdvertisement />
-        </View>
-      </View>
-    </ScrollView>
-  </SafeAreaView>
-);
+      </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   container: { flex: 1 },
   scrollContent: { flexGrow: 1 },
-  content: { 
-    paddingTop: 10, 
-    paddingBottom: 20, 
-    minHeight: SCREEN_HEIGHT * 0.6 // Increased for stability
+  content: {
+    paddingTop: 10,
+    paddingBottom: 20,
+    minHeight: SCREEN_HEIGHT * 0.6, // Increased for stability
   },
   skeletonWrapper: {
     marginTop: 10,
