@@ -288,6 +288,7 @@ export default function ArticleDetailPage() {
                     style={styles.tagPill}
                     onPress={() =>
                       navigation.navigate('Tag', {
+                        id: tag.id,
                         slug: tag.slug,
                       })
                     }
