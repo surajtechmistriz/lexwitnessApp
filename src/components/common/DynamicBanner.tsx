@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   Animated,
   ScrollView,
-  SafeAreaView,
   Dimensions,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 import { Modal } from 'react-native';
@@ -23,7 +23,11 @@ interface FilterState {
 
 interface BannerProps {
   title: string;
-  renderFilter?: (close: () => void, onApply: (filters: FilterState) => void, onReset: () => void) => React.ReactNode;
+  renderFilter?: (
+    close: () => void,
+    onApply: (filters: FilterState) => void,
+    onReset: () => void,
+  ) => React.ReactNode;
   onToggleFilter?: (open: boolean) => void;
   showFilter?: boolean;
   onFilterApply?: (filters: FilterState) => void;
@@ -39,13 +43,14 @@ export default function Banner({
 }: BannerProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterActive, setFilterActive] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>(initialFilters);
+  const [appliedFilters, setAppliedFilters] =
+    useState<FilterState>(initialFilters);
   const [tempFilters, setTempFilters] = useState<FilterState>(initialFilters);
-  
+
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  
+
   const capitalizeAll = (str: string) => str?.toUpperCase() || '';
   const imageUrl = Config.BANNER_BASE_URL;
 
@@ -189,21 +194,21 @@ export default function Banner({
               onPress={handleCloseFilter}
             />
           </Animated.View>
-          
-          <Animated.View 
+
+          <Animated.View
             style={[
               styles.bottomSheet,
-              { transform: [{ translateY: slideAnim }] }
+              { transform: [{ translateY: slideAnim }] },
             ]}
           >
             <SafeAreaView style={styles.safeArea}>
               <View style={styles.dragHandleContainer}>
                 <View style={styles.dragHandle} />
               </View>
-              
+
               <View style={styles.filterHeader}>
                 <Text style={styles.filterHeaderTitle}>Filter by Year</Text>
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={handleCloseFilter}
                   style={styles.closeButton}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -211,26 +216,32 @@ export default function Banner({
                   <Ionicons name="close" size={24} color="#666" />
                 </TouchableOpacity>
               </View>
-              
-              <ScrollView 
+
+              <ScrollView
                 style={styles.filterContent}
                 showsVerticalScrollIndicator={false}
                 bounces={true}
                 contentContainerStyle={styles.filterContentContainer}
               >
                 {renderFilter ? (
-                  renderFilter(handleCloseFilter, (filters: FilterState) => {
-                    setTempFilters(filters);
-                  }, () => {
-                    setTempFilters({});
-                  })
+                  renderFilter(
+                    handleCloseFilter,
+                    (filters: FilterState) => {
+                      setTempFilters(filters);
+                    },
+                    () => {
+                      setTempFilters({});
+                    },
+                  )
                 ) : (
                   <View style={styles.defaultFilter}>
-                    <Text style={styles.defaultFilterText}>No filter options available</Text>
+                    <Text style={styles.defaultFilterText}>
+                      No filter options available
+                    </Text>
                   </View>
                 )}
               </ScrollView>
-              
+
               {/* <View style={styles.filterActions}>
                 <TouchableOpacity 
                   style={styles.resetButton}
@@ -470,23 +481,23 @@ const styles = StyleSheet.create({
 export const WorkingFilterExample = () => {
   const [appliedFilters, setAppliedFilters] = useState<FilterState>({});
 
-  const FilterContent = ({ 
-    onClose, 
-    onApply, 
-    onReset 
-  }: { 
-    onClose: () => void; 
-    onApply: (filters: FilterState) => void; 
+  const FilterContent = ({
+    onClose,
+    onApply,
+    onReset,
+  }: {
+    onClose: () => void;
+    onApply: (filters: FilterState) => void;
     onReset: () => void;
   }) => {
     const [selectedCategory, setSelectedCategory] = useState<string[]>(
-      appliedFilters.categories || []
+      appliedFilters.categories || [],
     );
     const [selectedPrice, setSelectedPrice] = useState<string>(
-      appliedFilters.price || ''
+      appliedFilters.price || '',
     );
     const [selectedRating, setSelectedRating] = useState<number>(
-      appliedFilters.rating || 0
+      appliedFilters.rating || 0,
     );
 
     const categories = ['Electronics', 'Clothing', 'Books', 'Home', 'Sports'];
@@ -495,7 +506,7 @@ export const WorkingFilterExample = () => {
 
     const handleApply = () => {
       const filters: FilterState = {};
-      
+
       if (selectedCategory.length > 0) {
         filters.categories = selectedCategory;
       }
@@ -505,7 +516,7 @@ export const WorkingFilterExample = () => {
       if (selectedRating > 0) {
         filters.rating = selectedRating;
       }
-      
+
       onApply(filters);
     };
 
@@ -522,16 +533,19 @@ export const WorkingFilterExample = () => {
         <View style={filterStyles.section}>
           <Text style={filterStyles.sectionTitle}>Categories</Text>
           <View style={filterStyles.optionsGrid}>
-            {categories.map((category) => (
+            {categories.map(category => (
               <TouchableOpacity
                 key={category}
                 style={[
                   filterStyles.optionChip,
-                  selectedCategory.includes(category) && filterStyles.optionChipActive,
+                  selectedCategory.includes(category) &&
+                    filterStyles.optionChipActive,
                 ]}
                 onPress={() => {
                   if (selectedCategory.includes(category)) {
-                    setSelectedCategory(selectedCategory.filter(c => c !== category));
+                    setSelectedCategory(
+                      selectedCategory.filter(c => c !== category),
+                    );
                   } else {
                     setSelectedCategory([...selectedCategory, category]);
                   }
@@ -540,7 +554,8 @@ export const WorkingFilterExample = () => {
                 <Text
                   style={[
                     filterStyles.optionText,
-                    selectedCategory.includes(category) && filterStyles.optionTextActive,
+                    selectedCategory.includes(category) &&
+                      filterStyles.optionTextActive,
                   ]}
                 >
                   {category}
@@ -554,7 +569,7 @@ export const WorkingFilterExample = () => {
         <View style={filterStyles.section}>
           <Text style={filterStyles.sectionTitle}>Price Range</Text>
           <View style={filterStyles.optionsGrid}>
-            {priceRanges.map((range) => (
+            {priceRanges.map(range => (
               <TouchableOpacity
                 key={range}
                 style={[
@@ -580,7 +595,7 @@ export const WorkingFilterExample = () => {
         <View style={filterStyles.section}>
           <Text style={filterStyles.sectionTitle}>Minimum Rating</Text>
           <View style={filterStyles.optionsGrid}>
-            {ratings.map((rating) => (
+            {ratings.map(rating => (
               <TouchableOpacity
                 key={rating}
                 style={[
@@ -589,19 +604,22 @@ export const WorkingFilterExample = () => {
                 ]}
                 onPress={() => setSelectedRating(rating)}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                >
                   <Text
                     style={[
                       filterStyles.optionText,
-                      selectedRating === rating && filterStyles.optionTextActive,
+                      selectedRating === rating &&
+                        filterStyles.optionTextActive,
                     ]}
                   >
                     {rating}+ Stars
                   </Text>
-                  <Ionicons 
-                    name="star" 
-                    size={14} 
-                    color={selectedRating === rating ? '#fff' : '#FFD700'} 
+                  <Ionicons
+                    name="star"
+                    size={14}
+                    color={selectedRating === rating ? '#fff' : '#FFD700'}
                   />
                 </View>
               </TouchableOpacity>
@@ -611,14 +629,14 @@ export const WorkingFilterExample = () => {
 
         {/* Inline action buttons for better UX */}
         <View style={filterStyles.inlineActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={filterStyles.inlineResetButton}
             onPress={handleReset}
           >
             <Ionicons name="refresh-outline" size={18} color="#666" />
             <Text style={filterStyles.inlineResetText}>Reset All</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={filterStyles.inlineApplyButton}
             onPress={handleApply}
           >
@@ -634,30 +652,30 @@ export const WorkingFilterExample = () => {
       <Banner
         title="Products"
         renderFilter={(close, onApply, onReset) => (
-          <FilterContent 
-            onClose={close} 
-            onApply={(filters) => {
+          <FilterContent
+            onClose={close}
+            onApply={filters => {
               setAppliedFilters(filters);
               onApply(filters);
               close();
-            }} 
+            }}
             onReset={() => {
               setAppliedFilters({});
               onReset();
-            }} 
+            }}
           />
         )}
-        onFilterApply={(filters) => {
+        onFilterApply={filters => {
           setAppliedFilters(filters);
           console.log('Applied filters:', filters);
         }}
         showFilter={true}
       />
-      
+
       {/* Product list or content goes here */}
       <View style={{ flex: 1, padding: 20 }}>
         <Text style={{ fontSize: 16, color: '#666', textAlign: 'center' }}>
-          {Object.keys(appliedFilters).length > 0 
+          {Object.keys(appliedFilters).length > 0
             ? `Filters applied: ${JSON.stringify(appliedFilters)}`
             : 'No filters applied'}
         </Text>

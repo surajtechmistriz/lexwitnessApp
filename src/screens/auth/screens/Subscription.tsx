@@ -37,7 +37,7 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState<boolean>(true);
 
   const scrollRef = useRef<ScrollView>(null);
-  const pricingYPos = useRef<number>(0);
+  const pricingY = useRef(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,7 +56,10 @@ export default function SubscriptionPage() {
   }, []);
 
   const scrollToPricing = () => {
-    scrollRef.current?.scrollTo({ y: pricingYPos.current, animated: true });
+    scrollRef.current?.scrollTo({
+      y: pricingY.current,
+      animated: true,
+    });
   };
 
   const imageUrl = magazine?.image
@@ -177,10 +180,10 @@ export default function SubscriptionPage() {
 
           {/* --- PRICING --- */}
           <View
-            onLayout={e => {
-              pricingYPos.current = e.nativeEvent.layout.y;
-            }}
             style={styles.pricingSection}
+            onLayout={event => {
+              pricingY.current = event.nativeEvent.layout.y;
+            }}
           >
             <PricingCard />
           </View>
