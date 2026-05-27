@@ -80,7 +80,6 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.container}
       >
-        
         {menuItems.map(item => {
           const isActive = currentSlug === item.slug;
 
@@ -88,19 +87,11 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
             <TouchableOpacity
               key={item.id}
               onPress={() => handlePress(item.slug)}
-              onLayout={(e) => handleLayout(item.slug, e)}
-              style={[
-                styles.menuItem,
-                isActive && styles.activeItem,
-              ]}
+              onLayout={e => handleLayout(item.slug, e)}
+              style={[styles.menuItem, isActive && styles.activeItem]}
               activeOpacity={0.85}
             >
-              <Text
-                style={[
-                  styles.menuText,
-                  isActive && styles.activeText,
-                ]}
-              >
+              <Text style={[styles.menuText, isActive && styles.activeText]}>
                 {item.name}
               </Text>
             </TouchableOpacity>
@@ -140,8 +131,9 @@ const styles = StyleSheet.create({
   },
 
   activeItem: {
-    backgroundColor: '#111', // keep strong but clean
-    borderColor: '#111',
+    backgroundColor: '#fff',
+    borderColor: '#c9060a',
+    borderWidth: 1.5,
   },
 
   menuText: {
@@ -151,7 +143,7 @@ const styles = StyleSheet.create({
   },
 
   activeText: {
-    color: '#fff',
+    color: '#c9060a',
     fontWeight: '600',
   },
 });

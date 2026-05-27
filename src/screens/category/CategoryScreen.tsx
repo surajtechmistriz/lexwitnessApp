@@ -70,6 +70,11 @@ export default function Category() {
   // ---------------- INIT ----------------
   useEffect(() => {
     const init = async () => {
+      // RESET FILTERS
+      setSelectedYear(null);
+      setAppliedYear(null);
+      setCurrentPage(1);
+
       try {
         const [catData, yearData] = await Promise.all([
           getCategoryBySlug(slug),
@@ -115,12 +120,13 @@ export default function Category() {
         stickyHeaderIndices={[1]}
       >
         {/* Top Menu */}
-        <TopMenu />
+
+        <TopMenu activeSlug={slug} />
 
         {/* Sticky Banner */}
         <Banner
           title={slug.replace(/-/g, ' ')}
-          renderFilter={(close) => (
+          renderFilter={close => (
             <YearFilter
               years={years}
               selectedYear={selectedYear}
@@ -137,7 +143,7 @@ export default function Category() {
         <View style={styles.content}>
           {loading ? (
             <View>
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <ArticleSkeleton key={i} />
               ))}
             </View>
@@ -157,9 +163,7 @@ export default function Category() {
             <Pagination
               currentPage={currentPage}
               lastPage={lastPage}
-              onPageChange={(page) =>
-                fetchData(category.id, appliedYear, page)
-              }
+              onPageChange={page => fetchData(category.id, appliedYear, page)}
             />
           )}
         </View>

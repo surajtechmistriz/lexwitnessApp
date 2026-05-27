@@ -90,30 +90,30 @@ const YearFilter: React.FC<YearFilterProps> = ({
         >
           {/* dropdown box */}
           <View style={styles.dropdownBox}>
-           <ScrollView
-  showsVerticalScrollIndicator={false}
-  nestedScrollEnabled
->
-  {[null, ...years].map((item, index) => (
-    <TouchableOpacity
-      key={index}
-      style={styles.item}
-      onPress={() => {
-        onSelect(item);
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
+            >
+              {[null, ...years].map((item, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.item}
+                  onPress={() => {
+                    onSelect(item);
 
-        Animated.timing(rotateAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }).start();
+                    Animated.timing(rotateAnim, {
+                      toValue: 0,
+                      duration: 200,
+                      useNativeDriver: true,
+                    }).start();
 
-        setOpen(false);
-      }}
-    >
-      <Text>{item === null ? 'All Years' : item}</Text>
-    </TouchableOpacity>
-  ))}
-</ScrollView>
+                    setOpen(false);
+                  }}
+                >
+                  <Text>{item === null ? 'All Years' : item}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
