@@ -6,6 +6,7 @@ export interface GetPostsParams {
   category_id?: number;
   year?: number;
   author_id?: number;
+   tag_id?: number;
   magazine_id?: number;
   page?: number;
   per_page?: number;
@@ -19,6 +20,7 @@ export const getPosts = async ({
   year,
   author_id,
   magazine_id,
+  tag_id,
   page = 1,
   per_page = 10,
 }: GetPostsParams = {}) => {
@@ -31,9 +33,15 @@ export const getPosts = async ({
       ...(category_id && { category_id }),
       ...(year && { year }),
       ...(author_id && { author_id }),
+      ...(tag_id && { tag_id }),
     };
 
+    console.log("API PARAMS =>", params);
+
     const response = await api.get("/posts", { params });
+
+    console.log("API RESPONSE =>", response.data);
+
     return response.data;
   } catch (error) {
     console.error("getPosts error:", error);

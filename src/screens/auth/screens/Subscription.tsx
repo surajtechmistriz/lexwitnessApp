@@ -19,6 +19,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import PricingCard from '../../../components/common/PricingCard';
 import { latesteEdition } from '../../../services/api/latestedition';
 import MainLayout from '../../../MainLayout';
+import { useNavigation } from '@react-navigation/native';
 
 type Magazine = {
   id: number;
@@ -30,6 +31,8 @@ type Magazine = {
 const { width } = Dimensions.get('window');
 
 export default function SubscriptionPage() {
+  const navigation = useNavigation<any>();
+
   const [magazine, setMagazine] = useState<Magazine | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -109,7 +112,17 @@ export default function SubscriptionPage() {
                 <TouchableOpacity
                   style={styles.primaryBtn}
                   activeOpacity={0.9}
-                  onPress={scrollToPricing}
+                  onPress={() =>
+                    navigation.navigate('MainTabs', {
+                      screen: 'AccountTab',
+                      params: {
+                        screen: 'Register',
+                        params: {
+                          selectedPlanId: 1,
+                        },
+                      },
+                    })
+                  }
                 >
                   <Text style={styles.primaryBtnText}>
                     Your First Year is on Us

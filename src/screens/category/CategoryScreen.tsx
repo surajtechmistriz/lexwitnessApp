@@ -1,109 +1,144 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
+  ScrollView,
+  RefreshControl,
   StyleSheet,
   Dimensions,
-  RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 import Config from 'react-native-config';
 
-// API
 import { getPosts } from '../../services/api/posts';
 import { getYears } from '../../services/api/years';
 import { getCategoryBySlug } from '../../services/api/category';
 
-// Components
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
-import HomeBanner from '../home/components/HomeBanner';
-import HomeAdvertisement from '../home/components/HomeAdvertisement';
-import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
-// import MainLayout from '../../components/layout/MainLayout';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
-import MainLayout from '../../MainLayout';
+
+import TopMenu from '../../components/common/Menubar';
+import Banner from '../../components/common/DynamicBanner';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function Category() {
   const route = useRoute<any>();
-  const slug = route.params?.slug || '';
+  const scrollRef = useRef<ScrollView>(null);
+
+  const slug = route.params?.slug ?? '';
   const postBaseUrl = Config.POSTS_BASE_URL;
 
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   const [posts, setPosts] = useState<any[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [category, setCategory] = useState<any>(null);
+
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [appliedYear, setAppliedYear] = useState<number | null>(null);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
+  // ---------------- FETCH ----------------
   const fetchData = useCallback(
     async (catId: number, year: number | null, page: number) => {
       setLoading(true);
       try {
-        const response = await getPosts({
+        const res = await getPosts({
           category_id: catId,
           year: year ?? undefined,
           page,
           per_page: 10,
         });
-        setPosts(response.data ?? []);
-        setLastPage(response.meta?.paging?.last_page ?? 1);
+
+        setPosts(res?.data ?? []);
+        setLastPage(res?.meta?.paging?.last_page ?? 1);
         setCurrentPage(page);
-      } catch (err) {
-        console.error(err);
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     },
-    []
+    [],
   );
 
+  // ---------------- INIT ----------------
   useEffect(() => {
     const init = async () => {
-      const [catData, yearData] = await Promise.all([
-        getCategoryBySlug(slug),
-        getYears(),
-      ]);
-      setCategory(catData);
-      setYears(yearData.data || []);
-      if (catData?.id) fetchData(catData.id, null, 1);
+      try {
+        const [catData, yearData] = await Promise.all([
+          getCategoryBySlug(slug),
+          getYears(),
+        ]);
+
+        setCategory(catData);
+        setYears(yearData?.data || []);
+
+        if (catData?.id) {
+          fetchData(catData.id, null, 1);
+        }
+      } catch (e) {
+        console.error('Init error:', e);
+      }
     };
+
     init();
   }, [slug, fetchData]);
 
+  // ---------------- FILTER ----------------
   useEffect(() => {
     if (category?.id) {
       fetchData(category.id, appliedYear, 1);
     }
-  }, [appliedYear]);
+  }, [appliedYear, category?.id, fetchData]);
+
+  // ---------------- REFRESH ----------------
+  const onRefresh = () => {
+    if (!category?.id) return;
+
+    setRefreshing(true);
+    fetchData(category.id, appliedYear, currentPage);
+  };
 
   return (
-    <MainLayout
-      activeSlug={slug}
-      title={slug?.replace(/-/g, ' ')}
-      routeName="Category"
-      renderFilter={(close) => (
-        <YearFilter
-          years={years}
-          selectedYear={selectedYear}
-          onSelect={setSelectedYear}
-          onApply={() => {
-            setAppliedYear(selectedYear);
-            close();
-          }}
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView
+        ref={scrollRef}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        stickyHeaderIndices={[1]}
+      >
+        {/* Top Menu */}
+        <TopMenu />
+
+        {/* Sticky Banner */}
+        <Banner
+          title={slug.replace(/-/g, ' ')}
+          renderFilter={(close) => (
+            <YearFilter
+              years={years}
+              selectedYear={selectedYear}
+              onSelect={setSelectedYear}
+              onApply={() => {
+                setAppliedYear(selectedYear);
+                close();
+              }}
+            />
+          )}
         />
-      )}
-    >
-      <View style={styles.container}>
+
+        {/* Content */}
         <View style={styles.content}>
           {loading ? (
             <View>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <ArticleSkeleton key={item} />
+              {[1, 2, 3].map((i) => (
+                <ArticleSkeleton key={i} />
               ))}
             </View>
           ) : (
@@ -118,7 +153,7 @@ export default function Category() {
             />
           )}
 
-          {!loading && posts.length > 0 && (
+          {!loading && posts.length > 0 && category?.id && (
             <Pagination
               currentPage={currentPage}
               lastPage={lastPage}
@@ -128,29 +163,15 @@ export default function Category() {
             />
           )}
         </View>
-
-        {/* Footer */}
-        {/* <View style={styles.footer}> */}
-          {/* <LatestEditionImageOnly /> */}
-          {/* <HomeBanner /> */}
-          {/* <HomeAdvertisement /> */}
-        {/* </View> */}
-      </View>
-    </MainLayout>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    minHeight: SCREEN_HEIGHT,
-  },
   content: {
     paddingTop: 10,
     paddingBottom: 20,
-  },
-  footer: {
-    marginTop: 20,
-    paddingHorizontal: 15,
+    minHeight: SCREEN_HEIGHT * 0.6,
   },
 });

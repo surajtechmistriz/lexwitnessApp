@@ -1,14 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../../redux/store';
-import { logout } from '../../redux/slices/authSlice';
+import { RootState } from '../../../redux/store';
+import { logout } from '../../../redux/slices/authSlice';
+// import { RootState } from '../../redux/store';
+// import { logout } from '../../redux/slices/authSlice';
 
 const CustomDrawer = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const { isLoggedIn, user, isHydrated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   // Wait until auth loads
@@ -21,18 +23,13 @@ const CustomDrawer = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      
       {/* USER / AUTH SECTION */}
       <View style={styles.userInfoSection}>
         {isLoggedIn ? (
           <>
-            <Text style={styles.userName}>
-              {user?.name || 'Welcome User'}
-            </Text>
+            <Text style={styles.userName}>{user?.name || 'Welcome User'}</Text>
 
-            <Text style={styles.userEmail}>
-              {user?.email || ''}
-            </Text>
+            <Text style={styles.userEmail}>{user?.email || ''}</Text>
           </>
         ) : (
           <>
@@ -92,11 +89,11 @@ const CustomDrawer = ({ navigation }) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-  onPress={() => navigation.navigate('Subscription')}
-  style={styles.drawerItem}
->
-  <Text style={styles.menuText}>Subscribe</Text>
-   </TouchableOpacity>
+            onPress={() => navigation.navigate('Subscription')}
+            style={styles.drawerItem}
+          >
+            <Text style={styles.menuText}>Subscribe</Text>
+          </TouchableOpacity>
         </>
       )}
     </View>

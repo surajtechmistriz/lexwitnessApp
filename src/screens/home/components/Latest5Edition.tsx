@@ -55,7 +55,7 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
       {/* HEADER SECTION */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.heading}>Latest Editions</Text>
+          <Text style={styles.heading}>Latest Editionss</Text>
           <View style={styles.accentBar} />
         </View>
         <TouchableOpacity onPress={onPressViewAll}>
@@ -177,13 +177,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
+    marginLeft:-22,
     color: '#111',
   },
   accentBar: {
     width: 30,
     height: 3,
     backgroundColor: BRAND_RED,
-    marginTop: 4,
+    // marginTop: 4,
+    marginLeft:-22,
   },
   viewAllText: {
     color: BRAND_RED,

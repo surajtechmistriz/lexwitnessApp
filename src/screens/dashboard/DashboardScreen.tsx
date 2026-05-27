@@ -20,10 +20,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import {
-  logout,
-  updateSubscription,
-} from '../../redux/slices/authSlice';
+import { logout, updateSubscription } from '../../redux/slices/authSlice';
 
 import RazorpayCheckout from 'react-native-razorpay';
 import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
@@ -37,39 +34,34 @@ const DashboardScreen = ({ navigation }: any) => {
   const [expandedPlans, setExpandedPlans] = useState<number[]>([]);
 
   useEffect(() => {
-  // if (
-  //   Platform.OS === 'android' &&
-  //   UIManager.setLayoutAnimationEnabledExperimental
-  // ) {
-  //   UIManager.setLayoutAnimationEnabledExperimental(true);
-  // }
-}, []);
+    // if (
+    //   Platform.OS === 'android' &&
+    //   UIManager.setLayoutAnimationEnabledExperimental
+    // ) {
+    //   UIManager.setLayoutAnimationEnabledExperimental(true);
+    // }
+  }, []);
 
+  const togglePlan = (index: number) => {
+    LayoutAnimation.configureNext({
+      duration: 300,
+      update: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+      },
+      create: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+      delete: {
+        type: LayoutAnimation.Types.easeInEaseOut,
+        property: LayoutAnimation.Properties.opacity,
+      },
+    });
 
-
-  
- const togglePlan = (index: number) => {
-  LayoutAnimation.configureNext({
-    duration: 300,
-    update: {
-      type: LayoutAnimation.Types.easeInEaseOut,
-    },
-    create: {
-      type: LayoutAnimation.Types.easeInEaseOut,
-      property: LayoutAnimation.Properties.opacity,
-    },
-    delete: {
-      type: LayoutAnimation.Types.easeInEaseOut,
-      property: LayoutAnimation.Properties.opacity,
-    },
-  });
-
-  setExpandedPlans(prev =>
-    prev.includes(index)
-      ? prev.filter(i => i !== index)
-      : [...prev, index],
-  );
-};
+    setExpandedPlans(prev =>
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index],
+    );
+  };
 
   const upcomingPlans = Array.isArray(subscription?.next_subscriptions)
     ? subscription.next_subscriptions
@@ -77,31 +69,30 @@ const DashboardScreen = ({ navigation }: any) => {
     ? [subscription.next_subscription]
     : [];
 
-
   const handleLogout = async () => {
-  try {
-    await AsyncStorage.clear();
+    try {
+      await AsyncStorage.clear();
 
-    dispatch(logout());
+      dispatch(logout());
 
-    //  ONLY TOAST
-    Toast.show({
-      type: 'info',
-      text1: '👋 Logged Out',
-      text2: 'You have been successfully logged out',
-      position: 'top',
-      visibilityTime: 2500,
-    });
-  } catch (error) {
-    console.log('LOGOUT ERROR =>', error);
+      //  ONLY TOAST
+      Toast.show({
+        type: 'info',
+        text1: '👋 Logged Out',
+        text2: 'You have been successfully logged out',
+        position: 'top',
+        visibilityTime: 2500,
+      });
+    } catch (error) {
+      console.log('LOGOUT ERROR =>', error);
 
-    Toast.show({
-      type: 'error',
-      text1: 'Logout Failed',
-      text2: 'Please try again',
-    });
-  }
-};
+      Toast.show({
+        type: 'error',
+        text1: 'Logout Failed',
+        text2: 'Please try again',
+      });
+    }
+  };
 
   const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${
     subscription?.plan?.duration_unit || ''
@@ -334,11 +325,11 @@ const DashboardScreen = ({ navigation }: any) => {
           activeOpacity={0.9}
           onPress={() =>
             navigation.navigate('HomeTab', {
-  screen: 'Subscription',
-  params: {
-    mode: 'upgrade',
-  },
-})
+              screen: 'Subscription',
+              params: {
+                mode: 'upgrade',
+              },
+            })
           }
         >
           <LinearGradient
@@ -566,85 +557,86 @@ const DashboardScreen = ({ navigation }: any) => {
                       </Text>
                     </View>
 
-                <View
-  style={{
-    transform: [
-      {
-        rotate: expanded ? '180deg' : '0deg',
-      },
-    ],
-  }}
->
-  <Icon
-    name="chevron-down"
-    size={22}
-    color="#111"
-    style={{ marginLeft: 12 }}
-  />
-</View>
+                    <View
+                      style={{
+                        transform: [
+                          {
+                            rotate: expanded ? '180deg' : '0deg',
+                          },
+                        ],
+                      }}
+                    >
+                      <Icon
+                        name="chevron-down"
+                        size={22}
+                        color="#111"
+                        style={{ marginLeft: 12 }}
+                      />
+                    </View>
                   </TouchableOpacity>
 
                   {/* EXPANDED DETAILS */}
-                
+
                   <View
-  style={[
-    styles.todoDetails,
-    {
-      maxHeight: expanded ? 500 : 0,
-      opacity: expanded ? 1 : 0,
-      paddingBottom: expanded ? 18 : 0,
-    },
-  ]}
->
-  <View style={styles.detailGrid}>
-    <View style={styles.detailBox}>
-      <Text style={styles.detailLabel}>Starts</Text>
+                    style={[
+                      styles.todoDetails,
+                      {
+                        maxHeight: expanded ? 500 : 0,
+                        opacity: expanded ? 1 : 0,
+                        paddingBottom: expanded ? 18 : 0,
+                      },
+                    ]}
+                  >
+                    <View style={styles.detailGrid}>
+                      <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Starts</Text>
 
-      <Text style={styles.detailValue}>
-        {item?.start_date}
-      </Text>
-    </View>
+                        <Text style={styles.detailValue}>
+                          {item?.start_date}
+                        </Text>
+                      </View>
 
-    <View style={styles.detailBox}>
-      <Text style={styles.detailLabel}>Ends</Text>
+                      <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Ends</Text>
 
-      <Text style={styles.detailValue}>
-        {item?.end_date}
-      </Text>
-    </View>
+                        <Text style={styles.detailValue}>{item?.end_date}</Text>
+                      </View>
 
-    <View style={styles.detailBox}>
-      <Text style={styles.detailLabel}>Amount</Text>
+                      <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Amount</Text>
 
-      <Text style={styles.detailValue}>
-        ₹{item?.total_amount}
-      </Text>
-    </View>
+                        <Text style={styles.detailValue}>
+                          ₹{item?.total_amount}
+                        </Text>
+                      </View>
 
-    <View style={styles.detailBox}>
-      <Text style={styles.detailLabel}>Purchase</Text>
+                      <View style={styles.detailBox}>
+                        <Text style={styles.detailLabel}>Purchase</Text>
 
-      <Text style={styles.detailValue}>
-        {item?.purchase_type}
-      </Text>
-    </View>
-  </View>
-</View>
-               
+                        <Text style={styles.detailValue}>
+                          {item?.purchase_type}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               );
             })}
           </View>
         )}
-        {/* LOGOUT BUTTON */}
-        <TouchableOpacity
-          style={styles.logoutBtn}
-          activeOpacity={0.85}
-          onPress={handleLogout}
-        >
-          <Icon name="log-out" size={18} color="#fff" />
 
-          <Text style={styles.logoutText}>Logout</Text>
+       {/* Bottom Action Buttons */}
+        <TouchableOpacity style={styles.invoiceBtn} activeOpacity={0.85} onPress={() =>
+          navigation.navigate('HomeTab', { screen: 'InvoiceScreen' })
+        }>
+          <Icon name="file-text" size={18} color="#111827" />
+          <Text style={styles.invoiceBtnText}>Invoices</Text>
+          <Icon name="arrow-right" size={18} color="#111827" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85} onPress={handleLogout}>
+          <Icon name="log-out" size={18} color="#fff" />
+          <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -893,22 +885,51 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
+ invoiceBtn: {
+    marginHorizontal: 16,
+    marginTop: 24,
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  invoiceBtnText: {
+    color: '#1a1a2e',
+    fontSize: 16,
+    fontWeight: '700',
+  },
   logoutBtn: {
     marginHorizontal: 16,
-    marginTop: 28,
+    marginTop: 20,
+    marginBottom: 16,
     backgroundColor: '#c9060a',
     borderRadius: 18,
-    paddingVertical: 18,
+    paddingVertical: 16,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
+    gap: 10,
+    shadowColor: '#c9060a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-
-  logoutText: {
+  logoutBtnText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
-    marginLeft: 10,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -1080,25 +1101,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-todoCard: {
-  backgroundColor: '#fff',
-  borderRadius: 20,
-  marginBottom: 14,
-  borderLeftWidth: 4,
-  borderLeftColor: '#c9060a',
-  overflow: 'hidden',
+  todoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginBottom: 14,
+    borderLeftWidth: 4,
+    borderLeftColor: '#c9060a',
+    overflow: 'hidden',
 
-  shadowColor: '#000',
-  shadowOffset: {
-    width: 0,
-    height: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+
+    elevation: 3,
   },
-
-  shadowOpacity: 0.05,
-  shadowRadius: 5,
-
-  elevation: 3,
-},
 
   todoHeader: {
     flexDirection: 'row',
@@ -1133,8 +1154,8 @@ todoCard: {
     textTransform: 'uppercase',
   },
 
-todoDetails: {
-  overflow: 'hidden',
-  paddingHorizontal: 18,
-},
+  todoDetails: {
+    overflow: 'hidden',
+    paddingHorizontal: 18,
+  },
 });

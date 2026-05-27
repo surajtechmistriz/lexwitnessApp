@@ -186,29 +186,29 @@ const Home = () => {
         <EditorialCard />
         <LatestEditions
           skipId={latestEditionData?.magazine?.id}
-         onPressItem={item =>
-  navigation.navigate('MainApp', {
-    screen: 'MainTabs',
-    params: {
-      screen: 'MagazinesTab',
-      params: {
-        screen: 'MagazineDetail',
-        params: { slug: item.slug },
-      },
-    },
-  })
-}
+          onPressItem={item =>
+            navigation.navigate('MainApp', {
+              screen: 'MainTabs',
+              params: {
+                screen: 'MagazinesTab',
+                params: {
+                  screen: 'MagazineDetail',
+                  params: { slug: item.slug },
+                },
+              },
+            })
+          }
           onPressViewAll={() =>
-  navigation.navigate('MainApp', {
-    screen: 'MainTabs',
-    params: {
-      screen: 'MagazinesTab',
-      params: {
-        screen: 'Magazines',
-      },
-    },
-  })
-}
+            navigation.navigate('MainApp', {
+              screen: 'MainTabs',
+              params: {
+                screen: 'MagazinesTab',
+                params: {
+                  screen: 'Magazines',
+                },
+              },
+            })
+          }
         />
       </ScrollView>
     </SafeAreaView>
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 10,
-    marginTop:20,
+    marginTop: 20,
     color: '#333',
   },
   loadingBlock: {

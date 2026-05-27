@@ -47,8 +47,24 @@ type EditionResponse = {
 };
 
 type RootStackParamList = {
-  ArticleDetail: { slug: string; category: string };
-  MagazineDetail: { slug: string };
+  ArticleDetail: {
+    slug: string;
+    category: string;
+  };
+
+  MagazineDetail: {
+    slug: string;
+  };
+
+  HomeTab: {
+    screen: string;
+    params?: any;
+  };
+
+MagazinesTab: {
+  screen: string;
+  params?: any;
+};
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -101,14 +117,20 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
     });
   };
 
-  const goToMagazine = () => {
-    navigation.navigate('Magazines', {
-      screen: 'MagazineDetail',
-      params: {
-        slug: data.magazine?.slug ?? String(data.magazine.id),
-      },
-    });
-  };
+ const goToMagazine = () => {
+  navigation.navigate('MagazinesTab', {
+    screen: 'MagazineDetail',
+    params: {
+      slug: data.magazine?.slug ?? String(data.magazine.id),
+    },
+  });
+};
+
+const handleSubscribe = () => {
+  navigation.navigate('HomeTab', {
+    screen: 'Subscription',
+  });
+};
 
   return (
     <View style={styles.wrapper}>
@@ -135,18 +157,10 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
       </TouchableOpacity>
 
       {/* Subscribe – always visible but safe */}
-      <TouchableOpacity
-        style={[
-          styles.subscribeBtn,
-          !data.magazine?.link && styles.disabledBtn,
-        ]}
-        onPress={() => {
-          if (data.magazine?.link) {
-            Linking.openURL(data.magazine.link);
-          }
-        }}
-        disabled={!data.magazine?.link}
-      >
+    <TouchableOpacity
+  style={styles.subscribeBtn}
+  onPress={handleSubscribe}
+>
         <Text style={styles.subscribeText}>Subscribe Now</Text>
       </TouchableOpacity>
 

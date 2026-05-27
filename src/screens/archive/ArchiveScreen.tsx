@@ -8,6 +8,10 @@ import {
   Dimensions,
   ActivityIndicator,
   Text,
+  Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -29,7 +33,8 @@ import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import MainLayout from '../../MainLayout';
-// import MainLayout from '../../components/layout/MainLayout';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ArchiveScreen() {
   const route = useRoute<any>();
@@ -48,7 +53,7 @@ export default function ArchiveScreen() {
   const [currentPage, setCurrentPage] = useState(route.params?.page || 1);
   const [localSearch, setLocalSearch] = useState(route.params?.search || '');
 
-  // --- Filter States (for the dropdown UI) ---
+  // --- Filter States ---
   const [selectedYear, setSelectedYear] = useState(
     route.params?.year?.toString() || '',
   );
@@ -58,6 +63,20 @@ export default function ArchiveScreen() {
   const [selectedAuthor, setSelectedAuthor] = useState(
     route.params?.author_id?.toString() || '',
   );
+
+  // --- Filter Modal State ---
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  const [tempYear, setTempYear] = useState(selectedYear);
+  const [tempCategory, setTempCategory] = useState(selectedCategory);
+  const [tempAuthor, setTempAuthor] = useState(selectedAuthor);
+
+  // Count active filters
+  const activeFiltersCount = [
+    selectedYear,
+    selectedCategory,
+    selectedAuthor,
+    route.params?.search,
+  ].filter(Boolean).length;
 
   // Load Dropdown Data
   useEffect(() => {
@@ -117,101 +136,181 @@ export default function ArchiveScreen() {
       search: '',
       page: 1,
     });
+    setIsFilterModalVisible(false);
   };
 
-  const isSearchMode =
-    route.params?.mode === 'search' || !!route.params?.search;
+  const handleSearchSubmit = () => {
+    navigation.setParams({ 
+      search: localSearch, 
+      page: 1,
+      year: '',
+      category_id: '',
+      author_id: '',
+    });
+  };
+
+  const clearAllFilters = () => {
+    setSelectedYear('');
+    setSelectedCategory('');
+    setSelectedAuthor('');
+    setLocalSearch('');
+    navigation.setParams({
+      search: '',
+      year: '',
+      category_id: '',
+      author_id: '',
+      page: 1,
+    });
+  };
+
+  const openFilterModal = () => {
+    setTempYear(selectedYear);
+    setTempCategory(selectedCategory);
+    setTempAuthor(selectedAuthor);
+    setIsFilterModalVisible(true);
+  };
+
+  const applyModalFilters = () => {
+    setSelectedYear(tempYear);
+    setSelectedCategory(tempCategory);
+    setSelectedAuthor(tempAuthor);
+    navigation.setParams({
+      year: tempYear,
+      category_id: tempCategory,
+      author_id: tempAuthor,
+      search: '',
+      page: 1,
+    });
+    setIsFilterModalVisible(false);
+  };
+
+  const isSearchMode = route.params?.mode === 'search' || !!route.params?.search;
 
   return (
     <MainLayout title="Archive" showFilter={false} routeName="Archive">
-      <SafeAreaView style={styles.safeArea}>
-        {/* <Header /> */}
-        {/* <TopMenu activeSlug="archive" /> */}
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
         <ScrollView
           ref={scrollRef}
           style={styles.container}
-          
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.filterSection}>
-            {isSearchMode ? (
-              /* CONDITIONAL UI: FIRST SS (Search Input) */
-              <View style={styles.searchBarWrapper}>
-                <TextInput
-                  style={styles.searchInput}
-                  value={localSearch}
-                  onChangeText={setLocalSearch}
-                  placeholder="Search..."
-                  onSubmitEditing={() =>
-                    navigation.setParams({ search: localSearch, page: 1 })
-                  }
-                />
-                <Ionicons name="search" size={20} color="#333" />
-              </View>
-            ) : (
-              /* CONDITIONAL UI: SECOND SS (Dropdown Filters) */
-              <View style={styles.dropdownContainer}>
-                <View style={styles.pickerBorder}>
-                  <Picker
-                    selectedValue={selectedYear}
-                    onValueChange={setSelectedYear}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Select Year" value="" />
-                    {years.map(y => (
-                      <Picker.Item
-                        key={y}
-                        label={y.toString()}
-                        value={y.toString()}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-
-                <View style={styles.pickerBorder}>
-                  <Picker
-                    selectedValue={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Select Category" value="" />
-                    {categories.map(c => (
-                      <Picker.Item
-                        key={c.id}
-                        label={c.name}
-                        value={c.id.toString()}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-
-                <View style={styles.pickerBorder}>
-                  <Picker
-                    selectedValue={selectedAuthor}
-                    onValueChange={setSelectedAuthor}
-                    style={styles.picker}
-                  >
-                    <Picker.Item label="Select Author" value="" />
-                    {authors.map(a => (
-                      <Picker.Item
-                        key={a.id}
-                        label={a.name}
-                        value={a.id.toString()}
-                      />
-                    ))}
-                  </Picker>
-                </View>
-
-                <TouchableOpacity
-                  style={styles.searchBtn}
-                  onPress={handleApplyFilters}
-                >
-                  <Text style={styles.searchBtnText}>Search</Text>
+          {/* Modern Filter Bar */}
+          <View style={styles.filterBar}>
+            {/* Search Input */}
+            <View style={styles.searchWrapper}>
+              <Ionicons name="search-outline" size={20} color="#999" />
+              <TextInput
+                style={styles.searchInput}
+                value={localSearch}
+                onChangeText={setLocalSearch}
+                placeholder="Search articles..."
+                placeholderTextColor="#999"
+                returnKeyType="search"
+                onSubmitEditing={handleSearchSubmit}
+              />
+              {localSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setLocalSearch('')}>
+                  <Ionicons name="close-circle" size={18} color="#999" />
                 </TouchableOpacity>
-              </View>
-            )}
+              )}
+            </View>
+
+            {/* Filter Button with Badge */}
+            <TouchableOpacity 
+              style={styles.filterButton}
+              onPress={openFilterModal}
+            >
+              <Ionicons name="filter-outline" size={20} color="#c9060a" />
+              <Text style={styles.filterButtonText}>Filter</Text>
+              {activeFiltersCount > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </View>
 
+          {/* Active Filters Chips */}
+          {activeFiltersCount > 0 && (
+            <View style={styles.activeFiltersContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipsWrapper}>
+                  {selectedYear && (
+                    <TouchableOpacity 
+                      style={styles.filterChip}
+                      onPress={() => {
+                        setSelectedYear('');
+                        navigation.setParams({ year: '', page: 1 });
+                      }}
+                    >
+                      <Text style={styles.filterChipText}>Year: {selectedYear}</Text>
+                      <Ionicons name="close" size={14} color="#c9060a" />
+                    </TouchableOpacity>
+                  )}
+                  {selectedCategory && (
+                    <TouchableOpacity 
+                      style={styles.filterChip}
+                      onPress={() => {
+                        setSelectedCategory('');
+                        navigation.setParams({ category_id: '', page: 1 });
+                      }}
+                    >
+                      <Text style={styles.filterChipText}>
+                        Category: {categories.find(c => c.id.toString() === selectedCategory)?.name}
+                      </Text>
+                      <Ionicons name="close" size={14} color="#c9060a" />
+                    </TouchableOpacity>
+                  )}
+                  {selectedAuthor && (
+                    <TouchableOpacity 
+                      style={styles.filterChip}
+                      onPress={() => {
+                        setSelectedAuthor('');
+                        navigation.setParams({ author_id: '', page: 1 });
+                      }}
+                    >
+                      <Text style={styles.filterChipText}>
+                        Author: {authors.find(a => a.id.toString() === selectedAuthor)?.name}
+                      </Text>
+                      <Ionicons name="close" size={14} color="#c9060a" />
+                    </TouchableOpacity>
+                  )}
+                  {route.params?.search && (
+                    <TouchableOpacity 
+                      style={styles.filterChip}
+                      onPress={() => {
+                        setLocalSearch('');
+                        navigation.setParams({ search: '', page: 1 });
+                      }}
+                    >
+                      <Text style={styles.filterChipText}>
+                        Search: {route.params.search}
+                      </Text>
+                      <Ionicons name="close" size={14} color="#c9060a" />
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity 
+                    style={[styles.filterChip, styles.clearAllChip]}
+                    onPress={clearAllFilters}
+                  >
+                    <Text style={[styles.filterChipText, styles.clearAllText]}>
+                      Clear All
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          )}
+
           <View style={styles.divider} />
+
+          {/* Results Count */}
+          {/* <View style={styles.resultsInfo}>
+            <Text style={styles.resultsText}>
+              {loading ? 'Loading...' : `${posts.length} articles found`}
+            </Text>
+          </View> */}
 
           <PostList
             posts={posts}
@@ -233,94 +332,348 @@ export default function ArchiveScreen() {
           )}
 
           <View style={styles.footerContainer}>
-            <View style={styles.magazine}>
-              <LatestEditionImageOnly />
-            </View>
-            <View style={styles.BannerContainer}>
-              <HomeBanner />
-            </View>
-            <View style={styles.adContainer}>
-              <HomeAdvertisement />
-            </View>
-            {/* <Footer /> */}
+            {/* Your existing footer components */}
           </View>
         </ScrollView>
+
+        {/* Modern Filter Modal */}
+        <Modal
+          visible={isFilterModalVisible}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setIsFilterModalVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                {/* Modal Header */}
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Filter Articles</Text>
+                  <TouchableOpacity 
+                    onPress={() => setIsFilterModalVisible(false)}
+                    style={styles.modalCloseButton}
+                  >
+                    <Ionicons name="close" size={24} color="#333" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Filter Options */}
+                <ScrollView showsVerticalScrollIndicator={false}>
+                  {/* Year Filter */}
+                  <View style={styles.modalFilterGroup}>
+                    <Text style={styles.modalFilterLabel}>Year</Text>
+                    <View style={styles.modalPickerContainer}>
+                      <Picker
+                        selectedValue={tempYear}
+                        onValueChange={setTempYear}
+                        style={styles.modalPicker}
+                        dropdownIconColor="#c9060a"
+                      >
+                        <Picker.Item label="All Years" value="" />
+                        {years.map(y => (
+                          <Picker.Item
+                            key={y}
+                            label={y.toString()}
+                            value={y.toString()}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  </View>
+
+                  {/* Category Filter */}
+                  <View style={styles.modalFilterGroup}>
+                    <Text style={styles.modalFilterLabel}>Category</Text>
+                    <View style={styles.modalPickerContainer}>
+                      <Picker
+                        selectedValue={tempCategory}
+                        onValueChange={setTempCategory}
+                        style={styles.modalPicker}
+                        dropdownIconColor="#c9060a"
+                      >
+                        <Picker.Item label="All Categories" value="" />
+                        {categories.map(c => (
+                          <Picker.Item
+                            key={c.id}
+                            label={c.name}
+                            value={c.id.toString()}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  </View>
+
+                  {/* Author Filter */}
+                  <View style={styles.modalFilterGroup}>
+                    <Text style={styles.modalFilterLabel}>Author</Text>
+                    <View style={styles.modalPickerContainer}>
+                      <Picker
+                        selectedValue={tempAuthor}
+                        onValueChange={setTempAuthor}
+                        style={styles.modalPicker}
+                        dropdownIconColor="#c9060a"
+                      >
+                        <Picker.Item label="All Authors" value="" />
+                        {authors.map(a => (
+                          <Picker.Item
+                            key={a.id}
+                            label={a.name}
+                            value={a.id.toString()}
+                          />
+                        ))}
+                      </Picker>
+                    </View>
+                  </View>
+                </ScrollView>
+
+                {/* Modal Actions */}
+                <View style={styles.modalActions}>
+                  <TouchableOpacity 
+                    style={styles.modalResetButton}
+                    onPress={() => {
+                      setTempYear('');
+                      setTempCategory('');
+                      setTempAuthor('');
+                    }}
+                  >
+                    <Text style={styles.modalResetText}>Reset</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.modalApplyButton}
+                    onPress={applyModalFilters}
+                  >
+                    <Text style={styles.modalApplyText}>Apply Filters</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       </SafeAreaView>
     </MainLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1 },
-  filterSection: {
-    paddingHorizontal: 15,
-    paddingTop: 15,
-    marginBottom: 30,
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: '#f8f9fa' 
   },
-  /* Styling for SS 1 */
-  searchBarWrapper: {
+  container: { 
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  
+  // Modern Filter Bar
+  filterBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+    gap: 12,
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingBottom: 5,
+    borderBottomColor: '#f0f0f0',
+  },
+  searchWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 16,
     color: '#333',
+    padding: 0,
   },
-  /* Styling for SS 2 */
-  dropdownContainer: {
-    gap: 10,
-  },
-  pickerBorder: {
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    height: 50,
+    borderColor: '#c9060a',
+    gap: 6,
+    position: 'relative',
+  },
+  filterButtonText: {
+    color: '#c9060a',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#c9060a',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  filterBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  
+  // Active Filters Chips
+  activeFiltersContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  chipsWrapper: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  filterChipText: {
+    color: '#666',
+    fontSize: 13,
+  },
+  clearAllChip: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  clearAllText: {
+    color: '#c9060a',
+  },
+  
+  divider: {
+    height: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  
+  // Results Info
+  resultsInfo: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     backgroundColor: '#fff',
   },
-  picker: {
+  resultsText: {
+    fontSize: 13,
+    color: '#999',
+  },
+  
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalFilterGroup: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalFilterLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  modalPickerContainer: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    backgroundColor: '#fafafa',
+    overflow: 'hidden',
+  },
+  modalPicker: {
+    height: 50,
     width: '100%',
   },
-  searchBtn: {
-    backgroundColor: '#c9060a',
-    height: 45,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 4,
-    marginTop: 5,
-  },
-  searchBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textTransform: 'uppercase',
-  },
-  // divider: {
-  //   height: 1,
-  //   backgroundColor: '#eee',
-  //   marginVertical: 15,
-  //   marginHorizontal: 15,
-  //   borderStyle: 'dashed',
-  //   borderWidth: 1,
-  //   borderColor: '#ddd',
-  // },
-  adContainer: {
-    height: 300,
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
     backgroundColor: '#fff',
-    marginVertical: 20,
-    borderWidth: 1,
-    borderColor: '#dddbdb',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 15,
   },
-  BannerContainer: { marginHorizontal: 15 },
-  magazine: { marginBottom: 20, marginHorizontal: 15 },
-
-  footerContainer: { marginTop: 'auto', width: '100%' },
+  modalResetButton: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalResetText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalApplyButton: {
+    flex: 1,
+    backgroundColor: '#c9060a',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#c9060a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  modalApplyText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  
+  footerContainer: { 
+    marginTop: 20,
+  },
 });

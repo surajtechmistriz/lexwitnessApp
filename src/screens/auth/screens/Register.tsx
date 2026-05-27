@@ -25,9 +25,13 @@ import {
 import { ActivityIndicator } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useDispatch } from 'react-redux';
-import { CommonActions, useNavigation } from '@react-navigation/native';
 import { loginSuccess } from '../../../redux/slices/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  CommonActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 
 // Interface for membership plan
 interface MembershipPlan {
@@ -48,9 +52,14 @@ interface MembershipPlan {
 
 const RegisterScreen = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation<any>();
 
   const { width } = useWindowDimensions();
+
+  const route = useRoute<any>();
+
+  const preselectedPlanId = route?.params?.selectedPlanId;
+
+  const navigation = useNavigation<any>();
 
   const [form, setForm] = useState({
     first_name: '',
@@ -95,11 +104,22 @@ const RegisterScreen = () => {
 
         // default selected plan
         if (res.data.length > 0) {
-          const firstPlan = res.data[0];
+          let defaultPlan = res.data[0];
+
+          // if plan comes from PricingCard
+          if (preselectedPlanId) {
+            const matchedPlan = res.data.find(
+              (p: MembershipPlan) => Number(p.id) === Number(preselectedPlanId),
+            );
+
+            if (matchedPlan) {
+              defaultPlan = matchedPlan;
+            }
+          }
 
           setForm(prev => ({
             ...prev,
-            plan_id: firstPlan.id.toString(),
+            plan_id: defaultPlan.id.toString(),
           }));
         }
       } else {
@@ -464,7 +484,7 @@ const RegisterScreen = () => {
   return (
     <MainLayout title="Register" showFilter={false} routeName="Register">
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
         <SafeAreaView style={styles.container}>
@@ -474,6 +494,7 @@ const RegisterScreen = () => {
             keyboardShouldPersistTaps="handled"
           >
             <Text style={styles.heading}>Create Account</Text>
+            <Text style={styles.subHeading}>Join Lex Witness Membership</Text>
 
             {/* Personal Details */}
             <Input
@@ -786,12 +807,21 @@ const RegisterScreen = () => {
               )}
             </TouchableOpacity>
 
-            <View style={styles.loginLink}>
+            {/* <View style={styles.loginLink}>
               <Text style={styles.loginText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => {}}>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('MainTabs', {
+                    screen: 'AccountTab',
+                    params: {
+                      screen: 'SignIn',
+                    },
+                  })
+                }
+              >
                 <Text style={styles.loginButton}>Login</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
           </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
@@ -884,13 +914,24 @@ const Input = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  scrollView: { flex: 1, padding: 16 },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+  },
   heading: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 24,
-    color: '#333',
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 6,
+    color: '#111',
     textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  subHeading: {
+    textAlign: 'center',
+    color: '#777',
+    marginBottom: 26,
+    fontSize: 14,
   },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 12, fontSize: 14, color: '#666' },
@@ -938,11 +979,20 @@ const styles = StyleSheet.create({
   selectedPlan: {
     borderWidth: 2,
     borderColor: '#c9060a',
-    padding: 16,
-    borderRadius: 12,
+    padding: 20,
+    borderRadius: 22,
     marginBottom: 20,
-    backgroundColor: '#fff5f5',
-    position: 'relative',
+    backgroundColor: '#fff',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 4,
   },
   planHeader: {
     flexDirection: 'row',
@@ -950,7 +1000,11 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  planName: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  planName: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111',
+  },
   tagBadge: {
     backgroundColor: '#ff9800',
     paddingHorizontal: 8,
@@ -1058,7 +1112,7 @@ const styles = StyleSheet.create({
   loginLink: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
   },
   loginText: { fontSize: 14, color: '#666' },
   loginButton: { fontSize: 14, color: '#c9060a', fontWeight: '600' },

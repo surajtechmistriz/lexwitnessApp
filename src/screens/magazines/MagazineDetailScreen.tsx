@@ -72,6 +72,12 @@ export default function MagazineDetailScreen() {
     );
   }
 
+  const handleSubscribe = () => {
+  navigation.navigate('HomeTab', {
+    screen: 'Subscription',
+  });
+};
+
   return (
     <View style={styles.screen}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -102,7 +108,7 @@ export default function MagazineDetailScreen() {
             </Text>
 
             <TouchableOpacity style={styles.subscribeBtn}>
-              <Text style={styles.subscribeText}>Subscribe Now</Text>
+              <Text style={styles.subscribeText}  onPress={handleSubscribe} >Subscribe Now</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -325,5 +331,6 @@ const styles = StyleSheet.create({
   moreSection: {
     marginTop: 20,
     paddingBottom: 40,
+   paddingLeft:10,
   },
 });

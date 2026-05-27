@@ -196,9 +196,9 @@ export default function Author() {
 
         {/* FOOTER */}
         <View style={styles.footerContainer}>
-          <View style={styles.magazine}>
+          {/* <View style={styles.magazine}>
             <LatestEditionImageOnly />
-          </View>
+          </View> */}
           <View style={styles.BannerContainer}>
             <HomeBanner />
           </View>

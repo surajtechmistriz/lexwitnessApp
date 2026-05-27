@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Dimensions,
 } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
@@ -23,10 +24,9 @@ import {
   verifySubscriptionPayment,
 } from '../../services/api/subscription';
 
-import {
-  setSubscription,
-  updateSubscription,
-} from '../../redux/slices/authSlice';
+import { updateSubscription } from '../../redux/slices/authSlice';
+
+const { width } = Dimensions.get('window');
 
 const PricingCard = () => {
   const navigation = useNavigation<any>();
@@ -37,8 +37,6 @@ const PricingCard = () => {
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number>(2);
-
-  /* ---------------- FETCH PLANS ---------------- */
 
   useEffect(() => {
     fetchPlans();
@@ -60,8 +58,6 @@ const PricingCard = () => {
     }
   };
 
-  /* ---------------- HELPERS ---------------- */
-
   const parseFeatures = (feature: string) => {
     if (!feature) return [];
 
@@ -80,18 +76,18 @@ const PricingCard = () => {
     return !!user;
   }, [user]);
 
-  /* ---------------- SUBSCRIBE ---------------- */
-
   const handleSubscribe = useCallback(async () => {
     try {
       if (!selectedPlan) return;
 
-      // GUEST USER
       if (!user) {
-        navigation.navigate('Auth', {
-          screen: 'Register',
+        navigation.navigate('MainTabs', {
+          screen: 'AccountTab',
           params: {
-            selectedPlanId,
+            screen: 'Register',
+            params: {
+              selectedPlanId,
+            },
           },
         });
 
@@ -100,12 +96,7 @@ const PricingCard = () => {
 
       setLoading(true);
 
-      console.log('UPGRADE PLAN =>', selectedPlan.id);
-
-      /* STEP 1 : CREATE ORDER */
       const apiResponse = await upgradePlan(selectedPlan.id);
-
-      console.log('UPGRADE API RESPONSE =>', apiResponse);
 
       const paymentData = apiResponse?.data?.payment;
 
@@ -115,26 +106,17 @@ const PricingCard = () => {
         return;
       }
 
-      /* STEP 2 : OPEN RAZORPAY */
-
       const options = {
         key: paymentData.razorpay_key,
-
         amount: Number(paymentData.amount),
-
         currency: paymentData.currency || 'INR',
-
         order_id: paymentData.order_id,
-
         name: 'Lex Witness',
-
         description: 'Membership Upgrade',
 
         prefill: {
           name: `${user?.first_name || ''} ${user?.last_name || ''}`,
-
           email: user?.email || '',
-
           contact: user?.contact || '',
         },
 
@@ -144,10 +126,6 @@ const PricingCard = () => {
       };
 
       const razorpayResponse = await RazorpayCheckout.open(options);
-
-      console.log('RAZORPAY SUCCESS =>', razorpayResponse);
-
-      /* STEP 3 : VERIFY PAYMENT */
 
       const verifyPayload = {
         razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
@@ -161,11 +139,7 @@ const PricingCard = () => {
         purchase_type: 'UPGRADE',
       };
 
-      console.log('VERIFY PAYLOAD =>', verifyPayload);
-
       const verifyRes = await verifySubscriptionPayment(verifyPayload);
-
-      console.log('VERIFY RESPONSE =>', verifyRes);
 
       if (!verifyRes?.status) {
         Alert.alert(
@@ -177,10 +151,6 @@ const PricingCard = () => {
       }
 
       const sub = verifyRes?.data?.subscription;
-
-      //     if (sub) {
-      //   dispatch(setSubscription(sub));
-      // }
 
       if (sub) {
         dispatch(
@@ -197,9 +167,6 @@ const PricingCard = () => {
         screen: 'AccountTab',
       });
     } catch (error: any) {
-      console.log('SUBSCRIPTION FLOW ERROR =>', error?.response?.data || error);
-
-      // Razorpay cancel
       if (error?.code === 0 || error?.description === 'Payment Cancelled') {
         Alert.alert('Cancelled', 'Payment cancelled');
 
@@ -217,8 +184,6 @@ const PricingCard = () => {
     }
   }, [selectedPlan, selectedPlanId, navigation, user, dispatch]);
 
-  /* ---------------- LOADER ---------------- */
-
   if (!plans.length) {
     return (
       <View style={styles.loaderWrap}>
@@ -228,15 +193,25 @@ const PricingCard = () => {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        paddingBottom: 40,
+      }}
+    >
+      {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.title}>Membership Plans</Text>
 
         <View style={styles.divider} />
 
-        <Text style={styles.subtitle}>Choose your subscription</Text>
+        <Text style={styles.subtitle}>
+          Choose the best plan for your access
+        </Text>
       </View>
 
+      {/* PLANS */}
       <View style={styles.plansGrid}>
         {plans.map(plan => {
           const isSelected = selectedPlanId === plan.id;
@@ -250,34 +225,36 @@ const PricingCard = () => {
           return (
             <TouchableOpacity
               key={plan.id}
-              activeOpacity={0.9}
+              activeOpacity={0.92}
               disabled={disableFreePlan}
               onPress={() => setSelectedPlanId(plan.id)}
               style={[
                 styles.card,
 
-                isSelected && styles.cardActive,
+                isSelected && styles.activeCard,
 
                 disableFreePlan && {
-                  opacity: 0.5,
+                  opacity: 0.55,
                 },
               ]}
             >
-              {plan.tag && (
+              {plan.tag ? (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
                     {disableFreePlan ? 'NOT AVAILABLE' : plan.tag}
                   </Text>
                 </View>
-              )}
+              ) : null}
 
-              <Text style={styles.planName}>{plan.name}</Text>
+              <View style={styles.cardTop}>
+                <Text style={styles.planName}>{plan.name}</Text>
 
-              {subscription?.plan_id === plan.id && (
-                <Text style={styles.currentPlan}>Current Plan</Text>
-              )}
+                {subscription?.plan_id === plan.id && (
+                  <Text style={styles.currentPlan}>Current Plan</Text>
+                )}
+              </View>
 
-              <View style={styles.priceContainer}>
+              <View style={styles.priceRow}>
                 <Text style={styles.currency}>₹</Text>
 
                 <Text style={styles.price}>{plan.price}</Text>
@@ -295,7 +272,7 @@ const PricingCard = () => {
 
               <View
                 style={[
-                  styles.selectIndicator,
+                  styles.selectButton,
 
                   isSelected && {
                     backgroundColor: '#c9060a',
@@ -304,7 +281,7 @@ const PricingCard = () => {
               >
                 <Text
                   style={[
-                    styles.selectText,
+                    styles.selectButtonText,
 
                     isSelected && {
                       color: '#fff',
@@ -320,7 +297,6 @@ const PricingCard = () => {
       </View>
 
       {/* CTA */}
-
       <TouchableOpacity
         style={styles.subscribeBtn}
         activeOpacity={0.9}
@@ -329,6 +305,8 @@ const PricingCard = () => {
       >
         <LinearGradient
           colors={['#c9060a', '#8f0205']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
           style={styles.subscribeGradient}
         >
           {loading ? (
@@ -353,35 +331,41 @@ export default PricingCard;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 30,
+    marginTop: 20,
+    paddingHorizontal: 18,
   },
 
   loaderWrap: {
-    paddingVertical: 40,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 28,
   },
 
   title: {
-    fontSize: 28,
+    fontSize: width * 0.075,
     fontWeight: '800',
     color: '#111',
   },
 
   divider: {
-    width: 60,
+    width: 70,
     height: 4,
     backgroundColor: '#c9060a',
-    marginTop: 6,
     borderRadius: 10,
+    marginTop: 10,
   },
 
   subtitle: {
-    color: '#777',
-    marginTop: 10,
+    color: '#666',
+    marginTop: 12,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 
   plansGrid: {
@@ -390,99 +374,122 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: '#fff',
-    borderRadius: 22,
+    borderRadius: 24,
     padding: 22,
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: '#ececec',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    elevation: 4,
   },
 
-  cardActive: {
+  activeCard: {
     borderColor: '#c9060a',
+    borderWidth: 2,
   },
 
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: '#c9060a',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 30,
+    marginBottom: 18,
   },
 
   badgeText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.4,
+  },
+
+  cardTop: {
+    marginBottom: 10,
   },
 
   planName: {
-    fontSize: 24,
+    fontSize: width * 0.06,
     fontWeight: '800',
     color: '#111',
   },
 
   currentPlan: {
-    marginTop: 6,
+    marginTop: 8,
     color: '#18b76a',
     fontWeight: '700',
+    fontSize: 13,
   },
 
-  priceContainer: {
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginTop: 18,
+    marginTop: 10,
   },
 
   currency: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
+    marginBottom: 8,
   },
 
   price: {
-    fontSize: 46,
+    fontSize: width * 0.12,
     fontWeight: '900',
     color: '#111',
+    lineHeight: width * 0.12,
   },
 
   featuresContainer: {
-    marginTop: 24,
+    marginTop: 26,
   },
 
   featureRow: {
     flexDirection: 'row',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 14,
   },
 
   check: {
     color: '#18b76a',
     fontWeight: '900',
-    marginRight: 10,
+    marginRight: 12,
+    marginTop: 1,
   },
 
   featureText: {
     flex: 1,
     color: '#444',
     fontWeight: '500',
+    lineHeight: 22,
+    fontSize: 14,
   },
 
-  selectIndicator: {
-    marginTop: 20,
-    backgroundColor: '#f5f5f5',
+  selectButton: {
+    marginTop: 24,
+    backgroundColor: '#f4f4f4',
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
   },
 
-  selectText: {
+  selectButtonText: {
     fontWeight: '700',
     color: '#555',
+    fontSize: 14,
   },
 
   subscribeBtn: {
-    marginTop: 28,
-    borderRadius: 20,
+    marginTop: 30,
+    borderRadius: 18,
     overflow: 'hidden',
-    marginBottom: 50,
   },
 
   subscribeGradient: {
@@ -502,7 +509,7 @@ const styles = StyleSheet.create({
   arrow: {
     color: '#fff',
     fontSize: 22,
-    marginLeft: 12,
+    marginLeft: 10,
     fontWeight: '700',
   },
 });

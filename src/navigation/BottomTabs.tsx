@@ -96,19 +96,32 @@ export default function BottomTabs() {
       />
 
       {/* PROFILE / ACCOUNT */}
-      <Tab.Screen
-        name="AccountTab"
-        component={
-          isLoggedIn
-            ? DashboardScreen
-            : AuthStack
-        }
-        options={{
-          title: isLoggedIn
-            ? "Dashboard"
-            : "SignIn",
-        }}
-      />
+    <Tab.Screen
+  name="AccountTab"
+  component={
+    isLoggedIn
+      ? DashboardScreen
+      : AuthStack
+  }
+  options={{
+    title: isLoggedIn
+      ? 'Dashboard'
+      : 'SignIn',
+  }}
+  listeners={({ navigation }) => ({
+    tabPress: e => {
+      e.preventDefault();
+
+      if (isLoggedIn) {
+        navigation.navigate('AccountTab');
+      } else {
+        navigation.navigate('AccountTab', {
+          screen: 'SignIn',
+        });
+      }
+    },
+  })}
+/>
     </Tab.Navigator>
   );
 }
