@@ -16,7 +16,6 @@ import { RootState } from '../../redux/store';
 import { logout } from '../../redux/slices/authSlice';
 import Toast from 'react-native-toast-message';
 
-const { width, height } = Dimensions.get('window');
 
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -206,7 +205,7 @@ if (!isHydrated) return null;
 
         <View style={styles.quickActionsArea}>
           <View style={styles.quickHeader}>
-            <View style={styles.quickDot} />
+            {/* <View style={styles.quickDot} /> */}
             <Text style={styles.quickTitle}>Quick Actions</Text>
           </View>
           {quickActions.map(action => (

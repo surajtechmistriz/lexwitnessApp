@@ -106,21 +106,21 @@ const DashboardScreen = ({ navigation }: any) => {
   //   return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
   // };
 
-  const formatDate = (date?: string) => {
-    if (!date) return '—';
+ const formatDate = (date?: string) => {
+  if (!date) return '—';
 
-    const d = new Date(date);
+  const d = new Date(date);
 
-    const day = d.getDate().toString().padStart(2, '0');
+  const day = d.getDate().toString().padStart(2, '0');
 
-    const month = d.toLocaleString('en-IN', {
-      month: 'short',
-    });
+  const month = d.toLocaleString('en-IN', {
+    month: 'short',
+  });
 
-    const year = d.getFullYear();
+  const year = d.getFullYear();
 
-    return `${day} ${month} ${year}`;
-  };
+  return `${day} ${month} ${year}`;
+};
 
   const now = new Date();
 
@@ -429,17 +429,17 @@ const DashboardScreen = ({ navigation }: any) => {
               <View style={styles.detailBox}>
                 <Text style={styles.detailLabel}>Start Date</Text>
 
-                <Text style={styles.detailValue}>
-                  {formatDate(subscription?.start_date)}
-                </Text>
+             <Text style={styles.detailValue}>
+  {formatDate(subscription?.start_date)}
+</Text>
               </View>
 
               <View style={styles.detailBox}>
                 <Text style={styles.detailLabel}>End Date</Text>
 
-                <Text style={styles.detailValue}>
-                  {formatDate(subscription?.end_date)}
-                </Text>
+             <Text style={styles.detailValue}>
+  {formatDate(subscription?.end_date)}
+</Text>
               </View>
 
               <View style={styles.detailBox}>
@@ -603,17 +603,17 @@ const DashboardScreen = ({ navigation }: any) => {
                       <View style={styles.detailBox}>
                         <Text style={styles.detailLabel}>Starts</Text>
 
-                        <Text style={styles.detailValue}>
-                          {formatDate(item?.start_date)}
-                        </Text>
+                       <Text style={styles.detailValue}>
+  {formatDate(item?.start_date)}
+</Text>
                       </View>
 
                       <View style={styles.detailBox}>
                         <Text style={styles.detailLabel}>Ends</Text>
 
                         <Text style={styles.detailValue}>
-                          {formatDate(item?.end_date)}
-                        </Text>
+  {formatDate(item?.end_date)}
+</Text>
                       </View>
 
                       <View style={styles.detailBox}>
@@ -639,24 +639,16 @@ const DashboardScreen = ({ navigation }: any) => {
           </View>
         )}
 
-        {/* Bottom Action Buttons */}
-        <TouchableOpacity
-          style={styles.invoiceBtn}
-          activeOpacity={0.85}
-          onPress={() =>
-            navigation.navigate('HomeTab', { screen: 'InvoiceScreen' })
-          }
-        >
+       {/* Bottom Action Buttons */}
+        <TouchableOpacity style={styles.invoiceBtn} activeOpacity={0.85} onPress={() =>
+          navigation.navigate('HomeTab', { screen: 'InvoiceScreen' })
+        }>
           <Icon name="file-text" size={18} color="#111827" />
           <Text style={styles.invoiceBtnText}>Invoices</Text>
           <Icon name="arrow-right" size={18} color="#111827" />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.logoutBtn}
-          activeOpacity={0.85}
-          onPress={handleLogout}
-        >
+        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85} onPress={handleLogout}>
           <Icon name="log-out" size={18} color="#fff" />
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
@@ -907,7 +899,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  invoiceBtn: {
+ invoiceBtn: {
     marginHorizontal: 16,
     marginTop: 24,
     backgroundColor: '#fff',
