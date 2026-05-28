@@ -188,7 +188,7 @@ export default function ArchiveScreen() {
 
   return (
     <MainLayout title="Archive" showFilter={false} routeName="Archive">
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+     <View style={styles.safeArea}>
         <ScrollView
           ref={scrollRef}
           style={styles.container}
@@ -449,7 +449,7 @@ export default function ArchiveScreen() {
             </View>
           </TouchableWithoutFeedback>
         </Modal>
-      </SafeAreaView>
+      </View>
     </MainLayout>
   );
 }

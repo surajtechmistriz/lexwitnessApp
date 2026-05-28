@@ -152,7 +152,7 @@ export default function TagScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <ScrollView
         ref={scrollRef}
         style={styles.container}

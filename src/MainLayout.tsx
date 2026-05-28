@@ -1,12 +1,5 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
-import { ScrollView } from 'react-native-gesture-handler';
-import { useSelector } from 'react-redux';
-import { RootState } from './redux/store';
 
 import Banner from './components/common/DynamicBanner';
 import TopMenu from './components/common/Menubar';
@@ -18,8 +11,6 @@ type Props = {
   showFilter?: boolean;
   activeSlug?: string;
   routeName?: string;
-  scrollRef?: any;
-  onScroll?: (event: any) => void;
 };
 
 const MainLayout = ({
@@ -29,11 +20,7 @@ const MainLayout = ({
   showFilter = true,
   activeSlug,
   routeName,
-  scrollRef,
-  onScroll,
 }: Props) => {
-  const insets = useSafeAreaInsets();
-
   const hiddenTopMenu = [
     'Magazines',
     'Subscription',
@@ -42,32 +29,29 @@ const MainLayout = ({
     'Archive',
   ];
 
+  const hiddenBanner = [
+  'Register',
+  'SignIn',
+];
+
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView
-        ref={scrollRef}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        stickyHeaderIndices={[1]} // 👈 Banner sticky
-      >
-        {/* Top spacing + TopMenu */}
-        <View style={{ paddingTop: insets.top }}>
-          {!hiddenTopMenu.includes(routeName || '') && (
-            <TopMenu activeSlug={activeSlug} />
-          )}
-        </View>
+    <View style={styles.container}>
+      {!hiddenTopMenu.includes(routeName || '') && (
+        <TopMenu activeSlug={activeSlug} />
+      )}
 
-        {/* Sticky Banner */}
-        <Banner
-          title={title}
-          renderFilter={renderFilter}
-          showFilter={showFilter}
-        />
+   {!hiddenBanner.includes(routeName || '') && (
+  <Banner
+    title={title}
+    renderFilter={renderFilter}
+    showFilter={showFilter}
+  />
+)}
 
-        {/* Page Content */}
-        <View style={styles.content}>{children}</View>
-      </ScrollView>
-    </SafeAreaView>
+      <View style={styles.content}>
+        {children}
+      </View>
+    </View>
   );
 };
 
@@ -78,7 +62,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+
   content: {
-    paddingBottom: 20,
+    flex: 1,
   },
 });

@@ -127,104 +127,117 @@ export default function Author() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        ref={scrollRef}
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#c9060a']}
-          />
-        }
-        stickyHeaderIndices={[1]} // Banner sticky
-      >
-        {/*  TopMenu scroll karega */}
-        <TopMenu />
+ return (
+  <View style={styles.container}>
+    {/* TOP MENU */}
+    <TopMenu />
 
-        {/*  Banner sticky */}
-        <Banner
-          title={author?.name || slug?.replace(/-/g, ' ')}
-          renderFilter={close => (
-            <YearFilter
-              years={years}
-              selectedYear={selectedYear}
-              onSelect={setSelectedYear}
-              onApply={() => {
-                handleApplyFilter();
-                close();
-              }}
-            />
-          )}
+    {/* BANNER */}
+    <Banner
+      title={author?.name || slug?.replace(/-/g, ' ')}
+      renderFilter={close => (
+        <YearFilter
+          years={years}
+          selectedYear={selectedYear}
+          onSelect={setSelectedYear}
+          onApply={() => {
+            handleApplyFilter();
+            close();
+          }}
         />
+      )}
+    />
 
-        {/*  CONTENT */}
-        <View style={styles.content}>
-          {loading && !refreshing ? (
-            <View style={styles.skeletonWrapper}>
-              {[1, 2, 3, 4, 5].map(item => (
-                <ArticleSkeleton key={item} />
-              ))}
-            </View>
-          ) : (
-            <PostList
-              posts={posts}
-              loading={false}
-              postBaseUrl={postBaseUrl}
-              emptyMessage={
-                appliedYear
-                  ? `No posts by ${
-                      author?.name || 'this author'
-                    } for ${appliedYear}`
-                  : 'No posts available'
-              }
-            />
-          )}
+    {/* CONTENT */}
+    <ScrollView
+      ref={scrollRef}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={['#c9060a']}
+        />
+      }
+    >
+      <View style={styles.content}>
+        {loading && !refreshing ? (
+          <View style={styles.skeletonWrapper}>
+            {[1, 2, 3, 4, 5].map(item => (
+              <ArticleSkeleton key={item} />
+            ))}
+          </View>
+        ) : (
+          <PostList
+            posts={posts}
+            loading={false}
+            postBaseUrl={postBaseUrl}
+            emptyMessage={
+              appliedYear
+                ? `No posts by ${
+                    author?.name || 'this author'
+                  } for ${appliedYear}`
+                : 'No posts available'
+            }
+          />
+        )}
 
-          {!loading && posts.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              lastPage={lastPage}
-              onPageChange={handlePageChange}
-              loading={loading}
-            />
-          )}
+        {!loading && posts.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            onPageChange={handlePageChange}
+            loading={loading}
+          />
+        )}
+      </View>
+
+      {/* FOOTER */}
+      <View style={styles.footerContainer}>
+        <View style={styles.BannerContainer}>
+          <HomeBanner />
         </View>
 
-        {/* FOOTER */}
-        <View style={styles.footerContainer}>
-          {/* <View style={styles.magazine}>
-            <LatestEditionImageOnly />
-          </View> */}
-          <View style={styles.BannerContainer}>
-            <HomeBanner />
-          </View>
-          <View style={styles.adContainer}>
-            <HomeAdvertisement />
-          </View>
+        <View style={styles.adContainer}>
+          <HomeAdvertisement />
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+      </View>
+    </ScrollView>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+
+  scrollContent: {
+    paddingBottom: 20,
+    flexGrow: 1,
+  },
+
   content: {
     paddingTop: 10,
-    paddingBottom: 20,
-    minHeight: SCREEN_HEIGHT * 0.6, // Increased for stability
+    minHeight: SCREEN_HEIGHT * 0.6,
+    backgroundColor: '#fff',
   },
+
   skeletonWrapper: {
     marginTop: 10,
   },
-  footerContainer: { marginTop: 'auto', width: '100%' },
-  BannerContainer: { marginHorizontal: 15 },
+
+  footerContainer: {
+    width: '100%',
+    paddingBottom: 20,
+  },
+
+  BannerContainer: {
+    marginHorizontal: 15,
+  },
+
   adContainer: {
     height: 300,
     backgroundColor: '#fff',
@@ -235,5 +248,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginHorizontal: 15,
   },
-  magazine: { marginBottom: 20, marginHorizontal: 15 },
+
+  magazine: {
+    marginBottom: 20,
+    marginHorizontal: 15,
+  },
 });

@@ -197,7 +197,7 @@ const PricingCard = () => {
       style={styles.container}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
-        paddingBottom: 40,
+        paddingBottom: 20,
       }}
     >
       {/* HEADER */}
@@ -299,12 +299,12 @@ const PricingCard = () => {
       {/* CTA */}
       <TouchableOpacity
         style={styles.subscribeBtn}
-        activeOpacity={0.9}
+        activeOpacity={0.88}
         disabled={loading}
         onPress={handleSubscribe}
       >
         <LinearGradient
-          colors={['#c9060a', '#8f0205']}
+          colors={['#c9060a', '#9f0407']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.subscribeGradient}
@@ -313,11 +313,15 @@ const PricingCard = () => {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <Text style={styles.subscribeText}>
-                {user ? 'UPGRADE NOW' : 'SUBSCRIBE NOW'}
-              </Text>
+              <>
+                <Text style={styles.subscribeText}>
+                  {user ? 'Upgrade Now' : 'Subscribe Now'}
+                </Text>
 
-              <Text style={styles.arrow}>→</Text>
+                <View style={styles.iconCircle}>
+                  <Text style={styles.arrow}>→</Text>
+                </View>
+              </>
             </>
           )}
         </LinearGradient>
@@ -472,6 +476,86 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
+  subscribeBtn: {
+    marginTop: 18,
+    borderRadius: 16,
+    overflow: 'hidden',
+
+    shadowColor: '#c9060a',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
+  subscribeGradient: {
+    height: 58,
+    paddingHorizontal: 18,
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    position: 'relative',
+  },
+
+  subscribeText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+  },
+
+  iconCircle: {
+    position: 'absolute',
+    right: 14,
+
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  arrow: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+
+  subscribeContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  subscribeLabel: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: 4,
+  },
+
+  arrowContainer: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+
   selectButton: {
     marginTop: 24,
     backgroundColor: '#f4f4f4',
@@ -484,32 +568,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#555',
     fontSize: 14,
-  },
-
-  subscribeBtn: {
-    marginTop: 30,
-    borderRadius: 18,
-    overflow: 'hidden',
-  },
-
-  subscribeGradient: {
-    paddingVertical: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-
-  subscribeText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-
-  arrow: {
-    color: '#fff',
-    fontSize: 22,
-    marginLeft: 10,
-    fontWeight: '700',
   },
 });

@@ -1,13 +1,21 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+} from 'react-native';
+
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type HeaderProps = {
-  navigation: any; //  added
+  navigation: any;
   onSearchPress: () => void;
 };
 
@@ -20,7 +28,7 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
 
   /* ---------------- DRAWER ---------------- */
   const handleToggleDrawer = () => {
-    navigation.openDrawer(); //  fixed
+    navigation.openDrawer();
   };
 
   /* ---------------- GO HOME ---------------- */
@@ -44,20 +52,25 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
         styles.container,
         {
           paddingTop: insets.top,
-          height: 70 + insets.top,
         },
       ]}
     >
       {/* LEFT */}
-      <View style={styles.left}>
-        <TouchableOpacity onPress={handleToggleDrawer}>
+      <View style={styles.sideContainer}>
+        <TouchableOpacity
+          onPress={handleToggleDrawer}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Ionicons name="menu" size={28} color="#c9060a" />
         </TouchableOpacity>
       </View>
 
       {/* CENTER */}
-      <View style={styles.center}>
-        <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
+      <View style={styles.centerContainer}>
+        <TouchableOpacity
+          onPress={handleGoHome}
+          activeOpacity={0.7}
+        >
           <Image
             source={require('../../assets/main-logo.png')}
             style={styles.logo}
@@ -67,9 +80,16 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
       </View>
 
       {/* RIGHT */}
-      <View style={styles.right}>
-        <TouchableOpacity onPress={onSearchPress}>
-          <Entypo name="magnifying-glass" size={24} color="#c9060a" />
+      <View style={styles.sideContainer}>
+        <TouchableOpacity
+          onPress={onSearchPress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Entypo
+            name="magnifying-glass"
+            size={24}
+            color="#c9060a"
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -78,38 +98,38 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
 
 export default Header;
 
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+
     backgroundColor: '#fff',
+
     borderBottomWidth: 1,
     borderColor: '#eee',
-    paddingHorizontal: 20,
+
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+
+    minHeight: 70,
   },
 
-  left: {
-    position: 'absolute',
-    left: 20,
-    flexDirection: 'row',
+  sideContainer: {
+    width: 50,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  center: {
+  centerContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  right: {
-    position: 'absolute',
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
   logo: {
-    width: 140,
-    height: 65,
+    width: 130,
+    height: 55,
   },
 });

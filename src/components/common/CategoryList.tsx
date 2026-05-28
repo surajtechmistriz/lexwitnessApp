@@ -106,7 +106,7 @@ navigation.navigate('HomeTab', {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+  <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Categories</Text>
         <Text style={styles.headerSub}>Lex Witness Insights</Text>

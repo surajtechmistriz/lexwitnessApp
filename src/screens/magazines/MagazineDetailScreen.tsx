@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   /* MORE */
   moreSection: {
     marginTop: 20,
-    paddingBottom: 40,
+    paddingBottom: 0,
    paddingLeft:10,
   },
 });

@@ -74,7 +74,10 @@ export default function SubscriptionPage() {
     >
       <StatusBar barStyle="light-content" />
 
-      <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView
+  style={styles.safeArea}
+  edges={['left', 'right', 'bottom']}
+>
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
@@ -216,7 +219,7 @@ const BenefitItem = ({
 /* -------------------- STYLES -------------------- */
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { paddingBottom: 60 },
+  scrollContent: { paddingBottom: 10 },
 
   /* HERO */
   heroGradient: {

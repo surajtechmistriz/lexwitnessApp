@@ -18,17 +18,12 @@ const EditorialDetail = ({ route }: any) => {
 
   const imgUrl = Config.EDITORIAL_IMAGE_URL;
 
-  // Remove HTML tags
   const cleanDescription =
-    editorialData?.description
-      ?.replace(/<[^>]*>?/gm, '')
-      .trim() || '';
+    editorialData?.description?.replace(/<[^>]*>?/gm, '').trim() || '';
 
-  // Fallback image
   const fallbackImage =
     'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
 
-  // Initial image
   const initialImage =
     editorialData?.image &&
     editorialData.image !== 'null' &&
@@ -36,17 +31,17 @@ const EditorialDetail = ({ route }: any) => {
       ? `${imgUrl}/${editorialData.image}`
       : fallbackImage;
 
-  // State for image source
   const [imageSource, setImageSource] = useState({
     uri: initialImage,
   });
 
   return (
-    <View style={styles.container}>
+<SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>      
+      {/* FIX: StatusBar controlled by SafeArea */}
       <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="light-content"
+        translucent={false}
+        backgroundColor="#f8f9fa"
+        barStyle="dark-content"
       />
 
       <ScrollView
@@ -59,11 +54,7 @@ const EditorialDetail = ({ route }: any) => {
             source={imageSource}
             style={styles.heroImage}
             resizeMode="cover"
-            onError={() => {
-              setImageSource({
-                uri: fallbackImage,
-              });
-            }}
+            onError={() => setImageSource({ uri: fallbackImage })}
           />
 
           <LinearGradient
@@ -75,57 +66,37 @@ const EditorialDetail = ({ route }: any) => {
             style={styles.overlay}
           />
 
-          <SafeAreaView style={styles.heroContent}>
+          <View style={styles.heroContent}>
             <View style={styles.badge}>
               <Text style={styles.badgeText}>FEATURED STORY</Text>
             </View>
 
-            <Text style={styles.name}>
+            <Text style={styles.name} numberOfLines={2}>
               {editorialData?.name || 'Editorial Author'}
             </Text>
 
             <View style={styles.companyRow}>
-              <Icon
-                name="business-outline"
-                size={16}
-                color="#fff"
-              />
-
+              <Icon name="business-outline" size={16} color="#fff" />
               <Text style={styles.company}>
                 {editorialData?.company_name || 'Editorial Team'}
               </Text>
             </View>
-          </SafeAreaView>
+          </View>
         </View>
 
         {/* INFO GRID */}
         <View style={styles.infoGrid}>
           <View style={styles.infoBox}>
-            <Icon
-              name="briefcase-outline"
-              size={22}
-              color="#c9060a"
-            />
-
+            <Icon name="briefcase-outline" size={22} color="#c9060a" />
             <Text style={styles.infoLabel}>DESIGNATION</Text>
-
-            <Text
-              style={styles.infoValue}
-              numberOfLines={2}
-            >
+            <Text style={styles.infoValue} numberOfLines={2}>
               {editorialData?.designation || 'Editor'}
             </Text>
           </View>
 
           <View style={[styles.infoBox, styles.borderLeft]}>
-            <Icon
-              name="location-outline"
-              size={22}
-              color="#c9060a"
-            />
-
+            <Icon name="location-outline" size={22} color="#c9060a" />
             <Text style={styles.infoLabel}>LOCATION</Text>
-
             <Text style={styles.infoValue}>
               {editorialData?.place || 'India'}
             </Text>
@@ -136,18 +107,16 @@ const EditorialDetail = ({ route }: any) => {
         <View style={styles.contentBody}>
           <View style={styles.sectionHeader}>
             <View style={styles.accentBar} />
-
-            <Text style={styles.sectionTitle}>
-              The Insight
-            </Text>
+            <Text style={styles.sectionTitle}>The Insight</Text>
           </View>
 
           <Text style={styles.description}>
             {cleanDescription || 'No description available.'}
           </Text>
         </View>
+
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -166,7 +135,6 @@ const styles = StyleSheet.create({
   heroWrapper: {
     height: 500,
     width: '100%',
-    backgroundColor: '#ddd',
   },
 
   heroImage: {
@@ -184,6 +152,8 @@ const styles = StyleSheet.create({
     bottom: 60,
     left: 24,
     right: 24,
+    // FIX: prevents header overlap feeling
+    paddingTop: 20,
   },
 
   badge: {
@@ -229,14 +199,6 @@ const styles = StyleSheet.create({
     marginTop: -35,
     borderRadius: 18,
     paddingVertical: 22,
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
     elevation: 5,
   },
 

@@ -110,72 +110,78 @@ export default function Category() {
     fetchData(category.id, appliedYear, currentPage);
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView
-        ref={scrollRef}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        stickyHeaderIndices={[1]}
-      >
-        {/* Top Menu */}
+ return (
+  <View style={{ flex: 1 }}>
+    <TopMenu activeSlug={slug} />
 
-        <TopMenu activeSlug={slug} />
-
-        {/* Sticky Banner */}
-        <Banner
-          title={slug.replace(/-/g, ' ')}
-          renderFilter={close => (
-            <YearFilter
-              years={years}
-              selectedYear={selectedYear}
-              onSelect={setSelectedYear}
-              onApply={() => {
-                setAppliedYear(selectedYear);
-                close();
-              }}
-            />
-          )}
+    <Banner
+      title={slug.replace(/-/g, ' ')}
+      renderFilter={close => (
+        <YearFilter
+          years={years}
+          selectedYear={selectedYear}
+          onSelect={setSelectedYear}
+          onApply={() => {
+            setAppliedYear(selectedYear);
+            close();
+          }}
         />
+      )}
+    />
 
-        {/* Content */}
-        <View style={styles.content}>
-          {loading ? (
-            <View>
-              {[1, 2, 3].map(i => (
-                <ArticleSkeleton key={i} />
-              ))}
-            </View>
-          ) : (
-            <PostList
-              posts={posts}
-              postBaseUrl={postBaseUrl}
-              emptyMessage={
-                appliedYear
-                  ? `No posts for ${appliedYear}`
-                  : 'No posts available'
-              }
-            />
-          )}
+    <ScrollView
+      ref={scrollRef}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <View style={styles.content}>
+        {loading ? (
+          <View>
+            {[1, 2, 3].map(i => (
+              <ArticleSkeleton key={i} />
+            ))}
+          </View>
+        ) : (
+          <PostList
+            posts={posts}
+            postBaseUrl={postBaseUrl}
+            emptyMessage={
+              appliedYear
+                ? `No posts for ${appliedYear}`
+                : 'No posts available'
+            }
+          />
+        )}
 
-          {!loading && posts.length > 0 && category?.id && (
-            <Pagination
-              currentPage={currentPage}
-              lastPage={lastPage}
-              onPageChange={page => fetchData(category.id, appliedYear, page)}
-            />
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+        {!loading && posts.length > 0 && category?.id && (
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            onPageChange={page =>
+              fetchData(category.id, appliedYear, page)
+            }
+          />
+        )}
+      </View>
+    </ScrollView>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
+  scrollContent: {
+    // paddingBottom: 20,
+  },
+
   content: {
     paddingTop: 10,
-    paddingBottom: 20,
     minHeight: SCREEN_HEIGHT * 0.6,
+    backgroundColor: '#fff',
   },
 });

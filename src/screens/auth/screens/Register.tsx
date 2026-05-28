@@ -34,6 +34,7 @@ import {
   verifyPaymentApi,
 } from '../api/services';
 import { loginSuccess } from '../../../redux/slices/authSlice';
+import MainLayout from '../../../MainLayout';
 
 interface MembershipPlan {
   id: number;
@@ -418,13 +419,17 @@ const RegisterScreen = () => {
   const gst = price * 0.18;
   const total = price + gst;
 
-  return (
-    <View style={styles.mainContainer}>
+return (
+  <MainLayout
+    title="Register"
+    routeName="Register"
+    showFilter={false}
+  >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.flex}
       >
-        <SafeAreaView style={styles.safeArea}>
+        {/* <SafeAreaView style={styles.safeArea}> */}
           <ScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
@@ -852,7 +857,7 @@ const RegisterScreen = () => {
               )}
             </TouchableOpacity>
           </ScrollView>
-        </SafeAreaView>
+        {/* </SafeAreaView> */}
       </KeyboardAvoidingView>
 
       {/* OTP Modal */}
@@ -897,7 +902,7 @@ const RegisterScreen = () => {
           </View>
         </View>
       </Modal>
-    </View>
+     </MainLayout>
   );
 };
 

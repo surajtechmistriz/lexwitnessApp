@@ -226,7 +226,7 @@ if (!isHydrated) return null;
           <>
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
-              <View style={styles.dividerDot} />
+              {/* <View style={styles.dividerDot} /> */}
               <View style={styles.dividerLine} />
             </View>
 
