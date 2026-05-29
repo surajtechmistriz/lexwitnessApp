@@ -49,6 +49,7 @@ export default function RootStack() {
         name="ContactUs"
         component={ContactUs}
       />
+      
     </Stack.Navigator>
   );
 }

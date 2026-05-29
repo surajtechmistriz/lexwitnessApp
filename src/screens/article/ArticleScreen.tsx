@@ -240,7 +240,8 @@ export default function ArticleDetailPage() {
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-              <Icon name="share-outline" size={20} color="#666" />
+              {/* <Icon name="share-outline" size={20} color="#666" /> */}
+               <Icon name="share-social" size={20} color="#c9060a" />
             </TouchableOpacity>
           </View>
 
@@ -471,33 +472,33 @@ export default function ArticleDetailPage() {
                     </Text>
 
                     {/* Read More Button */}
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      style={styles.readMoreBtn}
-                      onPress={() => toggleAuthor(authorKey)} //  Pass the correct key
-                    >
-                      <Text style={styles.readMoreText}>
-                        {expandedAuthors[authorKey] ? 'Show Less' : 'View More'}
-                      </Text>
+                   <TouchableOpacity
+  activeOpacity={0.7}
+  style={styles.readMoreBtn}
+  onPress={() => toggleAuthor(authorKey)}
+>
+  <Text style={styles.readMoreText}>
+    {expandedAuthors[authorKey] ? 'Show less' : 'View more'}
+  </Text>
 
-                      <Animated.View
-                        style={{
-                          marginLeft: 6,
-                          transform: [
-                            {
-                              rotate: rotateAnim[authorKey]
-                                ? rotateAnim[authorKey].interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: ['0deg', '180deg'],
-                                  })
-                                : '0deg',
-                            },
-                          ],
-                        }}
-                      >
-                        <Icon name="chevron-down" size={16} color="#fff" />
-                      </Animated.View>
-                    </TouchableOpacity>
+  <Animated.View
+    style={{
+      marginLeft: 4,
+      transform: [
+        {
+          rotate: rotateAnim[authorKey]
+            ? rotateAnim[authorKey].interpolate({
+                inputRange: [0, 1],
+                outputRange: ['0deg', '180deg'],
+              })
+            : '0deg',
+        },
+      ],
+    }}
+  >
+    <Icon name="chevron-down" size={16} color="#6b7280" />
+  </Animated.View>
+</TouchableOpacity>
                   </View>
                 );
               })}
@@ -1059,11 +1060,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 
-  readMoreText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
+   
 
   authorContent: {
     flex: 1,
@@ -1113,14 +1110,18 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
-  readMoreBtn: {
-    marginTop: 18,
-    flexDirection: 'row',
-    alignSelf: 'flex-start',
-    backgroundColor: '#c9060a',
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 30,
-    alignItems: 'center',
-  },
+readMoreBtn: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  alignSelf: 'flex-start',
+  paddingVertical: 4,
+  marginTop: 6,
+},
+
+readMoreText: {
+  fontSize: 13,
+  color: '#c9060a', // soft gray (professional UI tone)
+  fontWeight: '500',
+  letterSpacing: 0.2,
+},
 });

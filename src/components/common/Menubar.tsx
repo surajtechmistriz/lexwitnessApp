@@ -33,46 +33,49 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
 
   const currentSlug = activeSlug || '';
 
+  // ---------------- FETCH MENU ----------------
   const fetchMenu = useCallback(async () => {
     try {
       setLoading(true);
 
-      // 1️⃣ ALWAYS LOAD CACHE FIRST
+      // 1️⃣ LOAD CACHE FIRST (IMPORTANT FIX)
       const cached = await getCache(CACHE_KEY);
 
-      if (cached?.length) {
-        setMenuItems(cached);
+      if (cached?.data?.length) {
+        setMenuItems(cached.data);
         setLoading(false);
       }
 
-      // 2️⃣ TRY API
+      // 2️⃣ CALL API
       const data = await getMenu();
 
       if (data?.length) {
         setMenuItems(data);
+
+        // 3️⃣ SAVE CACHE PROPERLY
         await setCache(CACHE_KEY, data);
       }
-
     } catch (error) {
       console.log('Menu error:', error);
 
-      // 3️⃣ FALLBACK: keep cache if API fails
+      // 4️⃣ FALLBACK CACHE
       const cached = await getCache(CACHE_KEY);
-      if (cached?.length) {
-        setMenuItems(cached);
+      if (cached?.data?.length) {
+        setMenuItems(cached.data);
       }
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 🔥 IMPORTANT: reload when screen comes back
+  // ---------------- RELOAD ON SCREEN FOCUS ----------------
   useFocusEffect(
     useCallback(() => {
       fetchMenu();
     }, [fetchMenu]),
   );
 
+  // ---------------- AUTO SCROLL ACTIVE ITEM ----------------
   useEffect(() => {
     const timer = setTimeout(() => {
       scrollToCenter(currentSlug);
@@ -81,11 +84,13 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     return () => clearTimeout(timer);
   }, [currentSlug, menuItems]);
 
+  // ---------------- LAYOUT STORE ----------------
   const handleLayout = (slug: string, event: LayoutChangeEvent) => {
     const { x, width } = event.nativeEvent.layout;
     itemLayouts.current[slug] = { x, width };
   };
 
+  // ---------------- CENTER SCROLL ----------------
   const scrollToCenter = (slug: string) => {
     const layout = itemLayouts.current[slug];
     if (!layout) return;
@@ -98,14 +103,16 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     });
   };
 
+  // ---------------- NAVIGATION ----------------
   const handlePress = (slug: string) => {
     navigation.navigate('Category', { slug });
     scrollToCenter(slug);
   };
 
+  // ---------------- UI ----------------
   return (
     <View style={styles.wrapper}>
-      {loading ? (
+      {loading && menuItems.length === 0 ? (
         <MenuSkeleton />
       ) : (
         <ScrollView
@@ -138,10 +145,11 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
 
 export default TopMenu;
 
+// ---------------- STYLES (UNCHANGED) ----------------
 const styles = StyleSheet.create({
   wrapper: {
     height: 56,
-    backgroundColor: '#f5f5f7', //  subtle app bg
+    backgroundColor: '#f5f5f7',
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#eaeaea',
@@ -149,7 +157,7 @@ const styles = StyleSheet.create({
 
   container: {
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingRight: 12,
   },
 
   menuItem: {
@@ -158,8 +166,6 @@ const styles = StyleSheet.create({
     marginRight: 10,
     borderRadius: 18,
     backgroundColor: '#ffffff',
-
-    // subtle depth (important!)
     borderWidth: 1,
     borderColor: '#eeeeee',
   },
@@ -180,16 +186,17 @@ const styles = StyleSheet.create({
     color: '#c9060a',
     fontWeight: '600',
   },
+
   skeletonItem: {
-  width: 80,
-  height: 28,
-  borderRadius: 18,
-  backgroundColor: '#e5e7eb',
-  marginRight: 10,
-},
+    width: 80,
+    height: 28,
+    borderRadius: 18,
+    backgroundColor: '#e5e7eb',
+    marginRight: 10,
+  },
 });
 
-
+// ---------------- SKELETON ----------------
 const MenuSkeleton = () => {
   return (
     <ScrollView

@@ -8,6 +8,8 @@ import {
   Dimensions,
   Share,
   Pressable,
+  Switch,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -23,6 +25,11 @@ const CustomDrawer = ({ navigation }: any) => {
   const auth = useSelector((state: RootState) => state.auth);
 
 const { isLoggedIn, user, isHydrated } = auth;
+
+const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+const [darkMode, setDarkMode] = React.useState(false);
+// const [showSettings, setShowSettings] = React.useState(false);
+const [settingsOpen, setSettingsOpen] = React.useState(false);
 
 // if (!isHydrated) {
 //   return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
@@ -183,6 +190,7 @@ if (!isHydrated) {
         },
       ],
     },
+  
   ];
 
   const handleShare = async () => {
@@ -204,10 +212,20 @@ if (!isHydrated) {
   };
 
 const quickActions = [
-  { id: 'help', icon: 'help-circle', label: 'Help Center' },
-  { id: 'settings', icon: 'settings', label: 'Settings' },
-  { id: 'share', icon: 'share-2', label: 'Share App', onPress: handleShare },
+  {
+    id: 'share',
+    icon: 'share-2',
+    label: 'Share App',
+    onPress: handleShare,
+  },
+  {
+    id: 'settings',
+    icon: 'settings',
+    label: 'Settings',
+    onPress: () => setSettingsOpen(prev => !prev),
+  },
 ];
+
 
 return (
   <SafeAreaView style={styles.safeArea}>
@@ -278,43 +296,98 @@ return (
           <View key={section.title} style={{ marginBottom: 18 }}>
             <Text style={styles.sectionLabel}>{section.title}</Text>
 
-            {section.items.map(item => (
-              <Pressable
-                key={item.id}
-                onPress={item.onPress}
-                style={({ pressed }) => [
-                  styles.menuItem,
-                  pressed && { backgroundColor: '#fafafa' },
-                ]}
-              >
-                <View style={styles.menuIconChip}>
-                  <Icon name={item.icon} size={16} color="#c9060a" />
-                </View>
+      {section.items.map(item => (
+  <View key={item.id}>
+    <Pressable
+      onPress={item.onPress}
+      style={({ pressed }) => [
+        styles.menuItem,
+        pressed && { backgroundColor: '#fafafa' },
+      ]}
+    >
+      <View style={styles.menuIconChip}>
+        <Icon name={item.icon} size={16} color="#c9060a" />
+      </View>
 
-                <Text style={styles.menuLabel}>{item.label}</Text>
+      <Text style={styles.menuLabel}>{item.label}</Text>
 
-                <Icon name="chevron-right" size={14} color="#d1d5db" />
-              </Pressable>
-            ))}
+      <Icon name="chevron-right" size={14} color="#d1d5db" />
+    </Pressable>
+
+    {/* INLINE EXPAND SETTINGS */}
+    {item.id === 'settings_toggle' && settingsOpen && (
+      <View style={styles.settingsBox}>
+        <View style={styles.settingsHeader}>
+          <Text style={styles.settingsTitle}>Settings</Text>
+        </View>
+
+        <View style={styles.row}>
+          <Icon name="bell" size={18} color="#c9060a" />
+          <Text style={styles.label}>Notifications</Text>
+
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={setNotificationsEnabled}
+          />
+        </View>
+
+        <View style={styles.row}>
+          <Icon name="moon" size={18} color="#c9060a" />
+          <Text style={styles.label}>Dark Mode</Text>
+
+          <Switch
+            value={darkMode}
+            onValueChange={setDarkMode}
+          />
+        </View>
+      </View>
+    )}
+  </View>
+))}
           </View>
         ))}
       </View>
 
       {/* QUICK ACTIONS */}
-      <View style={styles.quickActionsArea}>
-        <Text style={styles.quickTitle}>Quick Actions</Text>
+<View style={styles.quickActionsArea}>
+  <Text style={styles.quickTitle}>Quick Actions</Text>
 
-        {quickActions.map(action => (
-          <TouchableOpacity
-            key={action.id}
-            style={styles.quickItem}
-            onPress={action.onPress}
-          >
-            <Icon name={action.icon} size={18} color="#64748b" />
-            <Text style={styles.quickLabel}>{action.label}</Text>
-          </TouchableOpacity>
-        ))}
+  {quickActions.map(action => (
+    <TouchableOpacity
+      key={action.id}
+      style={styles.quickItem}
+      onPress={action.onPress}
+    >
+      <Icon name={action.icon} size={18} color="#64748b" />
+      <Text style={styles.quickLabel}>{action.label}</Text>
+    </TouchableOpacity>
+  ))}
+
+  {/* EXPANDABLE SETTINGS */}
+  {settingsOpen && (
+    <View style={styles.settingsBox}>
+      {/* <Text style={styles.settingsTitle}>Settings</Text> */}
+
+      <View style={styles.row}>
+        <Icon name="bell" size={18} color="#c9060a" />
+        <Text style={styles.label}>Notifications</Text>
+
+        <Switch
+          value={notificationsEnabled}
+          onValueChange={setNotificationsEnabled}
+        />
       </View>
+
+      <View style={styles.row}>
+        <Icon name="moon" size={18} color="#c9060a" />
+        <Text style={styles.label}>Dark Mode</Text>
+
+        <Switch value={darkMode} onValueChange={setDarkMode} />
+      </View>
+    </View>
+  )}
+</View>
+
 
      {/* Divider with Accent */}
         {isLoggedIn && (
@@ -349,6 +422,9 @@ return (
       </View>
 
     </ScrollView>
+
+ 
+
   </SafeAreaView>
 );
 };
@@ -630,7 +706,7 @@ profileGradient: {
   },
   quickActionsArea: {
     paddingHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 4,
   },
   quickHeader: {
     flexDirection: 'row',
@@ -662,4 +738,67 @@ profileGradient: {
     color: '#475569',
     fontWeight: '500',
   },
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'center',
+  padding: 20,
+},
+
+modalCard: {
+  backgroundColor: '#fff',
+  borderRadius: 18,
+  padding: 20,
+},
+
+modalTitle: {
+  fontSize: 18,
+  fontWeight: '800',
+  marginBottom: 20,
+  color: '#111',
+},
+
+row: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingVertical: 14,
+  borderBottomWidth: 1,
+  borderBottomColor: '#eee',
+},
+
+label: {
+  flex: 1,
+  marginLeft: 10,
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#111',
+},
+
+closeBtn: {
+  marginTop: 20,
+  backgroundColor: '#c9060a',
+  padding: 12,
+  borderRadius: 12,
+  alignItems: 'center',
+},
+settingsBox: {
+  marginHorizontal: 20,
+  marginBottom: -20,
+  backgroundColor: '#fff',
+  borderRadius: 14,
+  padding: 12,
+  borderWidth: 1,
+  borderColor: '#f3f4f6',
+},
+
+settingsHeader: {
+  marginBottom: 10,
+},
+
+settingsTitle: {
+  fontSize: 14,
+  fontWeight: '700',
+  color: '#111',
+},
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,207 +6,357 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
+  Dimensions,
+  Platform,
+  Linking,
+  StatusBar,
 } from 'react-native';
-
 import NetInfo from '@react-native-community/netinfo';
 import Icon from 'react-native-vector-icons/Feather';
 
+const { width, height } = Dimensions.get('window');
+
 const NoInternetPopup = () => {
   const [visible, setVisible] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [connectionState, setConnectionState] = useState('checking');
+  const [retryCount, setRetryCount] = useState(0);
+  const [showTips, setShowTips] = useState(false);
 
   const wasConnected = useRef(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(height)).current; // Start off-screen
+  const progressWidth = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  const unsubscribeRef = useRef(null);
+  const progressAnimationRef = useRef(null);
+
+  const openDeviceSettings = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      Linking.openSettings().catch(() => Linking.openURL('app-settings:'));
+    } else {
+      Linking.sendIntent('android.settings.SETTINGS');
+    }
+  }, []);
+
+  const closePopupWithAnimation = useCallback(() => {
+    if (progressAnimationRef.current) {
+      progressAnimationRef.current.stop();
+    }
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: height,
+        duration: 350,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setVisible(false);
+      setConnectionState('checking');
+      setRetryCount(0);
+      setShowTips(false);
+      progressWidth.setValue(0);
+    });
+  }, [fadeAnim, slideAnim]);
+
+  const showConnectedAndAutoClose = useCallback(() => {
+    progressWidth.setValue(0);
+    setConnectionState('connected');
+    setVisible(true);
+
+    progressAnimationRef.current = Animated.timing(progressWidth, {
+      toValue: 1,
+      duration: 2500,
+      useNativeDriver: false,
+    });
+
+    progressAnimationRef.current.start(({ finished }) => {
+      if (finished) closePopupWithAnimation();
+    });
+  }, [progressWidth, closePopupWithAnimation]);
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          friction: 9,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      if (connectionState === 'disconnected') {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(pulseAnim, {
+              toValue: 1.05,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+            Animated.timing(pulseAnim, {
+              toValue: 1,
+              duration: 800,
+              useNativeDriver: true,
+            }),
+          ]),
+        ).start();
+      }
+    }
+  }, [visible, connectionState]);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      const connected =
-        state.isConnected && state.isInternetReachable;
+      const isConnected =
+        state.isConnected === true && state.isInternetReachable !== false;
 
-      // internet lost → show popup
-      if (!connected) {
+      if (!isConnected && wasConnected.current) {
         wasConnected.current = false;
+        setConnectionState('disconnected');
         setVisible(true);
       }
 
-      // internet back → auto close after short delay
-      if (connected && !wasConnected.current) {
+      if (isConnected && !wasConnected.current) {
         wasConnected.current = true;
-
-        setChecking(true);
-
-        setTimeout(() => {
-          setVisible(false);
-          setChecking(false);
-        }, 1000); // 👈 smooth UX delay
+        showConnectedAndAutoClose();
       }
     });
 
-    return unsubscribe;
-  }, []);
+    return () => unsubscribe();
+  }, [showConnectedAndAutoClose]);
 
-  const handleRetry = async () => {
-    setChecking(true);
+  const handleRetry = useCallback(async () => {
+    setConnectionState('checking');
+    setRetryCount(prev => prev + 1);
 
-    const state = await NetInfo.fetch();
+    setTimeout(async () => {
+      const state = await NetInfo.fetch();
+      if (state.isConnected) {
+        showConnectedAndAutoClose();
+      } else {
+        setConnectionState('disconnected');
+        if (retryCount >= 2) setShowTips(true);
+      }
+    }, 1200);
+  }, [retryCount, showConnectedAndAutoClose]);
 
-    const connected =
-      state.isConnected && state.isInternetReachable;
-
-    if (connected) {
-      setTimeout(() => {
-        setVisible(false);
-        setChecking(false);
-      }, 1000); // 👈 spinner visible for 1 sec
-    } else {
-      setTimeout(() => setChecking(false), 500);
+  const getTheme = () => {
+    switch (connectionState) {
+      case 'connected':
+        return { color: '#333333', icon: 'wifi', label: 'Back Online' }; // Professional charcoal
+      case 'checking':
+        return { color: '#6b7280', icon: 'loader', label: 'Checking...' }; // Neutral gray
+      default:
+        return { color: '#c9060a', icon: 'wifi-off', label: 'No Connection' }; // Your Red
     }
   };
 
-  const handleClose = () => {
-    setVisible(false);
-  };
+  const theme = getTheme();
 
   return (
     <Modal
       visible={visible}
       transparent
-      animationType="fade"
+      animationType="none"
       statusBarTranslucent
     >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-
-          {/* CLOSE BUTTON */}
+      <View style={styles.container}>
+        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
           <TouchableOpacity
-            onPress={handleClose}
-            style={styles.closeBtn}
-          >
-            <Icon name="x" size={20} color="#6b7280" />
-          </TouchableOpacity>
+            activeOpacity={1}
+            style={{ flex: 1 }}
+            onPress={
+              connectionState === 'connected' ? null : closePopupWithAnimation
+            }
+          />
+        </Animated.View>
 
-          <View style={styles.iconWrapper}>
-            <Icon name="wifi-off" size={34} color="#c9060a" />
-          </View>
+        <Animated.View
+          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
+        >
+          <View style={styles.handle} />
 
-          <Text style={styles.title}>
-            No Internet Connection
-          </Text>
+          <View style={styles.content}>
+            <Animated.View
+              style={[
+                styles.iconCircle,
+                {
+                  backgroundColor: `${theme.color}15`,
+                  transform: [{ scale: pulseAnim }],
+                },
+              ]}
+            >
+              {connectionState === 'checking' ? (
+                <ActivityIndicator size="large" color={theme.color} />
+              ) : (
+                <Icon name={theme.icon} size={32} color={theme.color} />
+              )}
+            </Animated.View>
 
-          <Text style={styles.description}>
-            Please check your internet connection and try again.
-          </Text>
+            <Text style={styles.title}>{theme.label}</Text>
+            <Text style={styles.subtitle}>
+              {connectionState === 'disconnected'
+                ? "We can't reach our servers. Please check your data or Wi-Fi."
+                : connectionState === 'connected'
+                ? "You're back! Synchronizing your data now..."
+                : "Just a second, we're testing your signal..."}
+            </Text>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.button}
-            onPress={handleRetry}
-            disabled={checking}
-          >
-            {checking ? (
-              <ActivityIndicator color="#ffffff" />
-            ) : (
-              <Text style={styles.buttonText}>Retry</Text>
+            {showTips && connectionState === 'disconnected' && (
+              <View style={styles.tipsBox}>
+                <Tip item="Check Airplane Mode" icon="send" />
+                <Tip item="Restart Wi-Fi Router" icon="refresh-cw" />
+              </View>
             )}
-          </TouchableOpacity>
-        </View>
+
+            <View style={styles.footer}>
+              {connectionState === 'disconnected' ? (
+                <>
+                  <TouchableOpacity
+                    style={[styles.mainBtn, { backgroundColor: theme.color }]}
+                    onPress={handleRetry}
+                  >
+                    <Text style={styles.mainBtnText}>
+                      {retryCount > 0 ? `Retry (${retryCount})` : 'Try Again'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={openDeviceSettings}
+                  >
+                    <Text style={styles.secondaryBtnText}>
+                      Network Settings
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              ) : connectionState === 'connected' ? (
+                <View style={styles.progressWrapper}>
+                  <View style={styles.track}>
+                    <Animated.View
+                      style={[
+                        styles.fill,
+                        {
+                          width: progressWidth.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['0%', '100%'],
+                          }),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        </Animated.View>
       </View>
     </Modal>
   );
 };
 
-export default NoInternetPopup;
+const Tip = ({ item, icon }) => (
+  <View style={styles.tipRow}>
+    <Icon name={icon} size={14} color="#666" />
+    <Text style={styles.tipText}>{item}</Text>
+  </View>
+);
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-
-    justifyContent: 'center',
-
-    alignItems: 'center',
-
+  container: { flex: 1, justifyContent: 'flex-end' },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  sheet: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
     paddingHorizontal: 24,
-  },
-
-  closeBtn: {
-  position: 'absolute',
-  right: 14,
-  top: 14,
-  padding: 6,
-  zIndex: 10,
-},
-
-  card: {
-    width: '100%',
-
-    backgroundColor: '#ffffff',
-
-    borderRadius: 24,
-
-    paddingVertical: 32,
-
-    paddingHorizontal: 24,
-
     alignItems: 'center',
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-
-  iconWrapper: {
-    width: 74,
-
-    height: 74,
-
-    borderRadius: 37,
-
-    backgroundColor: '#fff1f1',
-
-    justifyContent: 'center',
-
-    alignItems: 'center',
-
-    marginBottom: 18,
-  },
-
-  title: {
-    fontSize: 20,
-
-    fontWeight: '700',
-
-    color: '#111827',
-
-    marginBottom: 10,
-  },
-
-  description: {
-    fontSize: 14,
-
-    color: '#6b7280',
-
-    textAlign: 'center',
-
-    lineHeight: 22,
-
+  handle: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 10,
+    marginTop: 12,
     marginBottom: 24,
   },
-
-  button: {
-    backgroundColor: '#c9060a',
-
-    paddingVertical: 14,
-
-    paddingHorizontal: 40,
-
-    borderRadius: 14,
-
-    minWidth: 140,
-
+  content: { width: '100%', alignItems: 'center' },
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  tipsBox: {
+    width: '100%',
+    backgroundColor: '#F5F5F7',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+  },
+  tipRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  tipText: { marginLeft: 10, fontSize: 14, color: '#444', fontWeight: '500' },
+  footer: { width: '100%', gap: 12 },
+  mainBtn: {
+    width: '100%',
+    height: 56,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  mainBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  secondaryBtn: {
+    width: '100%',
+    height: 56,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-
-  buttonText: {
-    color: '#ffffff',
-
-    fontSize: 15,
-
-    fontWeight: '700',
+  secondaryBtnText: { color: '#666', fontSize: 15, fontWeight: '500' },
+  progressWrapper: { width: '100%', paddingVertical: 20 },
+  track: {
+    width: '100%',
+    height: 6,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 3,
+    overflow: 'hidden',
   },
+  fill: { height: '100%', backgroundColor: '#00C853' },
 });
+
+export default NoInternetPopup;
