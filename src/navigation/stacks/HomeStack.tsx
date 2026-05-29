@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Home from '../../screens/home/HomeScreen';
@@ -11,30 +13,101 @@ import InvoiceScreen from '../../screens/Invoice/InvoiceScreen';
 import EditorialDetail from '../../screens/editorial/EditorialDetail';
 import TagScreen from '../../screens/tag/TagScreen';
 
+import { defaultStackOptions } from '../navigationConfig';
+
 const Stack = createNativeStackNavigator();
 
 export default function HomeStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home" component={Home} />
+    <Stack.Navigator
+      screenOptions={defaultStackOptions}
+    >
+      {/* HOME */}
+      <Stack.Screen
+        name="Home"
+        component={Home}
+      />
 
-      <Stack.Screen name="Archive" component={ArchiveScreen} />
+      {/* ARCHIVE */}
+      <Stack.Screen
+        name="Archive"
+        component={ArchiveScreen}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      <Stack.Screen name="Category" component={CategoryScreen} />
+      {/* CATEGORY */}
+      <Stack.Screen
+        name="Category"
+        component={CategoryScreen}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      <Stack.Screen name="ArticleDetail" component={ArticleDetailPage} />
+      {/* ARTICLE */}
+      <Stack.Screen
+        name="ArticleDetail"
+        component={ArticleDetailPage}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      <Stack.Screen name="Author" component={AuthorScreen} />
-      <Stack.Screen name="Tag" component={TagScreen}/>
+      {/* AUTHOR */}
+      <Stack.Screen
+        name="Author"
+        component={AuthorScreen}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      {/* ADD DASHBOARD HERE */}
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      {/* TAG */}
+      <Stack.Screen
+        name="Tag"
+        component={TagScreen}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      <Stack.Screen name="Subscription" component={Subscription} />
+      {/* DASHBOARD */}
+      <Stack.Screen
+        name="Dashboard"
+        component={DashboardScreen}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
+      {/* SUBSCRIPTION */}
+      <Stack.Screen
+        name="Subscription"
+        component={Subscription}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
 
-      <Stack.Screen name="EditorialDetail" component={EditorialDetail} />
+      {/* INVOICE */}
+      <Stack.Screen
+        name="InvoiceScreen"
+        component={InvoiceScreen}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
+
+      {/* EDITORIAL */}
+      <Stack.Screen
+        name="EditorialDetail"
+        component={EditorialDetail}
+        options={{
+          animation: 'simple_push',
+        }}
+      />
     </Stack.Navigator>
   );
 }

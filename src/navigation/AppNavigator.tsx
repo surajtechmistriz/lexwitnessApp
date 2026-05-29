@@ -1,47 +1,54 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
 import {
   NavigationContainer,
   createNavigationContainerRef,
 } from '@react-navigation/native';
-import { Animated } from 'react-native';
+
+import Animated, {
+  FadeIn,
+} from 'react-native-reanimated';
+
 import SplashScreen from 'react-native-splash-screen';
 
-import DrawerNavigator from './DrawerNavigator';
 import GlobalPopup from '../modal/GlobalPopup';
 import RootStack from './RootStack';
 
-export const navigationRef = createNavigationContainerRef();
+export const navigationRef =
+  createNavigationContainerRef();
 
 const AppNavigator = () => {
-  const [isAppReady, setIsAppReady] = useState(false);
-  const opacity = useRef(new Animated.Value(0)).current;
+  const [isAppReady, setIsAppReady] =
+    useState(false);
 
   useEffect(() => {
-    const prepare = async () => {
-      setIsAppReady(true);
-      setTimeout(() => SplashScreen.hide(), 250);
-    };
-    prepare();
+    // ✅ FAST APP START
+    setIsAppReady(true);
+
+    // ✅ HIDE SPLASH QUICKLY
+    const timer = setTimeout(() => {
+      SplashScreen.hide();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    if (isAppReady) {
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isAppReady]);
-
-  if (!isAppReady) return null;
+  if (!isAppReady) {
+    return null;
+  }
 
   return (
-    <Animated.View style={{ flex: 1, opacity }}>
-    <NavigationContainer ref={navigationRef}>
-  <RootStack />
-  <GlobalPopup />
-</NavigationContainer>
+    <Animated.View
+      entering={FadeIn.duration(250)}
+      style={{ flex: 1 }}
+    >
+      <NavigationContainer
+        ref={navigationRef}
+      >
+        <RootStack />
+
+        <GlobalPopup />
+      </NavigationContainer>
     </Animated.View>
   );
 };

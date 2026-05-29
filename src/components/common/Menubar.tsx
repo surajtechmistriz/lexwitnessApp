@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   ScrollView,
   TouchableOpacity,
@@ -8,8 +8,10 @@ import {
   LayoutChangeEvent,
   Dimensions,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
 import { getMenu } from '../../services/api/category';
+import { getCache, setCache } from '../../utils/cache';
 
 type MenuItem = {
   id: number;
@@ -18,29 +20,58 @@ type MenuItem = {
 };
 
 const screenWidth = Dimensions.get('window').width;
+const CACHE_KEY = 'TOP_MENU';
 
 const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   const navigation = useNavigation<any>();
+
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const scrollRef = useRef<ScrollView>(null);
-  const itemLayouts = useRef<{
-    [key: string]: { x: number; width: number };
-  }>({});
+  const itemLayouts = useRef<{ [key: string]: { x: number; width: number } }>({});
 
   const currentSlug = activeSlug || '';
 
-  useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const data = await getMenu();
-        setMenuItems(data);
-      } catch (error) {
-        console.log('Menu fetch error:', error);
+  const fetchMenu = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      // 1️⃣ ALWAYS LOAD CACHE FIRST
+      const cached = await getCache(CACHE_KEY);
+
+      if (cached?.length) {
+        setMenuItems(cached);
+        setLoading(false);
       }
-    };
-    fetchMenu();
+
+      // 2️⃣ TRY API
+      const data = await getMenu();
+
+      if (data?.length) {
+        setMenuItems(data);
+        await setCache(CACHE_KEY, data);
+      }
+
+    } catch (error) {
+      console.log('Menu error:', error);
+
+      // 3️⃣ FALLBACK: keep cache if API fails
+      const cached = await getCache(CACHE_KEY);
+      if (cached?.length) {
+        setMenuItems(cached);
+      }
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // 🔥 IMPORTANT: reload when screen comes back
+  useFocusEffect(
+    useCallback(() => {
+      fetchMenu();
+    }, [fetchMenu]),
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,30 +105,33 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
 
   return (
     <View style={styles.wrapper}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.container}
-      >
-        {menuItems.map(item => {
-          const isActive = currentSlug === item.slug;
+      {loading ? (
+        <MenuSkeleton />
+      ) : (
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.container}
+        >
+          {menuItems.map(item => {
+            const isActive = currentSlug === item.slug;
 
-          return (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => handlePress(item.slug)}
-              onLayout={e => handleLayout(item.slug, e)}
-              style={[styles.menuItem, isActive && styles.activeItem]}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.menuText, isActive && styles.activeText]}>
-                {item.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+            return (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => handlePress(item.slug)}
+                onLayout={e => handleLayout(item.slug, e)}
+                style={[styles.menuItem, isActive && styles.activeItem]}
+              >
+                <Text style={[styles.menuText, isActive && styles.activeText]}>
+                  {item.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -146,4 +180,26 @@ const styles = StyleSheet.create({
     color: '#c9060a',
     fontWeight: '600',
   },
+  skeletonItem: {
+  width: 80,
+  height: 28,
+  borderRadius: 18,
+  backgroundColor: '#e5e7eb',
+  marginRight: 10,
+},
 });
+
+
+const MenuSkeleton = () => {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
+      {Array.from({ length: 6 }).map((_, index) => (
+        <View key={index} style={styles.skeletonItem} />
+      ))}
+    </ScrollView>
+  );
+};

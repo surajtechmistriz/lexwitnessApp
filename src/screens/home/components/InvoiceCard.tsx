@@ -81,7 +81,7 @@ export default function InvoiceCard({ item }) {
         </View>
       </View>
 
-      {/* PURCHASE TYPE (🔥 IMPROVED) */}
+      {/* PURCHASE TYPE ( IMPROVED) */}
       <View style={styles.purchaseRow}>
         <Text style={styles.label}>Purchase Type</Text>
 

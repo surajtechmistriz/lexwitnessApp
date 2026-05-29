@@ -1,138 +1,212 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
+
 import NetInfo from '@react-native-community/netinfo';
+import Icon from 'react-native-vector-icons/Feather';
 
 const NoInternetPopup = () => {
-  const [status, setStatus] = useState<'online' | 'offline'>('online');
+  const [visible, setVisible] = useState(false);
+  const [checking, setChecking] = useState(false);
 
-  const translateY = useRef(new Animated.Value(100)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const wasConnected = useRef(true);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
-      const connected = state.isConnected ?? true;
+      const connected =
+        state.isConnected && state.isInternetReachable;
 
+      // internet lost → show popup
       if (!connected) {
-        setStatus('offline');
-        showToast();
-      } else {
-      //  setStatus('online');
-        // showToast();
+        wasConnected.current = false;
+        setVisible(true);
+      }
 
-        // Auto hide after 2 sec when back online
-        setTimeout(hideToast, 2000);
+      // internet back → auto close after short delay
+      if (connected && !wasConnected.current) {
+        wasConnected.current = true;
+
+        setChecking(true);
+
+        setTimeout(() => {
+          setVisible(false);
+          setChecking(false);
+        }, 1000); // 👈 smooth UX delay
       }
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const showToast = () => {
-    Animated.parallel([
-      Animated.spring(translateY, {
-        toValue: 0,
-        useNativeDriver: true,
-        friction: 7,
-      }),
-      Animated.timing(opacity, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  const handleRetry = async () => {
+    setChecking(true);
+
+    const state = await NetInfo.fetch();
+
+    const connected =
+      state.isConnected && state.isInternetReachable;
+
+    if (connected) {
+      setTimeout(() => {
+        setVisible(false);
+        setChecking(false);
+      }, 1000); // 👈 spinner visible for 1 sec
+    } else {
+      setTimeout(() => setChecking(false), 500);
+    }
   };
 
-  const hideToast = () => {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: 100,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+  const handleClose = () => {
+    setVisible(false);
   };
-
-  const isOffline = status === 'offline';
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          transform: [{ translateY }],
-          opacity,
-        },
-      ]}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
     >
-      <View style={[styles.toast, isOffline ? styles.offline : styles.online]}>
-        <View style={[styles.dot, isOffline ? styles.dotOffline : styles.dotOnline]} />
-        <Text style={styles.text}>
-          {isOffline ? 'No Internet Connection' : 'Back Online'}
-        </Text>
+      <View style={styles.overlay}>
+        <View style={styles.card}>
+
+          {/* CLOSE BUTTON */}
+          <TouchableOpacity
+            onPress={handleClose}
+            style={styles.closeBtn}
+          >
+            <Icon name="x" size={20} color="#6b7280" />
+          </TouchableOpacity>
+
+          <View style={styles.iconWrapper}>
+            <Icon name="wifi-off" size={34} color="#c9060a" />
+          </View>
+
+          <Text style={styles.title}>
+            No Internet Connection
+          </Text>
+
+          <Text style={styles.description}>
+            Please check your internet connection and try again.
+          </Text>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.button}
+            onPress={handleRetry}
+            disabled={checking}
+          >
+            {checking ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>Retry</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-    </Animated.View>
+    </Modal>
   );
 };
 
+export default NoInternetPopup;
+
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 80,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: 99999,
-  },
-  toast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    width: '90%',
-    maxWidth: 420,
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
 
-    // Glassy modern look
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    backdropFilter: 'blur(10px)', // ignored on RN but ok
+    justifyContent: 'center',
 
-    shadowColor: '#ffffff',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 10,
+    alignItems: 'center',
+
+    paddingHorizontal: 24,
   },
-  offline: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#ff3b30',
+
+  closeBtn: {
+  position: 'absolute',
+  right: 14,
+  top: 14,
+  padding: 6,
+  zIndex: 10,
+},
+
+  card: {
+    width: '100%',
+
+    backgroundColor: '#ffffff',
+
+    borderRadius: 24,
+
+    paddingVertical: 32,
+
+    paddingHorizontal: 24,
+
+    alignItems: 'center',
   },
-  online: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#34c759',
+
+  iconWrapper: {
+    width: 74,
+
+    height: 74,
+
+    borderRadius: 37,
+
+    backgroundColor: '#fff1f1',
+
+    justifyContent: 'center',
+
+    alignItems: 'center',
+
+    marginBottom: 18,
   },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 12,
+
+  title: {
+    fontSize: 20,
+
+    fontWeight: '700',
+
+    color: '#111827',
+
+    marginBottom: 10,
   },
-  dotOffline: {
-    backgroundColor: '#ff3b30',
-  },
-  dotOnline: {
-    backgroundColor: '#34c759',
-  },
-  text: {
-    color: '#c9060a',
+
+  description: {
     fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+
+    color: '#6b7280',
+
+    textAlign: 'center',
+
+    lineHeight: 22,
+
+    marginBottom: 24,
+  },
+
+  button: {
+    backgroundColor: '#c9060a',
+
+    paddingVertical: 14,
+
+    paddingHorizontal: 40,
+
+    borderRadius: 14,
+
+    minWidth: 140,
+
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: '#ffffff',
+
+    fontSize: 15,
+
+    fontWeight: '700',
   },
 });
-
-export default NoInternetPopup;

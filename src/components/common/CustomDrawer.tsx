@@ -6,6 +6,8 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Share,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -16,15 +18,15 @@ import { RootState } from '../../redux/store';
 import { logout } from '../../redux/slices/authSlice';
 import Toast from 'react-native-toast-message';
 
-
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
-  const { isLoggedIn, user, isHydrated } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const auth = useSelector((state: RootState) => state.auth);
 
-  // if (!isHydrated) return null;
+const { isLoggedIn, user, isHydrated } = auth;
 
+// if (!isHydrated) {
+//   return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
+// }
   /* ---------------- NAVIGATION HELPERS ---------------- */
 
   const goToSubscription = () => {
@@ -66,161 +68,255 @@ const CustomDrawer = ({ navigation }: any) => {
     goToSignIn();
   };
 
- const initials = React.useMemo(() => {
-  if (!user) return 'G';
+const initials = React.useMemo(() => {
+  return (
+    `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''}`
+      .toUpperCase() || 'G'
+  );
+}, [user?.first_name, user?.last_name]);
 
-  const first = user?.first_name?.[0] || '';
-  const last = user?.last_name?.[0] || '';
 
-  const value = `${first}${last}`.toUpperCase();
+if (!isHydrated) {
+  return <View style={{ flex: 1, backgroundColor: '#fff' }} />;
+}
 
-  return value || 'G';
-}, [user]);
-
-if (!isHydrated) return null;
-
-  const menuItems = isLoggedIn
-    ? [
-        {
-          id: 'dashboard',
-          label: 'Dashboard',
-          icon: 'grid',
-          onPress: goToDashboard,
-        },
-        {
-          id: 'subscribe',
-          label: 'Subscribe',
-          icon: 'shopping-bag',
-          onPress: goToSubscription,
-        },
-      ]
-    : [
-        {
-          id: 'signin',
-          label: 'Sign In',
-          icon: 'arrow-right',
-          onPress: goToSignIn,
-        },
-        {
-          id: 'subscribe',
-          label: 'Subscribe',
-          icon: 'shopping-bag',
-          onPress: goToSubscription,
-        },
-      ];
-
-  const quickActions = [
-    { id: 'help', icon: 'help-circle', label: 'Help Center' },
-    { id: 'settings', icon: 'settings', label: 'Settings' },
+  const legalItems = [
+    {
+      id: 'about',
+      label: 'About Us',
+      icon: 'info',
+      screen: 'AboutUs',
+    },
+    {
+      id: 'terms',
+      label: 'Terms & Conditions',
+      icon: 'file-text',
+      screen: 'TermsAndConditions',
+    },
+    {
+      id: 'privacy',
+      label: 'Privacy Policy',
+      icon: 'shield',
+      screen: 'PrivacyPolicy',
+    },
+    {
+      id: 'contact',
+      label: 'Contact Us',
+      icon: 'phone',
+      screen: 'ContactUs',
+    },
   ];
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Premium Header with Accent */}
-        <View style={styles.headerSection}>
-          <LinearGradient
-            colors={['#fef2f2', '#ffffff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.headerGradient}
-          >
-           {isLoggedIn ? (
-  <View
-    key={`${user?.email}-${isLoggedIn}`}
-    style={styles.profileContainer}
+  const handleNavigate = (screen: string) => {
+    navigation.closeDrawer();
+    setTimeout(() => {
+      navigation.navigate(screen as never);
+    }, 200);
+  };
+
+  const menuSections = [
+    {
+      title: 'MAIN',
+      items: isLoggedIn
+        ? [
+            {
+              id: 'dashboard',
+              label: 'Dashboard',
+              icon: 'grid',
+              onPress: goToDashboard,
+            },
+            {
+              id: 'subscribe',
+              label: 'Subscribe',
+              icon: 'shopping-bag',
+              onPress: goToSubscription,
+            },
+          ]
+        : [
+            {
+              id: 'signin',
+              label: 'Sign In',
+              icon: 'arrow-right',
+              onPress: goToSignIn,
+            },
+            {
+              id: 'subscribe',
+              label: 'Subscribe',
+              icon: 'shopping-bag',
+              onPress: goToSubscription,
+            },
+          ],
+    },
+
+    {
+      title: 'LEGAL',
+      items: [
+        {
+          id: 'about',
+          label: 'About Us',
+          icon: 'info',
+          onPress: () => handleNavigate('AboutUs'),
+        },
+        {
+          id: 'terms',
+          label: 'Terms & Conditions',
+          icon: 'file-text',
+          onPress: () => handleNavigate('TermsAndConditions'),
+        },
+        {
+          id: 'privacy',
+          label: 'Privacy Policy',
+          icon: 'shield',
+          onPress: () => handleNavigate('PrivacyPolicy'),
+        },
+      ],
+    },
+
+    {
+      title: 'SUPPORT',
+      items: [
+        {
+          id: 'contact',
+          label: 'Contact Us',
+          icon: 'phone',
+          onPress: () => handleNavigate('ContactUs'),
+        },
+      ],
+    },
+  ];
+
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        message:
+          'Check out Lex Witness app! Download now and explore amazing features.',
+        title: 'Lex Witness',
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared via:', result.activityType);
+        }
+      }
+    } catch (error) {
+      console.log('Share error:', error);
+    }
+  };
+
+const quickActions = [
+  { id: 'help', icon: 'help-circle', label: 'Help Center' },
+  { id: 'settings', icon: 'settings', label: 'Settings' },
+  { id: 'share', icon: 'share-2', label: 'Share App', onPress: handleShare },
+];
+
+return (
+  <SafeAreaView style={styles.safeArea}>
+    
+<View style={styles.headerSection}>
+
+  <TouchableOpacity
+    style={styles.closeButton}
+    onPress={() => navigation.closeDrawer()}
   >
-                <View key={user?.email || 'guest'} style={styles.profileRing}>
-                  <LinearGradient
-                    colors={['#c9060a', '#ef4444']}
-                    style={styles.profileGradient}
-                  >
-                    <Text style={styles.initials}>{initials}</Text>
-                  </LinearGradient>
-                </View>
-                <View style={styles.profileInfo}>
-                  <Text style={styles.welcomeText}>Welcome back</Text>
-                  <Text style={styles.fullName}>
-                    {`${user?.first_name || ''} ${
-                      user?.last_name || ''
-                    }`.trim() || 'User'}
-                  </Text>
-                  <View style={styles.emailContainer}>
-                    <Icon name="mail" size={12} color="#9ca3af" />
-                    <Text style={styles.emailText} numberOfLines={1}>
-                      {user?.email || ''}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.guestProfile}>
-                <View style={styles.guestIconRing}>
-                  <Icon name="users" size={28} color="#c9060a" />
-                </View>
-                <Text style={styles.guestTitle}>Guest User</Text>
-                <Text style={styles.guestSubtitle}>
-                  Sign in to access exclusive content
+    <Icon name="x" size={22} color="#111827" />
+  </TouchableOpacity>
+
+  <LinearGradient
+    colors={['#fef2f2', '#ffffff']}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    style={styles.headerGradient}
+  >
+        {isLoggedIn ? (
+          <View style={styles.profileContainer}>
+            <View style={styles.profileRing}>
+              <LinearGradient
+                colors={['#c9060a', '#ef4444']}
+                style={styles.profileGradient}
+              >
+                <Text style={styles.initials}>{initials}</Text>
+              </LinearGradient>
+            </View>
+
+            <View style={styles.profileInfo}>
+              <Text style={styles.welcomeText}>Welcome back</Text>
+              <Text style={styles.fullName}>
+                {`${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
+              </Text>
+
+              <View style={styles.emailContainer}>
+                <Icon name="mail" size={12} color="#9ca3af" />
+                <Text style={styles.emailText} numberOfLines={1}>
+                  {user?.email || ''}
                 </Text>
-                {/* <TouchableOpacity style={styles.guestSignInBtn} onPress={goToSignIn}>
-                  <Text style={styles.guestSignInText}>Sign In</Text>
-                  <Icon name="arrow-right" size={14} color="#c9060a" />
-                </TouchableOpacity> */}
               </View>
-            )}
-          </LinearGradient>
-        </View>
-
-        {/* Menu Items with Modern Layout */}
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionLabel}>MAIN MENU</Text>
-          {menuItems.map(item => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={item.onPress}
-              style={styles.menuItem}
-              activeOpacity={0.7}
-            >
-              <View style={styles.menuIconWrapper}>
-                <Icon
-                  name={item.icon}
-                  size={20}
-                  color="#c9060a"
-                  strokeWidth={1.5}
-                />
-              </View>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Icon
-                name="chevron-right"
-                size={16}
-                color="#d1d5db"
-                style={styles.menuChevron}
-              />
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.quickActionsArea}>
-          <View style={styles.quickHeader}>
-            {/* <View style={styles.quickDot} /> */}
-            <Text style={styles.quickTitle}>Quick Actions</Text>
+            </View>
           </View>
-          {quickActions.map(action => (
-            <TouchableOpacity
-              key={action.id}
-              style={styles.quickItem}
-              activeOpacity={0.7}
-            >
-              <Icon name={action.icon} size={18} color="#64748b" />
-              <Text style={styles.quickLabel}>{action.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        ) : (
+          <View style={styles.guestProfile}>
+            <View style={styles.guestIconRing}>
+              <Icon name="users" size={28} color="#c9060a" />
+            </View>
+            <Text style={styles.guestTitle}>Hi, Guest</Text>
+            <Text style={styles.guestSubtitle}>
+              Sign in to access exclusive content
+            </Text>
+          </View>
+        )}
+      </LinearGradient>
+    </View>
 
-        {/* Divider with Accent */}
+    {/*  SCROLLABLE CONTENT ONLY */}
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
+
+      {/* MENU */}
+      <View style={styles.menuSection}>
+        {menuSections.map(section => (
+          <View key={section.title} style={{ marginBottom: 18 }}>
+            <Text style={styles.sectionLabel}>{section.title}</Text>
+
+            {section.items.map(item => (
+              <Pressable
+                key={item.id}
+                onPress={item.onPress}
+                style={({ pressed }) => [
+                  styles.menuItem,
+                  pressed && { backgroundColor: '#fafafa' },
+                ]}
+              >
+                <View style={styles.menuIconChip}>
+                  <Icon name={item.icon} size={16} color="#c9060a" />
+                </View>
+
+                <Text style={styles.menuLabel}>{item.label}</Text>
+
+                <Icon name="chevron-right" size={14} color="#d1d5db" />
+              </Pressable>
+            ))}
+          </View>
+        ))}
+      </View>
+
+      {/* QUICK ACTIONS */}
+      <View style={styles.quickActionsArea}>
+        <Text style={styles.quickTitle}>Quick Actions</Text>
+
+        {quickActions.map(action => (
+          <TouchableOpacity
+            key={action.id}
+            style={styles.quickItem}
+            onPress={action.onPress}
+          >
+            <Icon name={action.icon} size={18} color="#64748b" />
+            <Text style={styles.quickLabel}>{action.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+     {/* Divider with Accent */}
         {isLoggedIn && (
           <>
             <View style={styles.dividerContainer}>
@@ -245,19 +341,16 @@ if (!isHydrated) return null;
           </>
         )}
 
-        {/* Footer with Minimal Design */}
-        <View style={styles.footerSection}>
-          <View style={styles.footerBrand}>
-            <View style={styles.brandDot} />
-            <Text style={styles.brandName}>Lex Witness</Text>
-          </View>
-         <Text style={styles.copyright}>
-  © {new Date().getFullYear()} All rights reserved
-</Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+      {/* FOOTER */}
+      <View style={styles.footerSection}>
+        <Text style={styles.copyright}>
+          © {new Date().getFullYear()} All rights reserved
+        </Text>
+      </View>
+
+    </ScrollView>
+  </SafeAreaView>
+);
 };
 
 export default CustomDrawer;
@@ -281,36 +374,62 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#fef2f2',
   },
+  closeButton: {
+  position: 'absolute',
+  top: 12,
+  right: 20,
+  width: 38,
+  height: 38,
+  borderRadius: 19,
+  backgroundColor: '#ffffff',
+
+  justifyContent: 'center',
+  alignItems: 'center',
+
+  zIndex: 99,
+
+  elevation: 4,
+
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+},
   profileContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 100,
   },
-  profileRing: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#ffffff',
-    padding: 3,
+profileRing: {
+  width: 64,
+  height: 64,
+  borderRadius: 32,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: '#ffffff',
 
-    overflow: 'hidden', // IMPORTANT
+  elevation: 4,
 
-    shadowColor: '#c9060a',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
   },
+  shadowOpacity: 0.15,
+  shadowRadius: 4,
+},
 
-  profileGradient: {
-    flex: 1,
-    borderRadius: 32,
+profileGradient: {
+  width: 56,
+  height: 56,
+  borderRadius: 28,
 
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    overflow: 'hidden', // IMPORTANT
-  },
+  justifyContent: 'center',
+  alignItems: 'center',
+},
   initials: {
     fontSize: 24,
     fontWeight: '700',
@@ -389,21 +508,37 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#9ca3af',
     letterSpacing: 1,
-    marginBottom: 16,
+    marginBottom: 8,
     marginLeft: 4,
   },
+
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    marginBottom: 4,
-    backgroundColor: '#ffffff',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 2,
   },
+
+  menuIconChip: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: '#fff1f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  menuLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
+
   menuIconWrapper: {
     width: 40,
     height: 40,
@@ -413,12 +548,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 14,
   },
-  menuLabel: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#374151',
-  },
+
   menuChevron: {
     opacity: 0.5,
   },

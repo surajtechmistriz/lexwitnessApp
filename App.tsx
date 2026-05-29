@@ -1,4 +1,5 @@
 import 'react-native-gesture-handler';
+import 'react-native-reanimated';
 
 import React, { useEffect, useRef } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -17,6 +18,9 @@ import Toast, {
 } from 'react-native-toast-message';
 
 import NetInfo from '@react-native-community/netinfo';
+import { enableScreens } from 'react-native-screens';
+
+enableScreens(true);
 
 const toastConfig = {
   success: (props: any) => (
@@ -90,48 +94,7 @@ const toastConfig = {
 };
 
 export default function App() {
-  const wasOffline = useRef(false);
-
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(state => {
-      const isConnected = state.isConnected;
-
-      // internet lost
-      if (!isConnected) {
-        wasOffline.current = true;
-
-        Toast.show({
-          type: 'error',
-          text1: 'No Internet',
-          text2: 'Connection lost',
-        });
-      }
-
-      // internet back
-      if (isConnected && wasOffline.current) {
-        wasOffline.current = false;
-
-        Toast.show({
-          type: 'success',
-          text1: 'Internet Connected',
-          text2: 'Refreshing app...',
-        });
-
-        // OPTIONAL REFRESH ACTIONS HERE
-        // dispatch(fetchHomeData())
-        // dispatch(fetchMagazines())
-
-        // OPTIONAL NAVIGATION RESET
-        // navigationRef.reset({
-        //   index: 0,
-        //   routes: [{ name: 'HomeTab' }],
-        // });
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
+ 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -139,7 +102,7 @@ export default function App() {
           <AppInitializer>
             <AppNavigator />
 
-            {/* <NoInternetPopup /> */}
+           <NoInternetPopup />
 
             <Toast
               position="top"
