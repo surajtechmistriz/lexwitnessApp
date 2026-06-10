@@ -13,6 +13,9 @@ import SplashScreen from 'react-native-splash-screen';
 
 import GlobalPopup from '../modal/GlobalPopup';
 import RootStack from './RootStack';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 
 export const navigationRef =
   createNavigationContainerRef();
@@ -20,6 +23,10 @@ export const navigationRef =
 const AppNavigator = () => {
   const [isAppReady, setIsAppReady] =
     useState(false);
+
+const darkMode = useSelector(
+  (state: RootState) => state.theme.mode === 'dark'
+);
 
   useEffect(() => {
     // ✅ FAST APP START
@@ -43,8 +50,9 @@ const AppNavigator = () => {
       style={{ flex: 1 }}
     >
       <NavigationContainer
-        ref={navigationRef}
-      >
+  ref={navigationRef}
+  theme={darkMode ? DarkTheme : DefaultTheme}
+>
         <RootStack />
 
         <GlobalPopup />

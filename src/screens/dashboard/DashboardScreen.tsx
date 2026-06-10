@@ -25,11 +25,14 @@ import { logout, updateSubscription } from '../../redux/slices/authSlice';
 import RazorpayCheckout from 'react-native-razorpay';
 import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
 import Toast from 'react-native-toast-message';
+import { refreshProfile } from '../../utils/helper/refreshProfile';
 
 const DashboardScreen = ({ navigation }: any) => {
   const dispatch = useDispatch();
 
-  const { user, subscription } = useSelector((state: any) => state.auth);
+  const { user, subscription, nextSubscriptions } = useSelector(
+    (state: any) => state.auth,
+  );
 
   const [expandedPlans, setExpandedPlans] = useState<number[]>([]);
 
@@ -63,11 +66,7 @@ const DashboardScreen = ({ navigation }: any) => {
     );
   };
 
-  const upcomingPlans = Array.isArray(subscription?.next_subscriptions)
-    ? subscription.next_subscriptions
-    : subscription?.next_subscription
-    ? [subscription.next_subscription]
-    : [];
+  const upcomingPlans = nextSubscriptions || [];
 
   const handleLogout = async () => {
     try {
@@ -106,21 +105,21 @@ const DashboardScreen = ({ navigation }: any) => {
   //   return `₹${Number(amount || 0).toLocaleString('en-IN')}`;
   // };
 
- const formatDate = (date?: string) => {
-  if (!date) return '—';
+  const formatDate = (date?: string) => {
+    if (!date) return '—';
 
-  const d = new Date(date);
+    const d = new Date(date);
 
-  const day = d.getDate().toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
 
-  const month = d.toLocaleString('en-IN', {
-    month: 'short',
-  });
+    const month = d.toLocaleString('en-IN', {
+      month: 'short',
+    });
 
-  const year = d.getFullYear();
+    const year = d.getFullYear();
 
-  return `${day} ${month} ${year}`;
-};
+    return `${day} ${month} ${year}`;
+  };
 
   const now = new Date();
 
@@ -217,11 +216,7 @@ const DashboardScreen = ({ navigation }: any) => {
       console.log('VERIFY PAYMENT RESPONSE =>', verifyRes);
 
       if (verifyRes?.status) {
-        dispatch(
-          updateSubscription({
-            next_subscription: verifyRes?.data?.subscription,
-          }),
-        );
+        await refreshProfile(dispatch);
 
         Alert.alert('Success', 'Plan renewed successfully');
       } else {
@@ -250,6 +245,26 @@ const DashboardScreen = ({ navigation }: any) => {
       >
         {/* HEADER */}
         <LinearGradient colors={['#d10a0f', '#8f0205']} style={styles.header}>
+          {/* TOP ROW */}
+          <View style={styles.topRow}>
+            {/* BACK BUTTON */}
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backBtn}
+            >
+              <Icon name="arrow-left" size={22} color="#fff" />
+            </TouchableOpacity>
+
+            {/* EMPTY SPACE OR TITLE */}
+            <View style={{ flex: 1 }} />
+
+            {/* NOTIFICATION */}
+            {/* <TouchableOpacity style={styles.notificationBtn}>
+              <Icon name="bell" size={20} color="#fff" />
+            </TouchableOpacity> */}
+          </View>
+
+          {/* PROFILE ROW */}
           <View style={styles.profileRow}>
             <View style={styles.avatar}>
               <Text style={styles.avatarText}>
@@ -429,17 +444,17 @@ const DashboardScreen = ({ navigation }: any) => {
               <View style={styles.detailBox}>
                 <Text style={styles.detailLabel}>Start Date</Text>
 
-             <Text style={styles.detailValue}>
-  {formatDate(subscription?.start_date)}
-</Text>
+                <Text style={styles.detailValue}>
+                  {formatDate(subscription?.start_date)}
+                </Text>
               </View>
 
               <View style={styles.detailBox}>
                 <Text style={styles.detailLabel}>End Date</Text>
 
-             <Text style={styles.detailValue}>
-  {formatDate(subscription?.end_date)}
-</Text>
+                <Text style={styles.detailValue}>
+                  {formatDate(subscription?.end_date)}
+                </Text>
               </View>
 
               <View style={styles.detailBox}>
@@ -603,17 +618,17 @@ const DashboardScreen = ({ navigation }: any) => {
                       <View style={styles.detailBox}>
                         <Text style={styles.detailLabel}>Starts</Text>
 
-                       <Text style={styles.detailValue}>
-  {formatDate(item?.start_date)}
-</Text>
+                        <Text style={styles.detailValue}>
+                          {formatDate(item?.start_date)}
+                        </Text>
                       </View>
 
                       <View style={styles.detailBox}>
                         <Text style={styles.detailLabel}>Ends</Text>
 
                         <Text style={styles.detailValue}>
-  {formatDate(item?.end_date)}
-</Text>
+                          {formatDate(item?.end_date)}
+                        </Text>
                       </View>
 
                       <View style={styles.detailBox}>
@@ -639,16 +654,24 @@ const DashboardScreen = ({ navigation }: any) => {
           </View>
         )}
 
-       {/* Bottom Action Buttons */}
-        <TouchableOpacity style={styles.invoiceBtn} activeOpacity={0.85} onPress={() =>
-          navigation.navigate('HomeTab', { screen: 'InvoiceScreen' })
-        }>
+        {/* Bottom Action Buttons */}
+        <TouchableOpacity
+          style={styles.invoiceBtn}
+          activeOpacity={0.85}
+          onPress={() =>
+            navigation.navigate('HomeTab', { screen: 'InvoiceScreen' })
+          }
+        >
           <Icon name="file-text" size={18} color="#111827" />
           <Text style={styles.invoiceBtnText}>Invoices</Text>
           <Icon name="arrow-right" size={18} color="#111827" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.logoutBtn} activeOpacity={0.85} onPress={handleLogout}>
+        <TouchableOpacity
+          style={styles.logoutBtn}
+          activeOpacity={0.85}
+          onPress={handleLogout}
+        >
           <Icon name="log-out" size={18} color="#fff" />
           <Text style={styles.logoutBtnText}>Logout</Text>
         </TouchableOpacity>
@@ -676,7 +699,22 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
+topRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 15,
+  marginTop:-50
+},
 
+backBtn: {
+  width: 42,
+  height: 42,
+  borderRadius: 21,
+  // backgroundColor: 'rgba(255,255,255,0.18)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -899,7 +937,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
- invoiceBtn: {
+  invoiceBtn: {
     marginHorizontal: 16,
     marginTop: 24,
     backgroundColor: '#fff',

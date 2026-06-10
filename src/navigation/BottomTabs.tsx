@@ -1,9 +1,7 @@
 import React from 'react';
-import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSelector } from 'react-redux';
-import * as Animatable from 'react-native-animatable';
 
 import HomeStack from './stacks/HomeStack';
 import { MagazineStack } from './stacks/MagazineStack';
@@ -14,45 +12,28 @@ import DashboardScreen from '../screens/dashboard/DashboardScreen';
 
 import { RootState } from '../redux/store';
 
+import * as Animatable from 'react-native-animatable';
+
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabs() {
-  const { isLoggedIn } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const { isLoggedIn } = useSelector((state: RootState) => state.auth);
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
 
-        // ✅ PERFORMANCE
-        lazy: true,
-        detachInactiveScreens: true,
-        freezeOnBlur: false,
-
-        // ✅ TAB SETTINGS
-        tabBarHideOnKeyboard: true,
-
         tabBarActiveTintColor: '#c9060a',
         tabBarInactiveTintColor: '#999',
 
-        // ✅ SMOOTH TAB ANIMATION
-        animation: 'shift',
-
-        // ✅ TAB BAR DESIGN
+        // ✅ ADD HERE
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 82 : 62,
-
-          paddingBottom:
-            Platform.OS === 'ios' ? 18 : 6,
-
+          height: 62,
+          paddingBottom: 6,
           paddingTop: 6,
-
           borderTopWidth: 0,
-
-          elevation: 8,
-
+          elevation: 10,
           backgroundColor: '#ffffff',
         },
 
@@ -62,47 +43,28 @@ export default function BottomTabs() {
           marginBottom: 2,
         },
 
-        // ✅ ICONS
+        tabBarHideOnKeyboard: true,
+
         tabBarIcon: ({ color, focused }) => {
           let icon = 'home-outline';
 
           if (route.name === 'HomeTab') {
-            icon = focused
-              ? 'home'
-              : 'home-outline';
-          } else if (
-            route.name === 'CategoriesTab'
-          ) {
-            icon = focused
-              ? 'grid'
-              : 'grid-outline';
-          } else if (
-            route.name === 'MagazinesTab'
-          ) {
-            icon = focused
-              ? 'book'
-              : 'book-outline';
-          } else if (
-            route.name === 'AccountTab'
-          ) {
-            icon = focused
-              ? 'person'
-              : 'person-outline';
+            icon = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'CategoriesTab') {
+            icon = focused ? 'grid' : 'grid-outline';
+          } else if (route.name === 'MagazinesTab') {
+            icon = focused ? 'book' : 'book-outline';
+          } else if (route.name === 'AccountTab') {
+            icon = focused ? 'person' : 'person-outline';
           }
 
           return (
             <Animatable.View
-              animation={
-                focused ? 'pulse' : undefined
-              }
-              duration={250}
+              animation={focused ? 'pulse' : undefined}
+              duration={450}
               useNativeDriver
             >
-              <Ionicons
-                name={icon}
-                size={22}
-                color={color}
-              />
+              <Ionicons name={icon} size={22} color={color} />
             </Animatable.View>
           );
         },
@@ -117,13 +79,8 @@ export default function BottomTabs() {
           tabPress: e => {
             e.preventDefault();
 
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: 'HomeTab',
-                },
-              ],
+            navigation.navigate('HomeTab', {
+              screen: 'Home',
             });
           },
         })}
@@ -138,9 +95,7 @@ export default function BottomTabs() {
           tabPress: e => {
             e.preventDefault();
 
-            navigation.jumpTo(
-              'CategoriesTab',
-            );
+            navigation.navigate('CategoriesTab');
           },
         })}
       />
@@ -154,41 +109,30 @@ export default function BottomTabs() {
           tabPress: e => {
             e.preventDefault();
 
-            navigation.jumpTo(
-              'MagazinesTab',
-            );
+            navigation.navigate('MagazinesTab', {
+              screen: 'Magazines',
+            });
           },
         })}
       />
 
-      {/* ACCOUNT */}
+      {/* PROFILE / ACCOUNT */}
       <Tab.Screen
         name="AccountTab"
-        component={
-          isLoggedIn
-            ? DashboardScreen
-            : AuthStack
-        }
+        component={isLoggedIn ? DashboardScreen : AuthStack}
         options={{
-          title: isLoggedIn
-            ? 'Dashboard'
-            : 'Sign In',
+          title: isLoggedIn ? 'Dashboard' : 'SignIn',
         }}
         listeners={({ navigation }) => ({
           tabPress: e => {
             e.preventDefault();
 
             if (isLoggedIn) {
-              navigation.jumpTo(
-                'AccountTab',
-              );
+              navigation.navigate('AccountTab');
             } else {
-              navigation.navigate(
-                'AccountTab',
-                {
-                  screen: 'SignIn',
-                },
-              );
+              navigation.navigate('AccountTab', {
+                screen: 'SignIn',
+              });
             }
           },
         })}

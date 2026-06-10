@@ -92,7 +92,7 @@ const HeroCard = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    borderRadius: 18,
+    // borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 14,
     elevation: 4,

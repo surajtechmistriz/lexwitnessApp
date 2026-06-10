@@ -55,7 +55,7 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
       {/* HEADER SECTION */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.heading}>Latest Editionss</Text>
+          <Text style={styles.heading}>Latest Editions</Text>
           <View style={styles.accentBar} />
         </View>
         <TouchableOpacity onPress={onPressViewAll}>

@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
 
   scrollContent: {
     paddingHorizontal: 12,
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
 
   carouselWrapper: {

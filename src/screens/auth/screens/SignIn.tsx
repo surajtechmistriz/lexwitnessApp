@@ -19,8 +19,9 @@ import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { loginSuccess } from '../../../redux/slices/authSlice';
+import { loginSuccess, setProfile } from '../../../redux/slices/authSlice';
 import { loginApi } from '../api/auth';
+import { getProfile } from '../../dashboard/api';
 
 const { height } = Dimensions.get('window');
 
@@ -69,20 +70,35 @@ const SignInScreen = () => {
         throw new Error('Invalid login response');
       }
 
+      // save token first
       await AsyncStorage.setItem('token', data.token);
-      await AsyncStorage.setItem('user', JSON.stringify(data.user));
+
+      // fetch fresh profile
+      const profileRes = await getProfile();
+
+      const profile = profileRes.data;
+
+      // save profile data
+      await AsyncStorage.setItem('user', JSON.stringify(profile.user));
+
       await AsyncStorage.setItem(
         'subscription',
-        JSON.stringify(data.subscription),
+        JSON.stringify(profile.subscription),
       );
 
-      dispatch(
-        loginSuccess({
-          user: data.user,
-          token: data.token,
-          subscription: data.subscription,
-        }),
+      await AsyncStorage.setItem(
+        'nextSubscriptions',
+        JSON.stringify(profile.next_subscriptions || []),
       );
+
+      // store in redux
+      dispatch(
+  setProfile({
+    user: profile.user,
+    subscription: profile.subscription,
+    nextSubscriptions: profile.next_subscriptions || [],
+  }),
+);
 
       Toast.show({
         type: 'success',
@@ -110,15 +126,12 @@ const SignInScreen = () => {
   };
 
   return (
-<SafeAreaView
-  style={styles.container}
-  edges={['left', 'right', 'bottom']}
->
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           bounces={false}
@@ -148,8 +161,18 @@ const SignInScreen = () => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email Address</Text>
-              <View style={[styles.inputWrapper, email && styles.inputWrapperFilled]}>
-                <Ionicons name="mail-outline" size={20} color={THEME.grayText} style={styles.inputIcon} />
+              <View
+                style={[
+                  styles.inputWrapper,
+                  email && styles.inputWrapperFilled,
+                ]}
+              >
+                <Ionicons
+                  name="mail-outline"
+                  size={20}
+                  color={THEME.grayText}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   value={email}
                   onChangeText={setEmail}
@@ -170,8 +193,18 @@ const SignInScreen = () => {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
-              <View style={[styles.inputWrapper, password && styles.inputWrapperFilled]}>
-                <Ionicons name="lock-closed-outline" size={20} color={THEME.grayText} style={styles.inputIcon} />
+              <View
+                style={[
+                  styles.inputWrapper,
+                  password && styles.inputWrapperFilled,
+                ]}
+              >
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={20}
+                  color={THEME.grayText}
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   value={password}
                   onChangeText={setPassword}
@@ -181,7 +214,9 @@ const SignInScreen = () => {
                   placeholder="Enter your password"
                   placeholderTextColor="#9CA3AF"
                 />
-                <TouchableOpacity onPress={() => setShowPassword(prev => !prev)}>
+                <TouchableOpacity
+                  onPress={() => setShowPassword(prev => !prev)}
+                >
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
@@ -198,13 +233,20 @@ const SignInScreen = () => {
                 disabled={loading}
                 activeOpacity={0.7}
               >
-                <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                  {rememberMe && <Ionicons name="checkmark" size={12} color="#fff" />}
+                <View
+                  style={[styles.checkbox, rememberMe && styles.checkboxActive]}
+                >
+                  {rememberMe && (
+                    <Ionicons name="checkmark" size={12} color="#fff" />
+                  )}
                 </View>
                 <Text style={styles.checkboxText}>Remember me</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={() => navigation.navigate('PasswordReset')} activeOpacity={0.7}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('PasswordReset')}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.forgotText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
@@ -242,7 +284,10 @@ const SignInScreen = () => {
 
             <View style={styles.footerLinks}>
               <Text style={styles.noAccountText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('Register')} activeOpacity={0.7}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Register')}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.registerLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
@@ -256,8 +301,8 @@ const SignInScreen = () => {
 export default SignInScreen;
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
+  container: {
+    flex: 1,
     backgroundColor: '#F3F4F6',
   },
   flex: {
@@ -291,9 +336,9 @@ const styles = StyleSheet.create({
   //   shadowRadius: 12,
   //   elevation: 5,
   // },
-  header: { 
-    fontSize: 34, 
-    fontWeight: '800', 
+  header: {
+    fontSize: 34,
+    fontWeight: '800',
     color: THEME.white,
     letterSpacing: -0.5,
     marginBottom: 8,
@@ -329,9 +374,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FEE2E2',
   },
-  errorText: { 
-    color: THEME.error, 
-    fontSize: 14, 
+  errorText: {
+    color: THEME.error,
+    fontSize: 14,
     marginLeft: 10,
     fontWeight: '500',
     flex: 1,
@@ -339,9 +384,9 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 20,
   },
-  label: { 
-    fontSize: 14, 
-    fontWeight: '600', 
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
     color: THEME.dark,
     marginBottom: 8,
     marginLeft: 4,
@@ -377,8 +422,8 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     marginTop: 8,
   },
-  checkboxRow: { 
-    flexDirection: 'row', 
+  checkboxRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
   checkbox: {
@@ -392,18 +437,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  checkboxActive: { 
-    backgroundColor: THEME.primary, 
+  checkboxActive: {
+    backgroundColor: THEME.primary,
     borderColor: THEME.primary,
   },
-  checkboxText: { 
-    fontSize: 14, 
-    color: THEME.dark, 
+  checkboxText: {
+    fontSize: 14,
+    color: THEME.dark,
     fontWeight: '500',
   },
-  forgotText: { 
-    color: THEME.primary, 
-    fontWeight: '600', 
+  forgotText: {
+    color: THEME.primary,
+    fontWeight: '600',
     fontSize: 14,
   },
   loginBtn: {
@@ -417,12 +462,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  disabledBtn: { 
+  disabledBtn: {
     opacity: 0.6,
   },
-  loginBtnText: { 
-    color: '#fff', 
-    fontWeight: '700', 
+  loginBtnText: {
+    color: '#fff',
+    fontWeight: '700',
     fontSize: 16,
     letterSpacing: 0.5,
   },
@@ -458,19 +503,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: THEME.border,
   },
-  footerLinks: { 
-    flexDirection: 'row', 
+  footerLinks: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop:8
+    marginTop: 8,
   },
-  noAccountText: { 
-    color: THEME.grayText, 
+  noAccountText: {
+    color: THEME.grayText,
     fontSize: 15,
   },
-  registerLink: { 
-    color: THEME.primary, 
-    fontWeight: '700', 
+  registerLink: {
+    color: THEME.primary,
+    fontWeight: '700',
     fontSize: 15,
   },
 });

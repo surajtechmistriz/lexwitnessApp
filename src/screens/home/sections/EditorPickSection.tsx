@@ -10,6 +10,7 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Editor’s Picks</Text>
+       <View style={styles.accentBar} />
 
       <ScrollView
         horizontal
@@ -44,6 +45,14 @@ const styles = StyleSheet.create({
     color: '#111',
     marginBottom: 12,
     paddingHorizontal: 12,
+  },
+   accentBar: {
+    width: 30,
+    height: 3,
+    backgroundColor: "#c9060a",
+    marginTop: -8,
+    marginBottom:8,
+    marginLeft:12,
   },
 
   scroll: {

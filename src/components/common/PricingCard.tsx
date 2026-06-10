@@ -25,6 +25,7 @@ import {
 } from '../../services/api/subscription';
 
 import { updateSubscription } from '../../redux/slices/authSlice';
+import { refreshProfile } from '../../utils/helper/refreshProfile';
 
 const { width } = Dimensions.get('window');
 
@@ -150,16 +151,7 @@ const PricingCard = () => {
         return;
       }
 
-      const sub = verifyRes?.data?.subscription;
-
-      if (sub) {
-        dispatch(
-          updateSubscription({
-            next_subscription: sub,
-            next_subscription_id: sub?.id,
-          }),
-        );
-      }
+      await refreshProfile(dispatch);
 
       Alert.alert('Success', 'Plan upgraded successfully');
 

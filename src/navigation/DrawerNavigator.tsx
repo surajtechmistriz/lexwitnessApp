@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { useSelector } from 'react-redux';
 
 import BottomTabs from './BottomTabs';
 
@@ -7,7 +8,6 @@ import CustomDrawer from '../components/common/CustomDrawer';
 import Header from '../components/common/Header';
 import SearchOverlay from '../components/common/SearchOverlay';
 
-import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 
 const Drawer = createDrawerNavigator();
@@ -20,67 +20,42 @@ export default function DrawerNavigator() {
   return (
     <>
       <Drawer.Navigator
-        detachInactiveScreens={false}
         screenOptions={{
           header: ({ navigation }) => (
             <Header
               navigation={navigation}
-              onSearchPress={() => {
-                requestAnimationFrame(() => {
-                  setIsSearchVisible(true);
-                });
-              }}
+              onSearchPress={() => setIsSearchVisible(true)}
             />
           ),
 
-          // ✅ MOST STABLE TYPE
           drawerType: 'front',
-
-          // ✅ smoother overlay
-          overlayColor: 'rgba(0,0,0,0.20)',
-
-          // ✅ prevents accidental stuck gestures
-          swipeEdgeWidth: 30,
-
-          swipeMinDistance: 60,
-
           swipeEnabled: true,
 
-          // ✅ IMPORTANT FIX
-          freezeOnBlur: false,
+          overlayColor: 'rgba(0,0,0,0.2)',
 
-          lazy: true,
-
-          // ✅ smoother rendering
-          sceneContainerStyle: {
-            backgroundColor: '#ffffff',
-          },
-
-          // ✅ better width
           drawerStyle: {
             width: '82%',
-            backgroundColor: '#ffffff',
+            backgroundColor: '#fff',
           },
 
-          // ✅ smoother gestures
+          sceneContainerStyle: {
+            backgroundColor: '#fff',
+          },
+
           keyboardDismissMode: 'on-drag',
         }}
-
         drawerContent={props => (
           <CustomDrawer
+            {...props}
             key={
               auth.user?.id ||
               auth.user?.email ||
               (auth.isLoggedIn ? 'logged-in' : 'guest')
             }
-            {...props}
           />
         )}
       >
-        <Drawer.Screen
-          name="MainTabs"
-          component={BottomTabs}
-        />
+        <Drawer.Screen name="MainTabs" component={BottomTabs} />
       </Drawer.Navigator>
 
       <SearchOverlay

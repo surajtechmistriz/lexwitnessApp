@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -13,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DrawerActions } from '@react-navigation/native';
 
 type HeaderProps = {
   navigation: any;
@@ -23,21 +19,17 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
   const insets = useSafeAreaInsets();
 
   const { isLoggedIn, isHydrated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   /* ---------------- DRAWER ---------------- */
   const handleToggleDrawer = () => {
-    navigation.openDrawer();
+    navigation.dispatch(DrawerActions.toggleDrawer());
   };
-
   /* ---------------- GO HOME ---------------- */
   const handleGoHome = () => {
     navigation.navigate('MainTabs', {
       screen: 'HomeTab',
-      params: {
-        screen: 'Home',
-      },
     });
   };
 
@@ -67,10 +59,7 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
 
       {/* CENTER */}
       <View style={styles.centerContainer}>
-        <TouchableOpacity
-          onPress={handleGoHome}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Image
             source={require('../../assets/main-logo.png')}
             style={styles.logo}
@@ -85,11 +74,7 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
           onPress={onSearchPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Entypo
-            name="magnifying-glass"
-            size={24}
-            color="#c9060a"
-          />
+          <Entypo name="magnifying-glass" size={24} color="#c9060a" />
         </TouchableOpacity>
       </View>
     </View>
@@ -97,7 +82,6 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
 };
 
 export default Header;
-
 
 const styles = StyleSheet.create({
   container: {
@@ -111,7 +95,7 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
 
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingBottom: 1,
 
     minHeight: 70,
   },
