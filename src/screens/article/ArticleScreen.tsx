@@ -15,6 +15,7 @@ import LinkedinIcon from 'react-native-vector-icons/FontAwesome';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Config from 'react-native-config';
 import Icon from 'react-native-vector-icons/Ionicons';
+import IconBack from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { getArticleBySlug, getRelatedPosts } from '../../services/api/posts';
@@ -215,10 +216,19 @@ export default function ArticleDetailPage() {
                 }}
                 style={styles.heroImage}
               />
+
               <LinearGradient
                 colors={['transparent', 'rgba(51,51,51,0.8)']}
                 style={styles.imageGradient}
               />
+
+              {/*  BACK BUTTON OVER IMAGE */}
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.backBtn}
+              >
+                <IconBack name="arrow-left" size={22} color="#c9060a" />
+              </TouchableOpacity>
             </View>
           )}
 
@@ -241,7 +251,7 @@ export default function ArticleDetailPage() {
 
             <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
               {/* <Icon name="share-outline" size={20} color="#666" /> */}
-               <Icon name="share-social" size={20} color="#c9060a" />
+              <Icon name="share-social" size={20} color="#c9060a" />
             </TouchableOpacity>
           </View>
 
@@ -415,10 +425,10 @@ export default function ArticleDetailPage() {
               </View>
 
               {article.authors.map((author: any, index: number) => {
-                // ✅ Create unique key INSIDE the map for each author
+                //  Create unique key INSIDE the map for each author
                 const authorKey = author.id || author.slug || index.toString();
 
-                // ✅ Initialize animation value if not exists (move inside map)
+                //  Initialize animation value if not exists (move inside map)
                 if (!rotateAnim[authorKey]) {
                   rotateAnim[authorKey] = new Animated.Value(0);
                 }
@@ -472,33 +482,33 @@ export default function ArticleDetailPage() {
                     </Text>
 
                     {/* Read More Button */}
-                   <TouchableOpacity
-  activeOpacity={0.7}
-  style={styles.readMoreBtn}
-  onPress={() => toggleAuthor(authorKey)}
->
-  <Text style={styles.readMoreText}>
-    {expandedAuthors[authorKey] ? 'Show less' : 'View more'}
-  </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      style={styles.readMoreBtn}
+                      onPress={() => toggleAuthor(authorKey)}
+                    >
+                      <Text style={styles.readMoreText}>
+                        {expandedAuthors[authorKey] ? 'Show less' : 'View more'}
+                      </Text>
 
-  <Animated.View
-    style={{
-      marginLeft: 4,
-      transform: [
-        {
-          rotate: rotateAnim[authorKey]
-            ? rotateAnim[authorKey].interpolate({
-                inputRange: [0, 1],
-                outputRange: ['0deg', '180deg'],
-              })
-            : '0deg',
-        },
-      ],
-    }}
-  >
-    <Icon name="chevron-down" size={16} color="#6b7280" />
-  </Animated.View>
-</TouchableOpacity>
+                      <Animated.View
+                        style={{
+                          marginLeft: 4,
+                          transform: [
+                            {
+                              rotate: rotateAnim[authorKey]
+                                ? rotateAnim[authorKey].interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: ['0deg', '180deg'],
+                                  })
+                                : '0deg',
+                            },
+                          ],
+                        }}
+                      >
+                        <Icon name="chevron-down" size={16} color="#6b7280" />
+                      </Animated.View>
+                    </TouchableOpacity>
                   </View>
                 );
               })}
@@ -784,6 +794,7 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
+
   imageGradient: {
     position: 'absolute',
     bottom: 0,
@@ -1060,8 +1071,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 
-   
-
   authorContent: {
     flex: 1,
   },
@@ -1110,18 +1119,32 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
-readMoreBtn: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  alignSelf: 'flex-start',
-  paddingVertical: 4,
-  marginTop: 6,
-},
+  readMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    marginTop: 6,
+  },
 
-readMoreText: {
-  fontSize: 13,
-  color: '#c9060a', // soft gray (professional UI tone)
-  fontWeight: '500',
-  letterSpacing: 0.2,
-},
+  readMoreText: {
+    fontSize: 13,
+    color: '#c9060a', // soft gray (professional UI tone)
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
+
+  backBtn: {
+    position: 'absolute',
+    top: 10, // adjust for status bar
+    left: 15,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e3e3e3', // optional for visibility
+    zIndex: 10,
+    color: '#c9060a',
+  },
 });

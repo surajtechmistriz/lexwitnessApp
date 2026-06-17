@@ -30,7 +30,7 @@ const { width } = Dimensions.get('window');
 const HORIZONTAL_PADDING = 12;
 const CARD_GAP = 12;
 
-// ✅ Better responsive width
+//  Better responsive width
 const ITEM_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP) / 2;
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
 
   headerArea: {
     paddingHorizontal: 16,
-    paddingTop: 12, // ✅ reduced extra top space
+    paddingTop: 12, //  reduced extra top space
     marginBottom: 12,
     marginVertical:10
   },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
 
   flatListContent: {
-    paddingTop: 0, // ✅ removed top gap
+    paddingTop: 0, //  removed top gap
     paddingBottom: 20,
   },
 

@@ -258,10 +258,7 @@ const DashboardScreen = ({ navigation }: any) => {
             {/* EMPTY SPACE OR TITLE */}
             <View style={{ flex: 1 }} />
 
-            {/* NOTIFICATION */}
-            {/* <TouchableOpacity style={styles.notificationBtn}>
-              <Icon name="bell" size={20} color="#fff" />
-            </TouchableOpacity> */}
+        
           </View>
 
           {/* PROFILE ROW */}
@@ -699,22 +696,22 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
-topRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  marginBottom: 15,
-  marginTop:-50
-},
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    marginTop: -50,
+  },
 
-backBtn: {
-  width: 42,
-  height: 42,
-  borderRadius: 21,
-  // backgroundColor: 'rgba(255,255,255,0.18)',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+  backBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    // backgroundColor: 'rgba(255,255,255,0.18)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',

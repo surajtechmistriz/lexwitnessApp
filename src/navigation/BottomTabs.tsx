@@ -27,7 +27,7 @@ export default function BottomTabs() {
         tabBarActiveTintColor: '#c9060a',
         tabBarInactiveTintColor: '#999',
 
-        // ✅ ADD HERE
+        //  ADD HERE
         tabBarStyle: {
           height: 62,
           paddingBottom: 6,

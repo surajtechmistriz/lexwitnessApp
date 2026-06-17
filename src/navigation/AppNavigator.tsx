@@ -29,10 +29,10 @@ const darkMode = useSelector(
 );
 
   useEffect(() => {
-    // ✅ FAST APP START
+    //  FAST APP START
     setIsAppReady(true);
 
-    // ✅ HIDE SPLASH QUICKLY
+    //  HIDE SPLASH QUICKLY
     const timer = setTimeout(() => {
       SplashScreen.hide();
     }, 100);
