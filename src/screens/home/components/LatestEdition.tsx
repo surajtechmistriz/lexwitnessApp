@@ -13,7 +13,6 @@ import {
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { COLORS } from '../../../theme/colors';
 
 /* ---------- TYPES ---------- */
@@ -46,29 +45,6 @@ type EditionResponse = {
   posts: Post[];
 };
 
-type RootStackParamList = {
-  ArticleDetail: {
-    slug: string;
-    category: string;
-  };
-
-  MagazineDetail: {
-    slug: string;
-  };
-
-  HomeTab: {
-    screen: string;
-    params?: any;
-  };
-
-MagazinesTab: {
-  screen: string;
-  params?: any;
-};
-};
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 /* ---------- CONSTANTS ---------- */
 
 const MagimgUrl = Config.MAGAZINES_BASE_URL;
@@ -80,7 +56,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,6 +86,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
 
   if (!data) return null;
 
+  //  FIXED - Direct navigation
   const goToArticle = (item: Post) => {
     navigation.navigate('ArticleDetail', {
       slug: item.slug,
@@ -117,20 +94,17 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
     });
   };
 
- const goToMagazine = () => {
-  navigation.navigate('MagazinesTab', {
-    screen: 'MagazineDetail',
-    params: {
+  //  FIXED - Direct navigation
+  const goToMagazine = () => {
+    navigation.navigate('MagazineDetail', {
       slug: data.magazine?.slug ?? String(data.magazine.id),
-    },
-  });
-};
+    });
+  };
 
-const handleSubscribe = () => {
-  navigation.navigate('HomeTab', {
-    screen: 'Subscription',
-  });
-};
+  //  FIXED - Direct navigation
+  const handleSubscribe = () => {
+    navigation.navigate('Subscription');
+  };
 
   return (
     <View style={styles.wrapper}>
@@ -156,11 +130,11 @@ const handleSubscribe = () => {
         </View>
       </TouchableOpacity>
 
-      {/* Subscribe – always visible but safe */}
-    <TouchableOpacity
-  style={styles.subscribeBtn}
-  onPress={handleSubscribe}
->
+      {/* Subscribe */}
+      <TouchableOpacity
+        style={styles.subscribeBtn}
+        onPress={handleSubscribe}
+      >
         <Text style={styles.subscribeText}>Subscribe Now</Text>
       </TouchableOpacity>
 
@@ -220,7 +194,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  /* Magazine Card */
   magCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -235,7 +208,6 @@ const styles = StyleSheet.create({
   magImage: {
     width: '100%',
     aspectRatio: 4 / 3,
-    // aspectRatio: 16 / 9,
     backgroundColor: '#f5f5f5',
   },
   magContent: {
@@ -254,7 +226,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  /* Subscribe */
   subscribeBtn: {
     backgroundColor: COLORS.primary,
     borderRadius: 10,
@@ -264,17 +235,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     elevation: 2,
   },
-  disabledBtn: {
-    // opacity: 0.6,
-    elevation: 0,
-  },
   subscribeText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
 
-  /* Articles – cards */
   articleList: {
     gap: 12,
   },
@@ -285,7 +251,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     overflow: 'hidden',
     marginBottom: 10,
-
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 6,
@@ -295,7 +260,7 @@ const styles = StyleSheet.create({
 
   articleImage: {
     width: 110,
-    aspectRatio: 16 / 9, //  MAIN FIX
+    aspectRatio: 16 / 9,
     borderRadius: 10,
     margin: 10,
     backgroundColor: '#eee',

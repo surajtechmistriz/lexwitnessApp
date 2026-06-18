@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+//  REMOVE - import { RootStackParamList } from '../../navigation/AppNavigator';
 import { formatMonthYear } from '../../utils/helper/dateHelper';
 
 interface PostListProps {
@@ -19,6 +19,13 @@ interface PostListProps {
   loading?: boolean;
   emptyMessage?: string;
 }
+
+//  DEFINE TYPE LOCALLY
+type RootStackParamList = {
+  ArticleDetail: { slug: string; category?: string };
+  Author: { slug: string };
+  // Add other screens as needed
+};
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -35,11 +42,23 @@ export default function PostList({
     return image.startsWith('http') ? image : `${postBaseUrl}/${image}`;
   };
 
+  // ============================================================
+  //  FIXED NAVIGATION FUNCTIONS
+  // ============================================================
+
   const handleNavigateDetail = (article: any) => {
     navigation.navigate('ArticleDetail', {
       slug: article.slug,
       category: article.category?.slug || 'general',
     });
+  };
+
+  const handleAuthorPress = (author: any) => {
+    if (author?.slug) {
+      navigation.navigate('Author', {
+        slug: author.slug,
+      });
+    }
   };
 
   if (loading) {
@@ -57,8 +76,6 @@ export default function PostList({
       </View>
     );
   }
-
-  console.log('Articles', posts);
 
   return (
     <View style={styles.container}>
@@ -98,13 +115,7 @@ export default function PostList({
                   article.authors.map((author: any, index: number) => (
                     <TouchableOpacity
                       key={author.slug || index}
-                      onPress={() => {
-                        if (author?.slug) {
-                          navigation.navigate('Author', {
-                            slug: author.slug,
-                          });
-                        }
-                      }}
+                      onPress={() => handleAuthorPress(author)} //  FIXED
                     >
                       <Text style={styles.authorText}>
                         {author?.name || 'Unknown'}
@@ -176,7 +187,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f0f0f0',
 
-    // cleaner shadow
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -224,7 +234,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
-    flexWrap: 'wrap', //  important
+    flexWrap: 'wrap',
   },
   authorText: {
     color: '#c9060a',

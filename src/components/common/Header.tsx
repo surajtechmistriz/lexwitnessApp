@@ -1,41 +1,49 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DrawerActions, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DrawerActions } from '@react-navigation/native';
-
 type HeaderProps = {
-  navigation: any;
   onSearchPress: () => void;
+  navigation?: any; //  Optional now
 };
 
-const Header = ({ navigation, onSearchPress }: HeaderProps) => {
+const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>(); //  USE HOOK
 
   const { isLoggedIn, isHydrated } = useSelector(
     (state: RootState) => state.auth,
   );
 
-  /* ---------------- DRAWER ---------------- */
+  // ============================================================
+  //  FIXED NAVIGATION FUNCTIONS
+  // ============================================================
+
+  // 1. Toggle Drawer
   const handleToggleDrawer = () => {
     navigation.dispatch(DrawerActions.toggleDrawer());
   };
-  /* ---------------- GO HOME ---------------- */
+
+  // 2. Go Home -  FIXED
   const handleGoHome = () => {
-    navigation.navigate('MainTabs', {
-      screen: 'HomeTab',
-    });
+    navigation.navigate('HomeTab'); //  SIMPLE
   };
 
-  /* ---------------- LOGIN ---------------- */
+  // 3. Go to Login
   const goToLogin = () => {
     navigation.navigate('SignIn');
+  };
+
+  // 4. Go to Dashboard (if logged in)
+  const goToDashboard = () => {
+    navigation.navigate('Dashboard');
   };
 
   return (
@@ -47,17 +55,18 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
         },
       ]}
     >
-      {/* LEFT */}
+      {/* LEFT - Menu Button */}
       <View style={styles.sideContainer}>
         <TouchableOpacity
           onPress={handleToggleDrawer}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
         >
           <Ionicons name="menu" size={28} color="#c9060a" />
         </TouchableOpacity>
       </View>
 
-      {/* CENTER */}
+      {/* CENTER - Logo */}
       <View style={styles.centerContainer}>
         <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Image
@@ -68,14 +77,38 @@ const Header = ({ navigation, onSearchPress }: HeaderProps) => {
         </TouchableOpacity>
       </View>
 
-      {/* RIGHT */}
-      <View style={styles.sideContainer}>
+      {/* RIGHT - Search + Login/Profile */}
+      <View style={styles.rightContainer}>
+        {/* Search Button */}
         <TouchableOpacity
           onPress={onSearchPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.7}
+          style={styles.searchButton}
         >
           <Entypo name="magnifying-glass" size={24} color="#c9060a" />
         </TouchableOpacity>
+
+        {/* Login/Profile Button */}
+        {!isLoggedIn ? (
+          <TouchableOpacity
+            onPress={goToLogin}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.7}
+            style={styles.loginButton}
+          >
+            <Ionicons name="person-outline" size={24} color="#c9060a" />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={goToDashboard}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            activeOpacity={0.7}
+            style={styles.loginButton}
+          >
+            <Ionicons name="person-circle-outline" size={28} color="#c9060a" />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -88,15 +121,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-
     backgroundColor: '#fff',
-
     borderBottomWidth: 1,
     borderColor: '#eee',
-
     paddingHorizontal: 16,
     paddingBottom: 1,
-
     minHeight: 70,
   },
 
@@ -110,6 +139,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+
+  rightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    width: 80,
+  },
+
+  searchButton: {
+    padding: 4,
+  },
+
+  loginButton: {
+    padding: 4,
+    marginLeft: 8,
   },
 
   logo: {

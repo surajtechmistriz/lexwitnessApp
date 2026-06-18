@@ -9,31 +9,22 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons'; //  ADDED
 import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
 import LatestEditions from '../home/components/Latest5Edition';
-import Header from '../../components/common/Header';
-import Menubar from '../../components/common/Menubar';
-import {
-  navigationRef,
-  RootStackParamList,
-} from '../../navigation/AppNavigator';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import Footer from '../../components/common/Footer';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 export default function MagazineDetailScreen() {
   const route = useRoute<any>();
-  const { slug } = route.params;
+  const navigation = useNavigation<any>();
+  
+  const { slug } = route.params || {};
 
   const [magazine, setMagazine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
     if (slug) fetchMagazine();
@@ -56,6 +47,31 @@ export default function MagazineDetailScreen() {
     return img.startsWith('http') ? img : `${base}/${img}`;
   };
 
+  //  NAVIGATION FUNCTIONS
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  const handleSubscribe = () => {
+    navigation.navigate('Subscription');
+  };
+
+  const handleArticlePress = (post: any) => {
+    navigation.navigate('ArticleDetail', {
+      slug: post.slug,
+    });
+  };
+
+  const handleMagazinePress = (item: any) => {
+    navigation.navigate('MagazineDetail', {
+      slug: item.slug,
+    });
+  };
+
+  const handleViewAllMagazines = () => {
+    navigation.navigate('Magazines');
+  };
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -72,14 +88,17 @@ export default function MagazineDetailScreen() {
     );
   }
 
-  const handleSubscribe = () => {
-  navigation.navigate('HomeTab', {
-    screen: 'Subscription',
-  });
-};
-
   return (
     <View style={styles.screen}>
+      {/*  BACK BUTTON */}
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={handleBack}
+        activeOpacity={0.7}
+      >
+        <Icon name="arrow-back" size={24} color="#c9060a" />
+      </TouchableOpacity>
+
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* MAGAZINE HERO */}
         <View style={styles.heroSection}>
@@ -107,8 +126,11 @@ export default function MagazineDetailScreen() {
                 .replace(/&amp;/g, '&')}
             </Text>
 
-            <TouchableOpacity style={styles.subscribeBtn}>
-              <Text style={styles.subscribeText}  onPress={handleSubscribe} >Subscribe Now</Text>
+            <TouchableOpacity 
+              style={styles.subscribeBtn}
+              onPress={handleSubscribe}
+            >
+              <Text style={styles.subscribeText}>Subscribe Now</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -124,14 +146,7 @@ export default function MagazineDetailScreen() {
                 key={post.id}
                 style={styles.card}
                 activeOpacity={0.85}
-                onPress={() =>
-                  navigation.navigate('HomeTab', {
-                    screen: 'ArticleDetail',
-                    params: {
-                      slug: post.slug,
-                    },
-                  })
-                }
+                onPress={() => handleArticlePress(post)}
               >
                 <Image
                   source={{ uri: getImage(post.image, imgUrl2) }}
@@ -157,16 +172,8 @@ export default function MagazineDetailScreen() {
           {magazine?.id && (
             <LatestEditions
               skipId={magazine.id}
-              onPressItem={item =>
-                navigation.push('MagazineDetail', {
-                  slug: item.slug,
-                })
-              }
-              onPressViewAll={() =>
-                // This tells navigation: Go to the 'Magazines' screen
-                // If 'Magazines' is inside a stack, use the logic below:
-                navigation.navigate('Magazines')
-              }
+              onPressItem={handleMagazinePress}
+              onPressViewAll={handleViewAllMagazines}
             />
           )}
         </View>
@@ -181,15 +188,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
 
+  //  BACK BUTTON STYLES
+  backButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 30,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
 
-  /* HERO */
   heroSection: {
     padding: 14,
+    paddingTop: 20,
   },
 
   heroCard: {
@@ -201,11 +227,10 @@ const styles = StyleSheet.create({
   heroImage: {
     width: '100%',
     height: undefined,
-    aspectRatio: 3 / 4, //  key fix (adjusts naturally like magazine cover)
+    aspectRatio: 3 / 4,
     backgroundColor: '#f9f9f9',
   },
 
-  /* CONTENT */
   content: {
     backgroundColor: '#fff',
     marginTop: 14,
@@ -217,8 +242,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#000',
-    // textTransform: 'uppercase',
-    // letterSpacing: 1,
   },
 
   title: {
@@ -261,7 +284,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  /* ARTICLES */
   articleSection: {
     paddingHorizontal: 14,
     marginTop: 20,
@@ -294,12 +316,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 14,
-
     borderWidth: 1,
-    borderColor: '#e5e5e5', //  light gray border
-
-    elevation: 2, // Android subtle shadow (keep optional)
-    shadowColor: '#000', // iOS shadow
+    borderColor: '#e5e5e5',
+    elevation: 2,
+    shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
@@ -327,10 +347,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  /* MORE */
   moreSection: {
     marginTop: 20,
     paddingBottom: 0,
-   paddingLeft:10,
+    paddingLeft: 10,
   },
 });

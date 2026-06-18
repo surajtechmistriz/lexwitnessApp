@@ -1,3 +1,4 @@
+// screens/auth/screens/SignIn.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -10,32 +11,36 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { loginSuccess, setProfile } from '../../../redux/slices/authSlice';
+import { setProfile } from '../../../redux/slices/authSlice';
 import { loginApi } from '../api/auth';
 import { getProfile } from '../../dashboard/api';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 
-const THEME = {
+const BRAND = {
   primary: '#c9060a',
   primaryDark: '#a80508',
-  secondary: '#10B981',
-  dark: '#1F2937',
+  primaryLight: '#fef2f2',
+  primaryGradient: ['#c9060a', '#a80508'],
+  secondary: '#1a1a2e',
+  accent: '#e63946',
+  success: '#10B981',
+  error: '#EF4444',
+  white: '#FFFFFF',
   lightGray: '#F9FAFB',
   border: '#E5E7EB',
-  white: '#FFFFFF',
   grayText: '#6B7280',
-  error: '#EF4444',
-  errorBg: '#FEF2F2',
+  dark: '#1F2937',
 };
 
 const SignInScreen = () => {
@@ -48,6 +53,35 @@ const SignInScreen = () => {
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'MainApp',
+              state: {
+                routes: [
+                  {
+                    name: 'MainTabs',
+                    state: {
+                      routes: [{ name: 'HomeTab' }],
+                      index: 0,
+                    },
+                  },
+                ],
+                index: 0,
+              },
+            },
+          ],
+        })
+      );
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -70,35 +104,28 @@ const SignInScreen = () => {
         throw new Error('Invalid login response');
       }
 
-      // save token first
       await AsyncStorage.setItem('token', data.token);
 
-      // fetch fresh profile
       const profileRes = await getProfile();
-
       const profile = profileRes.data;
 
-      // save profile data
       await AsyncStorage.setItem('user', JSON.stringify(profile.user));
-
       await AsyncStorage.setItem(
         'subscription',
         JSON.stringify(profile.subscription),
       );
-
       await AsyncStorage.setItem(
         'nextSubscriptions',
         JSON.stringify(profile.next_subscriptions || []),
       );
 
-      // store in redux
       dispatch(
-  setProfile({
-    user: profile.user,
-    subscription: profile.subscription,
-    nextSubscriptions: profile.next_subscriptions || [],
-  }),
-);
+        setProfile({
+          user: profile.user,
+          subscription: profile.subscription,
+          nextSubscriptions: profile.next_subscriptions || [],
+        }),
+      );
 
       Toast.show({
         type: 'success',
@@ -106,12 +133,12 @@ const SignInScreen = () => {
         text2: `Welcome back, ${data.user?.first_name || 'User'} 👋`,
       });
 
-      navigation.navigate('MainTabs', {
-        screen: 'HomeTab',
-        params: {
-          screen: 'Dashboard',
-        },
-      });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Dashboard' }],
+        })
+      );
     } catch (err: any) {
       const msg = err?.message || 'Login failed';
       setError(msg);
@@ -136,29 +163,42 @@ const SignInScreen = () => {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
+          {/* BACK BUTTON - Premium */}
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={handleBack}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color={BRAND.white} />
+          </TouchableOpacity>
+
+          {/* HEADER - Premium Gradient */}
           <LinearGradient
-            colors={[THEME.primary, THEME.primaryDark]}
+            colors={BRAND.primaryGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.gradientHeader}
           >
-            {/* <View style={styles.logoContainer}>
+            <View style={styles.logoContainer}>
               <View style={styles.logoCircle}>
-                <Ionicons name="restaurant-outline" size={40} color={THEME.primary} />
+                <Ionicons name="newspaper-outline" size={40} color={BRAND.primary} />
               </View>
-            </View> */}
+            </View>
             <Text style={styles.header}>Welcome Back!</Text>
-            <Text style={styles.subText}>Sign in to continue your journey</Text>
+            <Text style={styles.subText}>Sign in to continue reading</Text>
           </LinearGradient>
 
+          {/* FORM */}
           <View style={styles.formContainer}>
+            {/* Error */}
             {error ? (
               <View style={styles.errorContainer}>
-                <Ionicons name="alert-circle" size={18} color={THEME.error} />
+                <Ionicons name="alert-circle" size={18} color={BRAND.error} />
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
 
+            {/* Email */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Email Address</Text>
               <View
@@ -170,7 +210,7 @@ const SignInScreen = () => {
                 <Ionicons
                   name="mail-outline"
                   size={20}
-                  color={THEME.grayText}
+                  color={email ? BRAND.primary : BRAND.grayText}
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -185,12 +225,13 @@ const SignInScreen = () => {
                 />
                 {email !== '' && !loading && (
                   <TouchableOpacity onPress={() => setEmail('')}>
-                    <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+                    <Ionicons name="close-circle" size={18} color={BRAND.grayText} />
                   </TouchableOpacity>
                 )}
               </View>
             </View>
 
+            {/* Password */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Password</Text>
               <View
@@ -202,7 +243,7 @@ const SignInScreen = () => {
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color={THEME.grayText}
+                  color={password ? BRAND.primary : BRAND.grayText}
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -220,12 +261,13 @@ const SignInScreen = () => {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={THEME.grayText}
+                    color={BRAND.grayText}
                   />
                 </TouchableOpacity>
               </View>
             </View>
 
+            {/* Actions */}
             <View style={styles.actionRow}>
               <TouchableOpacity
                 style={styles.checkboxRow}
@@ -237,51 +279,42 @@ const SignInScreen = () => {
                   style={[styles.checkbox, rememberMe && styles.checkboxActive]}
                 >
                   {rememberMe && (
-                    <Ionicons name="checkmark" size={12} color="#fff" />
+                    <Ionicons name="checkmark" size={12} color={BRAND.white} />
                   )}
                 </View>
                 <Text style={styles.checkboxText}>Remember me</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('PasswordReset')}
+                onPress={() => navigation.navigate('ForgetPassword')}
                 activeOpacity={0.7}
               >
                 <Text style={styles.forgotText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
+            {/* Login Button */}
             <TouchableOpacity
               style={[styles.loginBtn, loading && styles.disabledBtn]}
               onPress={handleLogin}
               disabled={loading}
               activeOpacity={0.85}
             >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.loginBtnText}>Sign In</Text>
-              )}
+              <LinearGradient
+                colors={BRAND.primaryGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.loginGradient}
+              >
+                {loading ? (
+                  <ActivityIndicator color={BRAND.white} />
+                ) : (
+                  <Text style={styles.loginBtnText}>Sign In</Text>
+                )}
+              </LinearGradient>
             </TouchableOpacity>
 
-            {/* <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>Or continue with</Text>
-              <View style={styles.dividerLine} />
-            </View> */}
-
-            {/* <View style={styles.socialContainer}>
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
-                <Ionicons name="logo-google" size={24} color="#EA4335" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
-                <Ionicons name="logo-apple" size={24} color={THEME.dark} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialBtn} activeOpacity={0.7}>
-                <Ionicons name="logo-facebook" size={24} color="#1877F2" />
-              </TouchableOpacity>
-            </View> */}
-
+            {/* Sign Up Link */}
             <View style={styles.footerLinks}>
               <Text style={styles.noAccountText}>Don't have an account? </Text>
               <TouchableOpacity
@@ -308,124 +341,160 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  scrollContent: {
+ scrollContent: {
     flexGrow: 1,
     paddingBottom: Platform.OS === 'ios' ? 20 : 30,
   },
+
+
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 30,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 4,
+    // elevation: 3,
+  },
+
   gradientHeader: {
-    paddingTop: height * 0.06,
-    paddingBottom: height * 0.06,
+    paddingTop: height * 0.05,
+    paddingBottom: height * 0.05,
     paddingHorizontal: 24,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
     alignItems: 'center',
   },
-  // logoContainer: {
-  //   marginBottom: 20,
-  // },
-  // logoCircle: {
-  //   width: 80,
-  //   height: 80,
-  //   borderRadius: 40,
-  //   backgroundColor: THEME.white,
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   shadowColor: '#000',
-  //   shadowOffset: { width: 0, height: 4 },
-  //   shadowOpacity: 0.1,
-  //   shadowRadius: 12,
-  //   elevation: 5,
-  // },
+
+  logoContainer: {
+    marginBottom: 16,
+  },
+
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: BRAND.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+
   header: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: '800',
-    color: THEME.white,
+    color: BRAND.white,
     letterSpacing: -0.5,
-    marginBottom: 8,
+    marginBottom: 6,
     textAlign: 'center',
   },
+
   subText: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    fontSize: 15,
+    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
   },
+
   formContainer: {
     flex: 1,
-    backgroundColor: THEME.white,
+    backgroundColor: BRAND.white,
     marginTop: -20,
     marginHorizontal: 20,
     borderRadius: 30,
     paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 40,
+    paddingTop: 28,
+    paddingBottom: 28,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 5,
   },
+
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.errorBg,
+    backgroundColor: '#FEF2F2',
     padding: 14,
     borderRadius: 14,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#FEE2E2',
   },
+
   errorText: {
-    color: THEME.error,
+    color: BRAND.error,
     fontSize: 14,
     marginLeft: 10,
     fontWeight: '500',
     flex: 1,
   },
+
   inputGroup: {
-    marginBottom: 20,
+    marginBottom: 18,
   },
+
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: THEME.dark,
-    marginBottom: 8,
+    color: BRAND.dark,
+    marginBottom: 6,
     marginLeft: 4,
   },
+
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.lightGray,
+    backgroundColor: BRAND.lightGray,
     borderWidth: 1.5,
-    borderColor: THEME.border,
-    borderRadius: 16,
+    borderColor: BRAND.border,
+    borderRadius: 14,
     paddingHorizontal: 16,
   },
+
   inputWrapperFilled: {
-    borderColor: THEME.primary,
+    borderColor: BRAND.primary,
     borderWidth: 2,
-    backgroundColor: '#FFF5F5',
+    backgroundColor: BRAND.primaryLight,
   },
+
   inputIcon: {
     marginRight: 12,
   },
+
   input: {
     flex: 1,
-    paddingVertical: 16,
+    paddingVertical: 14,
     fontSize: 15,
-    color: THEME.dark,
+    color: BRAND.dark,
     fontWeight: '500',
   },
+
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 28,
-    marginTop: 8,
+    marginBottom: 24,
+    marginTop: 4,
   },
+
   checkboxRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+
   checkbox: {
     width: 20,
     height: 20,
@@ -437,84 +506,65 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+
   checkboxActive: {
-    backgroundColor: THEME.primary,
-    borderColor: THEME.primary,
+    backgroundColor: BRAND.primary,
+    borderColor: BRAND.primary,
   },
+
   checkboxText: {
     fontSize: 14,
-    color: THEME.dark,
+    color: BRAND.dark,
     fontWeight: '500',
   },
+
   forgotText: {
-    color: THEME.primary,
+    color: BRAND.primary,
     fontWeight: '600',
     fontSize: 14,
   },
+
   loginBtn: {
-    backgroundColor: THEME.primary,
-    paddingVertical: 16,
-    alignItems: 'center',
-    borderRadius: 16,
-    shadowColor: THEME.primary,
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: BRAND.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
+
+  loginGradient: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   disabledBtn: {
     opacity: 0.6,
   },
+
   loginBtnText: {
-    color: '#fff',
+    color: BRAND.white,
     fontWeight: '700',
     fontSize: 16,
     letterSpacing: 0.5,
   },
-  dividerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 28,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: THEME.border,
-  },
-  dividerText: {
-    marginHorizontal: 16,
-    color: THEME.grayText,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 20,
-    marginBottom: 28,
-  },
-  socialBtn: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: THEME.lightGray,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: THEME.border,
-  },
+
   footerLinks: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8,
+    marginTop: 20,
   },
+
   noAccountText: {
-    color: THEME.grayText,
+    color: BRAND.grayText,
     fontSize: 15,
   },
+
   registerLink: {
-    color: THEME.primary,
+    color: BRAND.primary,
     fontWeight: '700',
     fontSize: 15,
   },

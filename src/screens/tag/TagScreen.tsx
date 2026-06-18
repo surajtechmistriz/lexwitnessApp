@@ -5,10 +5,12 @@ import {
   StyleSheet,
   RefreshControl,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons'; //  ADDED
 import Config from 'react-native-config';
 
 // API
@@ -29,6 +31,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function TagScreen() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>(); //  ADDED
   const scrollRef = useRef<ScrollView>(null);
 
   const tagId = route.params?.id || null;
@@ -53,11 +56,19 @@ export default function TagScreen() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
+  //  BACK BUTTON
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   /* ---------------- FETCH POSTS ---------------- */
 
   const fetchTagPosts = useCallback(
     async (page: number = 1, year: number | null = null) => {
-      if (!tagId) return;
+      if (!tagId) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
 
@@ -91,7 +102,10 @@ export default function TagScreen() {
 
   useEffect(() => {
     const init = async () => {
-      if (!tagId) return;
+      if (!tagId) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
 
@@ -153,6 +167,15 @@ export default function TagScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+      {/*  BACK BUTTON */}
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={handleBack}
+        activeOpacity={0.7}
+      >
+        <Icon name="arrow-back" size={24} color="#000" />
+      </TouchableOpacity>
+
       <ScrollView
         ref={scrollRef}
         style={styles.container}
@@ -237,6 +260,25 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+
+  //  BACK BUTTON STYLES
+  backButton: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    zIndex: 20,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 30,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   container: {

@@ -32,6 +32,9 @@ interface BannerProps {
   showFilter?: boolean;
   onFilterApply?: (filters: FilterState) => void;
   initialFilters?: FilterState;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
+  useRedBackground?: boolean; // NEW: Option to use red background
 }
 
 export default function Banner({
@@ -40,6 +43,9 @@ export default function Banner({
   showFilter = true,
   onFilterApply,
   initialFilters = {},
+  showBackButton = false,
+  onBackPress,
+  useRedBackground = true, // Default to true for red background
 }: BannerProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterActive, setFilterActive] = useState(false);
@@ -76,7 +82,7 @@ export default function Banner({
 
   const handleFilterPress = () => {
     animateButton();
-    setTempFilters({ ...appliedFilters }); // Reset temp filters to current applied filters
+    setTempFilters({ ...appliedFilters });
     setIsFilterOpen(true);
     Animated.parallel([
       Animated.spring(slideAnim, {
@@ -128,17 +134,34 @@ export default function Banner({
     setTempFilters({});
   };
 
-  return (
-    <>
-      <View style={styles.outerContainer}>
-        <ImageBackground
-          source={{ uri: imageUrl }}
-          style={styles.bannerContainer}
-          resizeMode="cover"
-        >
+  const handleBackPress = () => {
+    if (onBackPress) {
+      onBackPress();
+    }
+  };
+
+  // Render content with red background or image background
+  const renderBannerContent = () => {
+    if (useRedBackground) {
+      return (
+        <View style={[styles.bannerContainer, styles.redBackground]}>
           <View style={styles.overlay}>
             <View style={styles.content}>
-              <View style={styles.titleWrapper}>
+              {/* Back Button - Conditionally rendered */}
+              {showBackButton && (
+                <TouchableOpacity
+                  style={styles.backButton}
+                  onPress={handleBackPress}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="arrow-back" size={22} color="#fff" />
+                </TouchableOpacity>
+              )}
+
+              <View style={[
+                styles.titleWrapper,
+                showBackButton && styles.titleWrapperWithBack
+              ]}>
                 <Text style={styles.mainTitle} numberOfLines={1}>
                   {capitalizeAll(title)}
                 </Text>
@@ -176,7 +199,79 @@ export default function Banner({
               )}
             </View>
           </View>
-        </ImageBackground>
+        </View>
+      );
+    }
+
+    // Original image background
+    return (
+      <ImageBackground
+        source={{ uri: imageUrl }}
+        style={styles.bannerContainer}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay}>
+          <View style={styles.content}>
+            {/* Back Button - Conditionally rendered */}
+            {showBackButton && (
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={handleBackPress}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="arrow-back" size={22} color="#fff" />
+              </TouchableOpacity>
+            )}
+
+            <View style={[
+              styles.titleWrapper,
+              showBackButton && styles.titleWrapperWithBack
+            ]}>
+              <Text style={styles.mainTitle} numberOfLines={1}>
+                {capitalizeAll(title)}
+              </Text>
+              {hasActiveFilters && <View style={styles.activeIndicator} />}
+            </View>
+
+            {showFilter && (
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <TouchableOpacity
+                  style={[
+                    styles.filterIconButton,
+                    isFilterOpen && styles.filterIconButtonActive,
+                    hasActiveFilters && styles.filterIconButtonWithActive,
+                  ]}
+                  onPress={handleFilterPress}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={isFilterOpen ? 'close' : 'options-outline'}
+                    size={18}
+                    color="#fff"
+                  />
+                  <Text style={styles.filterLabel}>
+                    {isFilterOpen ? 'Close' : 'Filter'}
+                  </Text>
+                  {hasActiveFilters && !isFilterOpen && (
+                    <View style={styles.activeBadge}>
+                      <Text style={styles.activeBadgeText}>
+                        {Object.keys(appliedFilters).length}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+          </View>
+        </View>
+      </ImageBackground>
+    );
+  };
+
+  return (
+    <>
+      <View style={styles.outerContainer}>
+        {renderBannerContent()}
       </View>
 
       <Modal
@@ -207,7 +302,7 @@ export default function Banner({
               </View>
 
               <View style={styles.filterHeader}>
-                <Text style={styles.filterHeaderTitle}>Filter by Year</Text>
+                <Text style={styles.filterHeaderTitle}>Filter</Text>
                 <TouchableOpacity
                   onPress={handleCloseFilter}
                   style={styles.closeButton}
@@ -242,20 +337,23 @@ export default function Banner({
                 )}
               </ScrollView>
 
-              {/* <View style={styles.filterActions}>
-                <TouchableOpacity 
-                  style={styles.resetButton}
-                  onPress={handleResetInModal}
-                >
-                  <Text style={styles.resetButtonText}>Reset All</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.applyButton}
-                  onPress={handleApplyFilters}
-                >
-                  <Text style={styles.applyButtonText}>Apply Filters</Text>
-                </TouchableOpacity>
-              </View> */}
+              {/* Action buttons */}
+              {/* {renderFilter && (
+                <View style={styles.filterActions}>
+                  <TouchableOpacity 
+                    style={styles.resetButton}
+                    onPress={handleResetInModal}
+                  >
+                    <Text style={styles.resetButtonText}>Reset All</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.applyButton}
+                    onPress={handleApplyFilters}
+                  >
+                    <Text style={styles.applyButtonText}>Apply Filters</Text>
+                  </TouchableOpacity>
+                </View>
+              )} */}
             </SafeAreaView>
           </Animated.View>
         </View>
@@ -273,22 +371,38 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 65,
   },
+  redBackground: {
+    backgroundColor: '#c9060a',
+  },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // Lighter overlay for red background
     justifyContent: 'center',
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   titleWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     marginRight: 10,
+  },
+  titleWrapperWithBack: {
+    marginLeft: 0,
   },
   mainTitle: {
     color: '#ffffff',
@@ -303,7 +417,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4caf50',
+    backgroundColor: '#c9060a',
     marginLeft: 8,
   },
   filterIconButton: {
@@ -324,11 +438,11 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   filterIconButtonActive: {
-    backgroundColor: '#c9060a',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderColor: 'rgba(255, 255, 255, 0.5)',
   },
   filterIconButtonWithActive: {
-    backgroundColor: '#c9060a',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   filterLabel: {
     color: '#fff',
@@ -474,283 +588,5 @@ const styles = StyleSheet.create({
   defaultFilterText: {
     fontSize: 14,
     color: '#999',
-  },
-});
-
-// Complete working example with proper filter UI
-export const WorkingFilterExample = () => {
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>({});
-
-  const FilterContent = ({
-    onClose,
-    onApply,
-    onReset,
-  }: {
-    onClose: () => void;
-    onApply: (filters: FilterState) => void;
-    onReset: () => void;
-  }) => {
-    const [selectedCategory, setSelectedCategory] = useState<string[]>(
-      appliedFilters.categories || [],
-    );
-    const [selectedPrice, setSelectedPrice] = useState<string>(
-      appliedFilters.price || '',
-    );
-    const [selectedRating, setSelectedRating] = useState<number>(
-      appliedFilters.rating || 0,
-    );
-
-    const categories = ['Electronics', 'Clothing', 'Books', 'Home', 'Sports'];
-    const priceRanges = ['Under $50', '$50 - $100', '$100 - $200', 'Over $200'];
-    const ratings = [4, 3, 2, 1];
-
-    const handleApply = () => {
-      const filters: FilterState = {};
-
-      if (selectedCategory.length > 0) {
-        filters.categories = selectedCategory;
-      }
-      if (selectedPrice) {
-        filters.price = selectedPrice;
-      }
-      if (selectedRating > 0) {
-        filters.rating = selectedRating;
-      }
-
-      onApply(filters);
-    };
-
-    const handleReset = () => {
-      setSelectedCategory([]);
-      setSelectedPrice('');
-      setSelectedRating(0);
-      onReset();
-    };
-
-    return (
-      <View style={{ paddingBottom: 20 }}>
-        {/* Categories Section */}
-        <View style={filterStyles.section}>
-          <Text style={filterStyles.sectionTitle}>Categories</Text>
-          <View style={filterStyles.optionsGrid}>
-            {categories.map(category => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  filterStyles.optionChip,
-                  selectedCategory.includes(category) &&
-                    filterStyles.optionChipActive,
-                ]}
-                onPress={() => {
-                  if (selectedCategory.includes(category)) {
-                    setSelectedCategory(
-                      selectedCategory.filter(c => c !== category),
-                    );
-                  } else {
-                    setSelectedCategory([...selectedCategory, category]);
-                  }
-                }}
-              >
-                <Text
-                  style={[
-                    filterStyles.optionText,
-                    selectedCategory.includes(category) &&
-                      filterStyles.optionTextActive,
-                  ]}
-                >
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Price Range Section */}
-        <View style={filterStyles.section}>
-          <Text style={filterStyles.sectionTitle}>Price Range</Text>
-          <View style={filterStyles.optionsGrid}>
-            {priceRanges.map(range => (
-              <TouchableOpacity
-                key={range}
-                style={[
-                  filterStyles.optionChip,
-                  selectedPrice === range && filterStyles.optionChipActive,
-                ]}
-                onPress={() => setSelectedPrice(range)}
-              >
-                <Text
-                  style={[
-                    filterStyles.optionText,
-                    selectedPrice === range && filterStyles.optionTextActive,
-                  ]}
-                >
-                  {range}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Rating Section */}
-        <View style={filterStyles.section}>
-          <Text style={filterStyles.sectionTitle}>Minimum Rating</Text>
-          <View style={filterStyles.optionsGrid}>
-            {ratings.map(rating => (
-              <TouchableOpacity
-                key={rating}
-                style={[
-                  filterStyles.optionChip,
-                  selectedRating === rating && filterStyles.optionChipActive,
-                ]}
-                onPress={() => setSelectedRating(rating)}
-              >
-                <View
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
-                >
-                  <Text
-                    style={[
-                      filterStyles.optionText,
-                      selectedRating === rating &&
-                        filterStyles.optionTextActive,
-                    ]}
-                  >
-                    {rating}+ Stars
-                  </Text>
-                  <Ionicons
-                    name="star"
-                    size={14}
-                    color={selectedRating === rating ? '#fff' : '#FFD700'}
-                  />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Inline action buttons for better UX */}
-        <View style={filterStyles.inlineActions}>
-          <TouchableOpacity
-            style={filterStyles.inlineResetButton}
-            onPress={handleReset}
-          >
-            <Ionicons name="refresh-outline" size={18} color="#666" />
-            <Text style={filterStyles.inlineResetText}>Reset All</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={filterStyles.inlineApplyButton}
-            onPress={handleApply}
-          >
-            <Text style={filterStyles.inlineApplyText}>Apply Now</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
-  return (
-    <View style={{ flex: 1 }}>
-      <Banner
-        title="Products"
-        renderFilter={(close, onApply, onReset) => (
-          <FilterContent
-            onClose={close}
-            onApply={filters => {
-              setAppliedFilters(filters);
-              onApply(filters);
-              close();
-            }}
-            onReset={() => {
-              setAppliedFilters({});
-              onReset();
-            }}
-          />
-        )}
-        onFilterApply={filters => {
-          setAppliedFilters(filters);
-          console.log('Applied filters:', filters);
-        }}
-        showFilter={true}
-      />
-
-      {/* Product list or content goes here */}
-      <View style={{ flex: 1, padding: 20 }}>
-        <Text style={{ fontSize: 16, color: '#666', textAlign: 'center' }}>
-          {Object.keys(appliedFilters).length > 0
-            ? `Filters applied: ${JSON.stringify(appliedFilters)}`
-            : 'No filters applied'}
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-const filterStyles = StyleSheet.create({
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 12,
-  },
-  optionsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  optionChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 25,
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  optionChipActive: {
-    backgroundColor: '#c9060a',
-    borderColor: '#c9060a',
-  },
-  optionText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  optionTextActive: {
-    color: '#fff',
-  },
-  inlineActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  inlineResetButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#F5F5F5',
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  inlineResetText: {
-    color: '#666',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  inlineApplyButton: {
-    flex: 1,
-    backgroundColor: '#c9060a',
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  inlineApplyText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
 });

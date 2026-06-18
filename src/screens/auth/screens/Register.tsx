@@ -19,6 +19,7 @@ import RenderHTML from 'react-native-render-html';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import IconBack from 'react-native-vector-icons/Feather';
 import {
   CommonActions,
   useNavigation,
@@ -87,6 +88,7 @@ const RegisterScreen = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [receivedOtp, setReceivedOtp] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  
 
   // Fix: Separate date state for picker
   const [dobDate, setDobDate] = useState<Date | null>(null);
@@ -260,14 +262,14 @@ const RegisterScreen = () => {
         dispatch(loginSuccess({ token, user, subscription }));
         showToast('success', 'Success', 'Registration completed successfully');
 
-        setTimeout(() => {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'AccountTab' }],
-            }),
-          );
-        }, 100);
+       setTimeout(() => {
+  navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{ name: 'Dashboard' }],
+    }),
+  );
+}, 100);
         return;
       }
 
@@ -322,13 +324,13 @@ const RegisterScreen = () => {
           );
 
           setTimeout(() => {
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'AccountTab' }],
-              }),
-            );
-          }, 100);
+  navigation.dispatch(
+    CommonActions.reset({
+      index: 0,
+      routes: [{ name: 'Dashboard' }],
+    }),
+  );
+}, 100);
         } else {
           showToast(
             'error',
@@ -419,6 +421,10 @@ const RegisterScreen = () => {
   const gst = price * 0.18;
   const total = price + gst;
 
+
+    const handleBack = () => {
+    navigation.goBack();
+  };
 return (
   <MainLayout
     title="Register"
@@ -435,6 +441,13 @@ return (
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+
+                <TouchableOpacity
+                onPress={handleBack}
+                style={styles.backBtn}
+              >
+                <IconBack name="arrow-left" size={22} color="#c9060a" />
+              </TouchableOpacity>
             {/* Header Section */}
             <View style={styles.headerSection}>
               <View style={styles.iconContainer}>
@@ -1234,6 +1247,23 @@ const styles = StyleSheet.create({
   copyButtonText: { color: '#666', fontSize: 14, fontWeight: '600' },
   autoFillButton: { backgroundColor: '#c9060a' },
   autoFillButtonText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+   backBtn: {
+    position: 'absolute',
+    top: 10,
+    left: 15,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    zIndex: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 });
 
 export default RegisterScreen;

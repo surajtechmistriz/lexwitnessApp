@@ -5,9 +5,11 @@ import {
   StyleSheet,
   RefreshControl,
   Dimensions,
+  TouchableOpacity,
+  Text,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 
 // API Services
@@ -18,20 +20,23 @@ import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
 import Footer from '../../components/common/Footer';
-import Banner from '../../components/common/DynamicBanner';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
-import ArticleSkeleton from '../../skeleton/ArticleSkeleton'; // IMPORT SKELETON
+import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 import { getAuthorBySlug } from './api/authorarticle';
-import TopMenu from '../../components/common/Menubar';
+
+// Import MainLayout instead of individual components
+import MainLayout from '../../MainLayout';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function Author() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
 
+  // SAFE PARAMS
   const slug = route.params?.slug || '';
   const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -45,6 +50,11 @@ export default function Author() {
   const [appliedYear, setAppliedYear] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+
+  // BACK BUTTON HANDLER
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
   // --- FETCH POSTS ---
   const fetchAuthorPosts = useCallback(
@@ -74,7 +84,10 @@ export default function Author() {
   // --- INITIAL LOAD ---
   useEffect(() => {
     const init = async () => {
-      if (!slug) return;
+      if (!slug) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const [authorRes, yearRes] = await Promise.all([
@@ -127,14 +140,17 @@ export default function Author() {
     }
   };
 
- return (
-  <View style={styles.container}>
-    {/* TOP MENU */}
-    <TopMenu />
+  const getAuthorTitle = () => {
+    if (author?.name) return author.name;
+    return slug?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
-    {/* BANNER */}
-    <Banner
-      title={author?.name || slug?.replace(/-/g, ' ')}
+  return (
+    <MainLayout
+      title={getAuthorTitle()}
+      routeName="Author"
+      showBackButton={true}
+      onBackPress={handleBack}
       renderFilter={close => (
         <YearFilter
           years={years}
@@ -146,74 +162,84 @@ export default function Author() {
           }}
         />
       )}
-    />
-
-    {/* CONTENT */}
-    <ScrollView
-      ref={scrollRef}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={['#c9060a']}
-        />
-      }
     >
-      <View style={styles.content}>
-        {loading && !refreshing ? (
-          <View style={styles.skeletonWrapper}>
-            {[1, 2, 3, 4, 5].map(item => (
-              <ArticleSkeleton key={item} />
-            ))}
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#c9060a']}
+            tintColor="#c9060a"
+          />
+        }
+      >
+        <View style={styles.content}>
+          {appliedYear && (
+            <View style={styles.activeFilterContainer}>
+              <Text style={styles.activeFilterText}>
+                Showing posts from {appliedYear}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  setSelectedYear(null);
+                  setAppliedYear(null);
+                }}
+              >
+                <Icon name="close-circle" size={20} color="#c9060a" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {loading && !refreshing ? (
+            <View style={styles.skeletonWrapper}>
+              {[1, 2, 3, 4, 5].map(item => (
+                <ArticleSkeleton key={item} />
+              ))}
+            </View>
+          ) : (
+            <PostList
+              posts={posts}
+              loading={false}
+              postBaseUrl={postBaseUrl}
+              emptyMessage={
+                appliedYear
+                  ? `No posts by ${
+                      author?.name || 'this author'
+                    } for ${appliedYear}`
+                  : 'No posts available'
+              }
+            />
+          )}
+
+          {!loading && posts.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              lastPage={lastPage}
+              onPageChange={handlePageChange}
+              loading={loading}
+            />
+          )}
+        </View>
+
+        {/* FOOTER */}
+        <View style={styles.footerContainer}>
+          <View style={styles.BannerContainer}>
+            <HomeBanner />
           </View>
-        ) : (
-          <PostList
-            posts={posts}
-            loading={false}
-            postBaseUrl={postBaseUrl}
-            emptyMessage={
-              appliedYear
-                ? `No posts by ${
-                    author?.name || 'this author'
-                  } for ${appliedYear}`
-                : 'No posts available'
-            }
-          />
-        )}
 
-        {!loading && posts.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            lastPage={lastPage}
-            onPageChange={handlePageChange}
-            loading={loading}
-          />
-        )}
-      </View>
-
-      {/* FOOTER */}
-      <View style={styles.footerContainer}>
-        <View style={styles.BannerContainer}>
-          <HomeBanner />
+          <View style={styles.adContainer}>
+            <HomeAdvertisement />
+          </View>
         </View>
-
-        <View style={styles.adContainer}>
-          <HomeAdvertisement />
-        </View>
-      </View>
-    </ScrollView>
-  </View>
-);
+      </ScrollView>
+    </MainLayout>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-
   scrollContent: {
     paddingBottom: 20,
     flexGrow: 1,
@@ -252,5 +278,23 @@ const styles = StyleSheet.create({
   magazine: {
     marginBottom: 20,
     marginHorizontal: 15,
+  },
+
+  activeFilterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fef0f0',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#c9060a',
+  },
+  activeFilterText: {
+    color: '#333',
+    fontSize: 14,
   },
 });

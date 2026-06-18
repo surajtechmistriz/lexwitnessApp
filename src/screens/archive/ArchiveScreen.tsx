@@ -41,6 +41,9 @@ export default function ArchiveScreen() {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
 
+  //  SAFE PARAMS
+  const routeParams = route.params || {};
+
   // --- API Data States ---
   const [posts, setPosts] = useState([]);
   const [years, setYears] = useState<number[]>([]);
@@ -50,18 +53,18 @@ export default function ArchiveScreen() {
   // --- UI States ---
   const [loading, setLoading] = useState(false);
   const [lastPage, setLastPage] = useState(1);
-  const [currentPage, setCurrentPage] = useState(route.params?.page || 1);
-  const [localSearch, setLocalSearch] = useState(route.params?.search || '');
+  const [currentPage, setCurrentPage] = useState(routeParams?.page || 1);
+  const [localSearch, setLocalSearch] = useState(routeParams?.search || '');
 
   // --- Filter States ---
   const [selectedYear, setSelectedYear] = useState(
-    route.params?.year?.toString() || '',
+    routeParams?.year?.toString() || '',
   );
   const [selectedCategory, setSelectedCategory] = useState(
-    route.params?.category_id?.toString() || '',
+    routeParams?.category_id?.toString() || '',
   );
   const [selectedAuthor, setSelectedAuthor] = useState(
-    route.params?.author_id?.toString() || '',
+    routeParams?.author_id?.toString() || '',
   );
 
   // --- Filter Modal State ---
@@ -75,7 +78,7 @@ export default function ArchiveScreen() {
     selectedYear,
     selectedCategory,
     selectedAuthor,
-    route.params?.search,
+    routeParams?.search,
   ].filter(Boolean).length;
 
   // Load Dropdown Data
@@ -99,21 +102,23 @@ export default function ArchiveScreen() {
 
   // Sync state when params change
   useEffect(() => {
-    setLocalSearch(route.params?.search || '');
-    setSelectedYear(route.params?.year?.toString() || '');
-    setSelectedCategory(route.params?.category_id?.toString() || '');
-    setSelectedAuthor(route.params?.author_id?.toString() || '');
-    setCurrentPage(route.params?.page || 1);
+    const params = route.params || {};
+    setLocalSearch(params?.search || '');
+    setSelectedYear(params?.year?.toString() || '');
+    setSelectedCategory(params?.category_id?.toString() || '');
+    setSelectedAuthor(params?.author_id?.toString() || '');
+    setCurrentPage(params?.page || 1);
   }, [route.params]);
 
   const fetchArticles = useCallback(async () => {
+    const params = route.params || {};
     setLoading(true);
     try {
       const response = await getPosts({
-        search: route.params?.search || undefined,
-        year: route.params?.year || undefined,
-        category_id: route.params?.category_id || undefined,
-        author_id: route.params?.author_id || undefined,
+        search: params?.search || undefined,
+        year: params?.year || undefined,
+        category_id: params?.category_id || undefined,
+        author_id: params?.author_id || undefined,
         page: currentPage,
       });
       setPosts(response.data || []);
@@ -184,11 +189,26 @@ export default function ArchiveScreen() {
     setIsFilterModalVisible(false);
   };
 
-  const isSearchMode = route.params?.mode === 'search' || !!route.params?.search;
+  const isSearchMode = routeParams?.mode === 'search' || !!routeParams?.search;
 
+    // BACK BUTTON HANDLER
+  const handleBack = () => {
+    navigation.goBack();
+  };
+  
   return (
-    <MainLayout title="Archive" showFilter={false} routeName="Archive">
-     <View style={styles.safeArea}>
+    <MainLayout 
+      title="Archive" 
+      routeName="Archive"
+      showHeader={true}        //  HEADER SHOW
+      showTopMenu={false}      //  TOP MENU HIDE
+      showBanner={true}        //  BANNER SHOW
+      showFilter={false}       //  FILTER HIDE (we have custom filter)
+        // showFilter={false}
+         showBackButton={true}
+      onBackPress={handleBack}
+    >
+      <View style={styles.safeArea}>
         <ScrollView
           ref={scrollRef}
           style={styles.container}
@@ -276,7 +296,7 @@ export default function ArchiveScreen() {
                       <Ionicons name="close" size={14} color="#c9060a" />
                     </TouchableOpacity>
                   )}
-                  {route.params?.search && (
+                  {routeParams?.search && (
                     <TouchableOpacity 
                       style={styles.filterChip}
                       onPress={() => {
@@ -285,7 +305,7 @@ export default function ArchiveScreen() {
                       }}
                     >
                       <Text style={styles.filterChipText}>
-                        Search: {route.params.search}
+                        Search: {routeParams.search}
                       </Text>
                       <Ionicons name="close" size={14} color="#c9060a" />
                     </TouchableOpacity>
@@ -304,13 +324,6 @@ export default function ArchiveScreen() {
           )}
 
           <View style={styles.divider} />
-
-          {/* Results Count */}
-          {/* <View style={styles.resultsInfo}>
-            <Text style={styles.resultsText}>
-              {loading ? 'Loading...' : `${posts.length} articles found`}
-            </Text>
-          </View> */}
 
           <PostList
             posts={posts}

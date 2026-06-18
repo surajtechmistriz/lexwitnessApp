@@ -5,9 +5,13 @@ import {
   RefreshControl,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
+  Text,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 
 import { getPosts } from '../../services/api/posts';
@@ -26,6 +30,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function Category() {
   const route = useRoute<any>();
+  const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
 
   const slug = route.params?.slug ?? '';
@@ -33,18 +38,18 @@ export default function Category() {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const [posts, setPosts] = useState<any[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [category, setCategory] = useState<any>(null);
-
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [appliedYear, setAppliedYear] = useState<number | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
-  // ---------------- FETCH ----------------
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
   const fetchData = useCallback(
     async (catId: number, year: number | null, page: number) => {
       setLoading(true);
@@ -67,10 +72,8 @@ export default function Category() {
     [],
   );
 
-  // ---------------- INIT ----------------
   useEffect(() => {
     const init = async () => {
-      // RESET FILTERS
       setSelectedYear(null);
       setAppliedYear(null);
       setCurrentPage(1);
@@ -95,93 +98,136 @@ export default function Category() {
     init();
   }, [slug, fetchData]);
 
-  // ---------------- FILTER ----------------
   useEffect(() => {
     if (category?.id) {
       fetchData(category.id, appliedYear, 1);
     }
   }, [appliedYear, category?.id, fetchData]);
 
-  // ---------------- REFRESH ----------------
   const onRefresh = () => {
     if (!category?.id) return;
-
     setRefreshing(true);
     fetchData(category.id, appliedYear, currentPage);
   };
 
- return (
-  <View style={{ flex: 1 }}>
-    <TopMenu activeSlug={slug} />
+  const getCategoryTitle = () => {
+    if (category?.name) return category.name;
+    return slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
 
-    <Banner
-      title={slug.replace(/-/g, ' ')}
-      renderFilter={close => (
-        <YearFilter
-          years={years}
-          selectedYear={selectedYear}
-          onSelect={setSelectedYear}
-          onApply={() => {
-            setAppliedYear(selectedYear);
-            close();
-          }}
-        />
-      )}
-    />
+  return (
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <StatusBar barStyle="light-content" backgroundColor="#c9060a" />
+      
 
-    <ScrollView
-      ref={scrollRef}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      }
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <View style={styles.content}>
-        {loading ? (
-          <View>
-            {[1, 2, 3].map(i => (
-              <ArticleSkeleton key={i} />
-            ))}
-          </View>
-        ) : (
-          <PostList
-            posts={posts}
-            postBaseUrl={postBaseUrl}
-            emptyMessage={
-              appliedYear
-                ? `No posts for ${appliedYear}`
-                : 'No posts available'
-            }
+      {/* BANNER WITH BACK BUTTON INTEGRATED */}
+      <Banner
+        title={getCategoryTitle()}
+        showBackButton={true}
+        onBackPress={handleBack}
+        renderFilter={close => (
+          <YearFilter
+            years={years}
+            selectedYear={selectedYear}
+            onSelect={setSelectedYear}
+            onApply={() => {
+              setAppliedYear(selectedYear);
+              close();
+            }}
+            />
+          )}
+      />
+
+      {/* TOP MENU */}
+
+          <TopMenu activeSlug={slug} />
+
+      <ScrollView
+        ref={scrollRef}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#c9060a']}
+            tintColor="#c9060a"
           />
-        )}
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.content}>
+          {appliedYear && (
+            <View style={styles.activeFilterContainer}>
+              <Text style={styles.activeFilterText}>
+                Showing posts from {appliedYear}
+              </Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  setSelectedYear(null);
+                  setAppliedYear(null);
+                }}
+              >
+                <Icon name="close-circle" size={20} color="#c9060a" />
+              </TouchableOpacity>
+            </View>
+          )}
 
-        {!loading && posts.length > 0 && category?.id && (
-          <Pagination
-            currentPage={currentPage}
-            lastPage={lastPage}
-            onPageChange={page =>
-              fetchData(category.id, appliedYear, page)
-            }
-          />
-        )}
-      </View>
-    </ScrollView>
-  </View>
-);
+          {loading ? (
+            <View>
+              {[1, 2, 3].map(i => (
+                <ArticleSkeleton key={i} />
+              ))}
+            </View>
+          ) : (
+            <PostList
+              posts={posts}
+              postBaseUrl={postBaseUrl}
+              emptyMessage={
+                appliedYear
+                  ? `No posts for ${appliedYear}`
+                  : 'No posts available'
+              }
+            />
+          )}
+
+          {!loading && posts.length > 0 && category?.id && (
+            <Pagination
+              currentPage={currentPage}
+              lastPage={lastPage}
+              onPageChange={page => {
+                fetchData(category.id, appliedYear, page);
+                scrollRef.current?.scrollTo({ y: 0, animated: true });
+              }}
+            />
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-  scrollContent: {
-    // paddingBottom: 20,
-  },
-
+  scrollContent: {},
   content: {
     paddingTop: 10,
     minHeight: SCREEN_HEIGHT * 0.6,
     backgroundColor: '#fff',
+  },
+  activeFilterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fef0f0',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#c9060a',
+  },
+  activeFilterText: {
+    color: '#333',
+    fontSize: 14,
   },
 });

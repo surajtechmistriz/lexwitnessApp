@@ -19,8 +19,6 @@ import IconBack from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 
 import { getArticleBySlug, getRelatedPosts } from '../../services/api/posts';
-import { RootStackParamList } from '../../navigation/AppNavigator';
-
 import TestimonialCard from './components/Testimonial';
 import RenderHtml from 'react-native-render-html';
 
@@ -32,14 +30,14 @@ import { Animated } from 'react-native';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
-type Route = RouteProp<RootStackParamList, 'ArticleDetail'>;
+type Route = RouteProp<{ ArticleDetail: { slug: string } }, 'ArticleDetail'>;
 
 export default function ArticleDetailPage() {
   const { width } = useWindowDimensions();
 
   const route = useRoute<Route>();
   const navigation = useNavigation<any>();
-  const { slug } = route.params;
+  const { slug } = route.params || {};
 
   const [article, setArticle] = useState<any>(null);
   const [related, setRelated] = useState<any[]>([]);
@@ -80,12 +78,6 @@ export default function ArticleDetailPage() {
         }
 
         setArticle(res);
-
-        navigation.setOptions?.({
-          title: res.title,
-          headerBackTitle: 'Back',
-          headerTintColor: '#c9060a',
-        });
       } catch (e) {
         console.error('Article error:', e);
         if (alive) setArticle(null);
@@ -154,6 +146,53 @@ export default function ArticleDetailPage() {
     }
   };
 
+  // ============================================================
+  //  FIXED NAVIGATION FUNCTIONS
+  // ============================================================
+
+  // 1. Back Button
+  const handleBack = () => {
+    navigation.goBack();
+  };
+
+  // 2. Open Category
+  const handleCategoryPress = (category: any) => {
+    if (category?.slug) {
+      navigation.navigate('Category', {
+        slug: category.slug,
+      });
+    }
+  };
+
+  // 3. Open Author
+  const handleAuthorPress = (author: any) => {
+    if (author?.slug) {
+      navigation.navigate('Author', {
+        slug: author.slug,
+      });
+    }
+  };
+
+  // 4. Open Tag
+  const handleTagPress = (tag: any) => {
+    if (tag?.id && tag?.slug) {
+      navigation.navigate('Tag', {
+        id: tag.id,
+        slug: tag.slug,
+      });
+    }
+  };
+
+  // 5. Open Related Article
+  const handleRelatedPress = (post: any) => {
+    navigation.navigate('ArticleDetail', { slug: post.slug }); //  FIXED - navigate use karo
+  };
+
+  // 6. Open Subscription
+  const handleSubscribe = () => {
+    navigation.navigate('Subscription');
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -174,15 +213,10 @@ export default function ArticleDetailPage() {
   const plainText = article.description?.replace(/<[^>]+>/g, '') || '';
   const previewText = plainText.split(' ').slice(0, 60).join(' ');
 
-  const handleSubscribe = () => {
-    navigation.navigate('Subscription');
-  };
-
   const toggleAuthor = (authorKey: string) => {
     setExpandedAuthors(prev => {
       const isOpen = !prev[authorKey];
 
-      // Animate the chevron
       if (rotateAnim[authorKey]) {
         Animated.timing(rotateAnim[authorKey], {
           toValue: isOpen ? 1 : 0,
@@ -222,9 +256,9 @@ export default function ArticleDetailPage() {
                 style={styles.imageGradient}
               />
 
-              {/*  BACK BUTTON OVER IMAGE */}
+              {/*  BACK BUTTON - FIXED */}
               <TouchableOpacity
-                onPress={() => navigation.goBack()}
+                onPress={handleBack}
                 style={styles.backBtn}
               >
                 <IconBack name="arrow-left" size={22} color="#c9060a" />
@@ -235,11 +269,7 @@ export default function ArticleDetailPage() {
           {/* Category and Share Row */}
           <View style={styles.topRow}>
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('Category', {
-                  slug: article.category?.slug,
-                })
-              }
+              onPress={() => handleCategoryPress(article.category)}
               activeOpacity={0.8}
             >
               <View style={styles.categoryPill}>
@@ -250,7 +280,6 @@ export default function ArticleDetailPage() {
             </TouchableOpacity>
 
             <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-              {/* <Icon name="share-outline" size={20} color="#666" /> */}
               <Icon name="share-social" size={20} color="#c9060a" />
             </TouchableOpacity>
           </View>
@@ -265,13 +294,7 @@ export default function ArticleDetailPage() {
               {article.authors?.map((author: any, index: number) => (
                 <TouchableOpacity
                   key={author.slug || index}
-                  onPress={() => {
-                    if (author?.slug) {
-                      navigation.navigate('Author', {
-                        slug: author.slug,
-                      });
-                    }
-                  }}
+                  onPress={() => handleAuthorPress(author)}
                 >
                   <Text style={styles.authorName}>
                     {author?.name}
@@ -398,12 +421,7 @@ export default function ArticleDetailPage() {
                   <TouchableOpacity
                     key={tag.id || index}
                     style={styles.tagPill}
-                    onPress={() =>
-                      navigation.navigate('Tag', {
-                        id: tag.id,
-                        slug: tag.slug,
-                      })
-                    }
+                    onPress={() => handleTagPress(tag)}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.tagText}>#{tag.name}</Text>
@@ -413,7 +431,6 @@ export default function ArticleDetailPage() {
             </View>
           )}
 
-          {/* Authors Section */}
           {/* Authors Section */}
           {article.authors?.length > 0 && (
             <View style={styles.authorSection}>
@@ -425,10 +442,8 @@ export default function ArticleDetailPage() {
               </View>
 
               {article.authors.map((author: any, index: number) => {
-                //  Create unique key INSIDE the map for each author
                 const authorKey = author.id || author.slug || index.toString();
 
-                //  Initialize animation value if not exists (move inside map)
                 if (!rotateAnim[authorKey]) {
                   rotateAnim[authorKey] = new Animated.Value(0);
                 }
@@ -471,7 +486,6 @@ export default function ArticleDetailPage() {
                       </View>
                     </View>
 
-                    {/* Description - uses expandedAuthors with correct key */}
                     <Text
                       style={styles.bio}
                       numberOfLines={expandedAuthors[authorKey] ? undefined : 2}
@@ -481,7 +495,6 @@ export default function ArticleDetailPage() {
                         `${author.name} is a contributor at Lex Witness.`}
                     </Text>
 
-                    {/* Read More Button */}
                     <TouchableOpacity
                       activeOpacity={0.7}
                       style={styles.readMoreBtn}
@@ -527,9 +540,7 @@ export default function ArticleDetailPage() {
                 <TouchableOpacity
                   key={post.id}
                   style={styles.relatedCard}
-                  onPress={() =>
-                    navigation.push('ArticleDetail', { slug: post.slug })
-                  }
+                  onPress={() => handleRelatedPress(post)} //  FIXED
                   activeOpacity={0.8}
                 >
                   <Image
@@ -1129,22 +1140,26 @@ const styles = StyleSheet.create({
 
   readMoreText: {
     fontSize: 13,
-    color: '#c9060a', // soft gray (professional UI tone)
+    color: '#c9060a',
     fontWeight: '500',
     letterSpacing: 0.2,
   },
 
   backBtn: {
     position: 'absolute',
-    top: 10, // adjust for status bar
+    top: 10,
     left: 15,
     width: 40,
     height: 40,
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#e3e3e3', // optional for visibility
+    backgroundColor: 'rgba(255,255,255,0.95)',
     zIndex: 10,
-    color: '#c9060a',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 });

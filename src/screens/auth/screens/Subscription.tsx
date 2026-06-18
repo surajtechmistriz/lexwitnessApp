@@ -74,10 +74,7 @@ export default function SubscriptionPage() {
     >
       <StatusBar barStyle="light-content" />
 
-    <SafeAreaView
-  style={styles.safeArea}
-  edges={['left', 'right', 'bottom']}
->
+      <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
@@ -119,14 +116,8 @@ export default function SubscriptionPage() {
                   style={styles.primaryBtn}
                   activeOpacity={0.9}
                   onPress={() =>
-                    navigation.navigate('MainTabs', {
-                      screen: 'AccountTab',
-                      params: {
-                        screen: 'Register',
-                        params: {
-                          selectedPlanId: 1,
-                        },
-                      },
+                    navigation.navigate('Register', {
+                      selectedPlanId: 1,
                     })
                   }
                 >

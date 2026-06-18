@@ -18,7 +18,19 @@ import { getAuthor } from '../../services/api/author';
 import { getMenu } from '../../services/api/category';
 import { getYears } from '../../services/api/years';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../../navigation/AppNavigator';
+
+//  DEFINE TYPE LOCALLY
+type RootStackParamList = {
+  Archive: { 
+    search?: string; 
+    year?: string; 
+    category_id?: string; 
+    author_id?: string;
+    page?: number;
+    mode?: string;
+  };
+  // Add other screens as needed
+};
 
 type Author = { id: number; name: string };
 type Category = { id: number; name: string };
@@ -99,6 +111,10 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     return () => { showSub.remove(); hideSub.remove(); backHandler.remove(); };
   }, [visible, onClose]);
 
+  // ============================================================
+  //  FIXED NAVIGATION
+  // ============================================================
+
   const handleSearch = () => {
     const params: any = { page: 1 };
     const hasSearch = searchText.trim().length > 0;
@@ -126,16 +142,9 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     }
 
     onClose?.();
-  navigation.navigate("MainApp", {
-  screen: "MainTabs",
-  params: {
-    screen: "HomeTab",
-    params: {
-      screen: "Archive",
-      params,
-    },
-  },
-})
+
+    //  FIXED - Direct navigation to Archive with params
+    navigation.navigate('Archive', params);
   };
 
   return (

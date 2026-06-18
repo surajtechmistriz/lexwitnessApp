@@ -77,21 +77,33 @@ const PricingCard = () => {
     return !!user;
   }, [user]);
 
+  // ============================================================
+  //  FIXED NAVIGATION FUNCTIONS
+  // ============================================================
+
+  // 1. Go to Register with selected plan
+  const goToRegister = () => {
+    navigation.navigate('Register', {
+      selectedPlanId: selectedPlanId,
+    });
+  };
+
+  // 2. Go to Dashboard after upgrade
+  const goToDashboard = () => {
+    navigation.navigate('Dashboard');
+  };
+
+  // ============================================================
+  // SUBSCRIBE HANDLER
+  // ============================================================
+
   const handleSubscribe = useCallback(async () => {
     try {
       if (!selectedPlan) return;
 
       if (!user) {
-        navigation.navigate('MainTabs', {
-          screen: 'AccountTab',
-          params: {
-            screen: 'Register',
-            params: {
-              selectedPlanId,
-            },
-          },
-        });
-
+        //  FIXED - Direct navigate to Register
+        goToRegister();
         return;
       }
 
@@ -103,7 +115,6 @@ const PricingCard = () => {
 
       if (!paymentData?.order_id) {
         Alert.alert('Error', 'Unable to create payment order');
-
         return;
       }
 
@@ -130,13 +141,9 @@ const PricingCard = () => {
 
       const verifyPayload = {
         razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
-
         razorpay_order_id: razorpayResponse?.razorpay_order_id,
-
         razorpay_signature: razorpayResponse?.razorpay_signature,
-
         membership_plan_id: selectedPlan.id,
-
         purchase_type: 'UPGRADE',
       };
 
@@ -147,7 +154,6 @@ const PricingCard = () => {
           'Error',
           verifyRes?.message || 'Payment verification failed',
         );
-
         return;
       }
 
@@ -155,13 +161,11 @@ const PricingCard = () => {
 
       Alert.alert('Success', 'Plan upgraded successfully');
 
-      navigation.navigate('MainTabs', {
-        screen: 'AccountTab',
-      });
+      //  FIXED - Direct navigate to Dashboard
+      goToDashboard();
     } catch (error: any) {
       if (error?.code === 0 || error?.description === 'Payment Cancelled') {
         Alert.alert('Cancelled', 'Payment cancelled');
-
         return;
       }
 

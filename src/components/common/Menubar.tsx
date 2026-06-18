@@ -38,7 +38,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     try {
       setLoading(true);
 
-      // 1️⃣ LOAD CACHE FIRST (IMPORTANT FIX)
+      // 1️⃣ LOAD CACHE FIRST
       const cached = await getCache(CACHE_KEY);
 
       if (cached?.data?.length) {
@@ -79,7 +79,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       scrollToCenter(currentSlug);
-    }, 100);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, [currentSlug, menuItems]);
@@ -92,20 +92,25 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
 
   // ---------------- CENTER SCROLL ----------------
   const scrollToCenter = (slug: string) => {
+    if (!slug) return;
+    
     const layout = itemLayouts.current[slug];
     if (!layout) return;
 
     const scrollX = layout.x - screenWidth / 2 + layout.width / 2;
 
     scrollRef.current?.scrollTo({
-      x: scrollX,
+      x: Math.max(0, scrollX),
       animated: true,
     });
   };
 
-  // ---------------- NAVIGATION ----------------
+  // ============================================================
+  //  FIXED NAVIGATION
+  // ============================================================
+
   const handlePress = (slug: string) => {
-    navigation.navigate('Category', { slug });
+    navigation.navigate('Category', { slug }); //  SAHI HAI
     scrollToCenter(slug);
   };
 
@@ -130,6 +135,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
                 onPress={() => handlePress(item.slug)}
                 onLayout={e => handleLayout(item.slug, e)}
                 style={[styles.menuItem, isActive && styles.activeItem]}
+                activeOpacity={0.7}
               >
                 <Text style={[styles.menuText, isActive && styles.activeText]}>
                   {item.name}
@@ -145,10 +151,10 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
 
 export default TopMenu;
 
-// ---------------- STYLES (UNCHANGED) ----------------
+// ---------------- STYLES ----------------
 const styles = StyleSheet.create({
   wrapper: {
-    height: 56,
+    height: 50,
     backgroundColor: '#f5f5f7',
     justifyContent: 'center',
     borderBottomWidth: 1,
@@ -157,7 +163,8 @@ const styles = StyleSheet.create({
 
   container: {
     alignItems: 'center',
-    paddingRight: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
 
   menuItem: {
@@ -168,6 +175,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: '#eeeeee',
+    minWidth: 60,
+    alignItems: 'center',
   },
 
   activeItem: {

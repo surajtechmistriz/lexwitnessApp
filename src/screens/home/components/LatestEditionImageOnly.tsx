@@ -12,7 +12,6 @@ import {
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /* ---------- TYPES ---------- */
 
@@ -29,12 +28,6 @@ type EditionResponse = {
   magazine: Magazine;
 };
 
-type RootStackParamList = {
-  MagazineDetail: { slug: string };
-};
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 /* ---------- CONSTANT ---------- */
 
 const MagimgUrl = Config.MAGAZINES_BASE_URL;
@@ -45,18 +38,18 @@ const LatestEditionImageOnly = () => {
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
 
   /* fetch latest edition */
   useEffect(() => {
     const fetchData = async () => {
       try {
         const result = await latesteEdition();
-        setData(result.data); // set api data
+        setData(result.data);
       } catch (error) {
         console.error('Fetch Error:', error);
       } finally {
-        setLoading(false); // stop loader
+        setLoading(false);
       }
     };
 
@@ -77,13 +70,11 @@ const LatestEditionImageOnly = () => {
   /* no data */
   if (!data?.magazine) return null;
 
+  //  FIXED - Direct navigation
   const goToMagazine = () => {
-     navigation.navigate('Magazines', {
-                screen: 'MagazineDetail',
-                params: {
-                  slug: data.magazine?.slug ?? String(data.magazine.id),
-                },
-              })
+    navigation.navigate('MagazineDetail', {
+      slug: data.magazine?.slug ?? String(data.magazine.id),
+    });
   };
 
   /* UI */
@@ -125,7 +116,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginTop: 30,
-    // marginLeft: 16,
   },
 
   redUnderline: {
@@ -133,7 +123,5 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#D80000',
     marginTop: 4,
-    // marginBottom: 10,
-    // marginLeft: 14,
   },
 });

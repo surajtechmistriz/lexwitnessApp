@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ScrollView,
   View,
@@ -6,38 +6,51 @@ import {
   Image,
   StyleSheet,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
-
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-const EditorialDetail = ({ route }: any) => {
-  const { editorialData } = route.params;
+const EditorialDetail = () => {
+  //  USE ROUTE HOOK (BETTER THAN route.params)
+  const route = useRoute();
+  const navigation = useNavigation();
+  
+  //  SAFE PARAMS - Agar koi param missing ho toh crash nahi
+  const editorialData = route.params?.editorialData || {};
+  
+  const imgUrl = Config.EDITORIAL_IMAGE_URL || '';
 
-  const imgUrl = Config.EDITORIAL_IMAGE_URL;
+  // ===== CLEAN DESCRIPTION =====
+  const cleanDescription = useMemo(() => {
+    return editorialData?.description?.replace(/<[^>]*>?/gm, '').trim() || 'No description available.';
+  }, [editorialData?.description]);
 
-  const cleanDescription =
-    editorialData?.description?.replace(/<[^>]*>?/gm, '').trim() || '';
+  // ===== FALLBACK IMAGE =====
+  const fallbackImage = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
 
-  const fallbackImage =
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
+  // ===== IMAGE URL =====
+  const initialImage = useMemo(() => {
+    const image = editorialData?.image;
+    if (image && image !== 'null' && image.trim() !== '') {
+      return `${imgUrl}/${image}`;
+    }
+    return fallbackImage;
+  }, [editorialData?.image, imgUrl]);
 
-  const initialImage =
-    editorialData?.image &&
-    editorialData.image !== 'null' &&
-    editorialData.image.trim() !== ''
-      ? `${imgUrl}/${editorialData.image}`
-      : fallbackImage;
+  const [imageSource, setImageSource] = useState({ uri: initialImage });
 
-  const [imageSource, setImageSource] = useState({
-    uri: initialImage,
-  });
+  // ===== NAVIGATION FUNCTIONS =====
+  const handleBack = () => {
+    navigation.goBack(); //  Simple back
+  };
 
+  // ===== RENDER =====
   return (
-<SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>      
-      {/* FIX: StatusBar controlled by SafeArea */}
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <StatusBar
         translucent={false}
         backgroundColor="#f8f9fa"
@@ -48,6 +61,15 @@ const EditorialDetail = ({ route }: any) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/*  BACK BUTTON - ADDED */}
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={handleBack}
+          activeOpacity={0.7}
+        >
+          <Icon name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
         {/* HERO SECTION */}
         <View style={styles.heroWrapper}>
           <Image
@@ -111,10 +133,9 @@ const EditorialDetail = ({ route }: any) => {
           </View>
 
           <Text style={styles.description}>
-            {cleanDescription || 'No description available.'}
+            {cleanDescription}
           </Text>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -152,8 +173,21 @@ const styles = StyleSheet.create({
     bottom: 60,
     left: 24,
     right: 24,
-    // FIX: prevents header overlap feeling
     paddingTop: 20,
+  },
+
+  //  BACK BUTTON STYLES
+  backButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 30,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   badge: {
@@ -200,6 +234,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 22,
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
 
   infoBox: {

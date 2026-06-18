@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useSelector, useDispatch } from 'react-redux';
+import { CommonActions, useNavigation } from '@react-navigation/native'; // ✅ ADDED
 import Toast from 'react-native-toast-message';
 
 import { RootState } from '../../redux/store';
@@ -30,34 +31,35 @@ const CustomDrawer = ({ navigation }: any) => {
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
-  // Navigation handlers
+  // ============================================================
+  // ✅ FIXED NAVIGATION FUNCTIONS
+  // ============================================================
+
+  // 1. Go to Subscription
   const goToSubscription = () => {
     navigation.closeDrawer();
     setTimeout(() => {
-      navigation.navigate('MainTabs', {
-        screen: 'HomeTab',
-        params: { screen: 'Subscription' },
-      });
+      navigation.navigate('Subscription');
     }, 200);
   };
 
+  // 2. Go to Dashboard
   const goToDashboard = () => {
     navigation.closeDrawer();
     setTimeout(() => {
-      navigation.navigate('MainTabs', { screen: 'AccountTab' });
+      navigation.navigate('Dashboard');
     }, 250);
   };
 
+  // 3. Go to SignIn
   const goToSignIn = () => {
     navigation.closeDrawer();
     setTimeout(() => {
-      navigation.navigate('MainTabs', {
-        screen: 'AccountTab',
-        params: { screen: 'SignIn' },
-      });
+      navigation.navigate('SignIn');
     }, 250);
   };
 
+  // 4. Handle Navigate to Static Pages
   const handleNavigate = (screen: string) => {
     navigation.closeDrawer();
     setTimeout(() => {
@@ -65,16 +67,35 @@ const CustomDrawer = ({ navigation }: any) => {
     }, 200);
   };
 
+  // ============================================================
+  // ✅ FIXED: Handle Logout
+  // ============================================================
+
   const handleLogout = () => {
-    dispatch(logout());
+    // ✅ Close drawer first
+    navigation.closeDrawer();
+    
+    // ✅ Show toast
     Toast.show({
       type: 'info',
-      text1: 'Logged Out',
+      text1: '👋 Logged Out',
       text2: 'You have been successfully logged out',
       position: 'top',
       visibilityTime: 2500,
     });
-    goToSignIn();
+
+    // ✅ Dispatch logout (Redux)
+    dispatch(logout());
+
+    // ✅ Navigate to SignIn with reset
+    setTimeout(() => {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'SignIn' }],
+        })
+      );
+    }, 300);
   };
 
   const handleShare = async () => {
@@ -124,8 +145,8 @@ const CustomDrawer = ({ navigation }: any) => {
   ];
 
   const quickActions = [
-    { id: 'settings', icon: 'settings', label: 'Settings', onPress: () => setSettingsOpen(p => !p) },
     { id: 'share', icon: 'share-2', label: 'Share App', onPress: handleShare },
+    { id: 'settings', icon: 'settings', label: 'Settings', onPress: () => setSettingsOpen(p => !p) },
   ];
 
   // Render settings panel
@@ -164,11 +185,15 @@ const CustomDrawer = ({ navigation }: any) => {
         >
           {isLoggedIn ? (
             <View style={styles.profileContainer}>
-              <View style={styles.profileRing}>
-                <LinearGradient colors={['#c9060a', '#ef4444']} style={styles.profileGradient}>
+              <View style={[styles.profileRing, { overflow: 'hidden' }]}>
+                <LinearGradient 
+                  colors={['#c9060a', '#ef4444']} 
+                  style={[styles.profileGradient, { overflow: 'hidden' }]}
+                >
                   <Text style={styles.initials}>{initials}</Text>
                 </LinearGradient>
               </View>
+              
               <View style={styles.profileInfo}>
                 <Text style={styles.welcomeText}>Welcome back</Text>
                 <Text style={[styles.fullName, { color: colors.text }]}>
@@ -182,7 +207,7 @@ const CustomDrawer = ({ navigation }: any) => {
             </View>
           ) : (
             <View style={styles.guestProfile}>
-              <View style={styles.guestIconRing}>
+              <View style={[styles.guestIconRing, { overflow: 'hidden' }]}>
                 <Icon name="users" size={28} color="#c9060a" />
               </View>
               <Text style={styles.guestTitle}>Hi, Guest</Text>
@@ -225,8 +250,8 @@ const CustomDrawer = ({ navigation }: any) => {
               <Text style={styles.quickLabel}>{action.label}</Text>
             </TouchableOpacity>
           ))}
-          {settingsOpen && renderSettingsPanel()}
         </View>
+        {settingsOpen && renderSettingsPanel()}
 
         {/* Divider */}
         {isLoggedIn && (
@@ -236,9 +261,13 @@ const CustomDrawer = ({ navigation }: any) => {
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Logout Section */}
+            {/* ✅ FIXED: Logout Section */}
             <View style={styles.logoutSection}>
-              <TouchableOpacity onPress={handleLogout} style={styles.logoutMenuItem} activeOpacity={0.7}>
+              <TouchableOpacity 
+                onPress={handleLogout} 
+                style={styles.logoutMenuItem} 
+                activeOpacity={0.7}
+              >
                 <View style={styles.logoutIconWrapper}>
                   <Icon name="log-out" size={20} color="#c9060a" />
                 </View>

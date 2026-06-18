@@ -1,3 +1,4 @@
+// src/redux/AppInitializer.tsx
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,27 +11,37 @@ const AppInitializer = ({ children }: any) => {
   useEffect(() => {
     const init = async () => {
       try {
-        const token = await AsyncStorage.getItem('token');
+        //  Fetch all data from AsyncStorage
+        const [token, userStr, subscriptionStr, nextSubscriptionsStr] =
+          await Promise.all([
+            AsyncStorage.getItem('token'),
+            AsyncStorage.getItem('user'),
+            AsyncStorage.getItem('subscription'),
+            AsyncStorage.getItem('nextSubscriptions'),
+          ]);
 
-        const user = await AsyncStorage.getItem('user');
+        if (token && userStr) {
+          const user = JSON.parse(userStr);
+          const subscription = subscriptionStr
+            ? JSON.parse(subscriptionStr)
+            : null;
+          const nextSubscriptions = nextSubscriptionsStr
+            ? JSON.parse(nextSubscriptionsStr)
+            : [];
 
-        const subscription =
-          await AsyncStorage.getItem('subscription');
-
-        if (token && user) {
           dispatch(
             hydrateAuth({
               token,
-              user: JSON.parse(user),
-              subscription: subscription
-                ? JSON.parse(subscription)
-                : null,
-            }),
+              user,
+              subscription,
+              nextSubscriptions,
+            })
           );
         } else {
           dispatch(hydrateAuth(null));
         }
-      } catch {
+      } catch (error) {
+        console.log('AppInitializer Error:', error);
         dispatch(hydrateAuth(null));
       }
     };

@@ -7,8 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
 import { getMenu } from '../../services/api/category';
 
 const { width } = Dimensions.get('window');
@@ -28,12 +32,10 @@ const getDesign = (index: number) => {
   return designs[index % designs.length];
 };
 
-const CategoryList = ({ navigation }: any) => {
+const CategoryList = () => {
+  const navigation = useNavigation<any>();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-
- 
- 
 
   useEffect(() => {
     fetchCategories();
@@ -52,50 +54,52 @@ const CategoryList = ({ navigation }: any) => {
     }
   };
 
-const renderItem = ({ item, index }: any) => {
-  const design = getDesign(index);
-  const categoryName = item.name || item.title;
-  const articleCount = item.articles_count || item.count;
+  // Back button handler
+  const handleBack = () => {
+    navigation.goBack();
+  };
 
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.8}
-      onPress={() =>
-     
-navigation.navigate('HomeTab', {
-  screen: 'Category',
-  params: {
-    category: item.name,
-    slug: item.slug,
-  },
-})
-}
-      
-    >
-      {/* Top Accent Bar for visual distinction */}
-      <View style={[styles.accentBar, { backgroundColor: design.color }]} />
+  const handleCategoryPress = (item: any) => {
+    navigation.navigate('Category', {
+      slug: item.slug,
+    });
+  };
 
-      <View style={styles.cardContent}>
-        {/* Category Name - Larger and bolder */}
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {categoryName}
-        </Text>
+  const renderItem = ({ item, index }: any) => {
+    const design = getDesign(index);
+    const categoryName = item.name || item.title;
+    const articleCount = item.articles_count || item.count;
 
-        {/* Article Count - Clean pill design */}
-        <View style={styles.badgeContainer}>
-           <View style={[styles.dot, { backgroundColor: design.color }]} />
-           <Text style={styles.cardCount}>
-            {articleCount ? `${articleCount} Articles` : 'Explore'}
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.8}
+        onPress={() => handleCategoryPress(item)}
+      >
+        {/* Top Accent Bar for visual distinction */}
+        <View style={[styles.accentBar, { backgroundColor: design.color }]} />
+
+        <View style={styles.cardContent}>
+          {/* Category Name - Larger and bolder */}
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {categoryName}
           </Text>
+
+          {/* Article Count - Clean pill design */}
+          <View style={styles.badgeContainer}>
+            <View style={[styles.dot, { backgroundColor: design.color }]} />
+            <Text style={styles.cardCount}>
+              {articleCount ? `${articleCount} Articles` : 'Explore'}
+            </Text>
+          </View>
         </View>
-      </View>
-      
-      {/* Subtle background hint of the color at the bottom corner */}
-      <View style={[styles.bottomCorner, { backgroundColor: design.color + '08' }]} />
-    </TouchableOpacity>
-  );
-};
+        
+        {/* Subtle background hint of the color at the bottom corner */}
+        <View style={[styles.bottomCorner, { backgroundColor: design.color + '08' }]} />
+      </TouchableOpacity>
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -106,10 +110,25 @@ navigation.navigate('HomeTab', {
   }
 
   return (
-  <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F9FAFB" />
+      
+      {/* Header with Back Button */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Categories</Text>
-        <Text style={styles.headerSub}>Lex Witness Insights</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={handleBack}
+          activeOpacity={0.7}
+        >
+          <Icon name="arrow-back" size={24} color="#1A1A1B" />
+        </TouchableOpacity>
+        
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Categories</Text>
+          <Text style={styles.headerSub}>Lex Witness Insights</Text>
+        </View>
+        
+        <View style={styles.headerRight} />
       </View>
 
       <FlatList
@@ -120,21 +139,71 @@ navigation.navigate('HomeTab', {
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
-     
       />
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F9FAFB' },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: '#F9FAFB' 
+  },
   
-  header: { paddingHorizontal: 20, paddingTop: 24, marginBottom: 16 },
-  headerTitle: { fontSize: 30, fontWeight: '800', color: '#111', letterSpacing: -0.6 },
-  headerSub: { fontSize: 13, color: '#c9060a', fontWeight: '700', textTransform: 'uppercase', marginTop: 4, letterSpacing: 1 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    backgroundColor: '#F9FAFB',
+  },
   
-  listContent: { paddingHorizontal: 16, paddingBottom: 100 },
-  row: { justifyContent: 'space-between' },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+        marginTop:-8,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  
+  headerContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  
+  headerTitle: { 
+    fontSize: 24, 
+    fontWeight: '800', 
+    color: '#111', 
+marginLeft:6,
+marginTop:6,
+    letterSpacing: -0.6 
+  },
+  
+  headerSub: { 
+    fontSize: 12, 
+    color: '#c9060a', 
+    fontWeight: '700', 
+    textTransform: 'uppercase', 
+    marginTop: 2, 
+    letterSpacing: 0.8 
+  },
+  
+  headerRight: {
+    width: 40,
+  },
+  
+  listContent: { 
+    paddingHorizontal: 16, 
+    paddingBottom: 20 
+  },
+  
+  row: { 
+    justifyContent: 'space-between' 
+  },
 
   card: {
     backgroundColor: '#fff',
@@ -142,8 +211,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderRadius: 16,
     overflow: 'hidden',
-    position: 'relative', // for the corner accent
-    // App-style soft shadow
+    position: 'relative',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -167,9 +235,9 @@ const styles = StyleSheet.create({
   cardContent: {
     paddingVertical: 24,
     paddingHorizontal: 16,
-    minHeight: 120, // Uniform card height
+    minHeight: 120,
     justifyContent: 'center',
-    zIndex: 2, // Stay above the corner accent
+    zIndex: 2,
   },
 
   cardTitle: {
@@ -215,7 +283,11 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loaderContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
 });
 
 export default CategoryList;

@@ -23,14 +23,19 @@ import Pagination from '../../components/common/Pagination';
 import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
 
-import { RootStackParamList } from '../../navigation/AppNavigator';
+//  FIXED - RootStackParamList ko sahi jagah se import karo
+// AGAR aapke paas types file hai toh wahan se, warna direct define karo
+type RootStackParamList = {
+  MagazineDetail: { slug: string };
+  // ... other screens
+};
 
 const { width } = Dimensions.get('window');
 
 const HORIZONTAL_PADDING = 12;
 const CARD_GAP = 12;
 
-//  Better responsive width
+// Better responsive width
 const ITEM_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP) / 2;
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
@@ -126,16 +131,22 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     fetchMagazines(page, selectedYear);
   };
 
+  // ============================================================
+  //  FIXED NAVIGATION FUNCTION
+  // ============================================================
+
+  const handleMagazinePress = (item: any) => {
+    navigation.navigate('MagazineDetail', {
+      slug: item?.slug,
+    });
+  };
+
   /* ---------------- RENDER ITEM ---------------- */
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
       activeOpacity={0.9}
       style={styles.card}
-      onPress={() =>
-        navigation.navigate('MagazineDetail', {
-          slug: item?.slug,
-        })
-      }
+      onPress={() => handleMagazinePress(item)} //  FIXED - Using function
     >
       <View style={styles.imageWrapper}>
         <Image
@@ -159,11 +170,18 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     </TouchableOpacity>
   );
 
+  /* ---------------- BACK BUTTON HANDLER ---------------- */
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
+
   /* ---------------- UI ---------------- */
   return (
     <MainLayout
       title="Magazines"
       routeName="Magazines"
+      onBackPress={handleBackPress}
+      showBackButton={true}
       renderFilter={close => (
         <YearFilter
           years={years}
@@ -242,9 +260,9 @@ const styles = StyleSheet.create({
 
   headerArea: {
     paddingHorizontal: 16,
-    paddingTop: 12, //  reduced extra top space
+    paddingTop: 12,
     marginBottom: 12,
-    marginVertical:10
+    marginVertical: 10,
   },
 
   heading: {
@@ -264,7 +282,7 @@ const styles = StyleSheet.create({
   },
 
   flatListContent: {
-    paddingTop: 0, //  removed top gap
+    paddingTop: 0,
     paddingBottom: 20,
   },
 

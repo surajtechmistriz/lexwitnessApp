@@ -13,7 +13,7 @@ import {
 import { latesteEdition } from '../services/api/latestedition';
 import Config from 'react-native-config';
 import PopupSkeleton from '../skeleton/PopupSkeleton';
-import { navigate } from '../utils/helper/navigationHelper';
+import { useNavigation } from '@react-navigation/native'; //  ADDED
 
 // --- Types ---
 type Magazine = {
@@ -38,6 +38,7 @@ const Popup = ({
   visible: boolean;
   onClose: () => void;
 }) => {
+  const navigation = useNavigation<any>(); //  ADDED
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -65,26 +66,24 @@ const Popup = ({
     onClose();
   };
 
-  /* ---------------- NAVIGATION ---------------- */
+  // ============================================================
+  //  FIXED NAVIGATION FUNCTIONS
+  // ============================================================
 
+  // 1. Go to Subscription
   const goToSubscription = () => {
     handleClose();
-  navigate('HomeTab', {
-  screen: 'Subscription',
-})
+    navigation.navigate('Subscription'); //  SIMPLE
   };
 
+  // 2. Go to Magazine Detail
   const goToMagazine = () => {
     if (!data?.magazine) return;
 
     handleClose();
-
-  navigate('MagazinesTab', {
-  screen: 'MagazineDetail',
-  params: {
-    slug: data.magazine.slug || String(data.magazine.id),
-  },
-})
+    navigation.navigate('MagazineDetail', {
+      slug: data.magazine.slug || String(data.magazine.id),
+    }); //  SIMPLE
   };
 
   return (
@@ -156,7 +155,6 @@ const Popup = ({
 
 export default Popup;
 
-
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
@@ -215,12 +213,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
   }, 
- credit: {
-  fontSize: 12,
-  fontWeight: '500',
-  fontStyle: 'italic',
-  marginBottom: 15,
-},
+  credit: {
+    fontSize: 12,
+    fontWeight: '500',
+    fontStyle: 'italic',
+    marginBottom: 15,
+  },
   redText: {
     color: '#c9060a',
   },
