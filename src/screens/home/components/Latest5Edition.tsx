@@ -58,7 +58,10 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
           <Text style={styles.heading}>Latest Editions</Text>
           <View style={styles.accentBar} />
         </View>
-        <TouchableOpacity onPress={onPressViewAll}>
+        <TouchableOpacity 
+          onPress={onPressViewAll}
+          activeOpacity={0.7}
+        >
           <Text style={styles.viewAllText}>View All</Text>
         </TouchableOpacity>
       </View>
@@ -184,7 +187,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 3,
     backgroundColor: BRAND_RED,
-    // marginTop: 4,
     marginLeft:-22,
   },
   viewAllText: {
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
   },
   carouselStyle: {
     width: width,
-    paddingLeft: 20, // Modern offset look
+    paddingLeft: 20,
   },
   cardWrapper: {
     justifyContent: 'center',
@@ -205,7 +207,6 @@ const styles = StyleSheet.create({
     height: ITEM_HEIGHT,
     borderRadius: 12,
     backgroundColor: '#eee',
-    // High-end shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)', // Subtle border to define edges
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   paginationContainer: {
     flexDirection: 'row',

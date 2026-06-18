@@ -66,11 +66,18 @@ export default function SubscriptionPage() {
     ? `${Config.MAGAZINES_BASE_URL}/${magazine.image}`
     : 'https://via.placeholder.com/300x400';
 
+
+      // BACK BUTTON HANDLER
+  const handleBack = () => {
+    navigation.goBack();
+  };
   return (
     <MainLayout
       title="Subscription"
       showFilter={false}
       routeName="Subscription"
+       showBackButton={true}
+      onBackPress={handleBack}
     >
       <StatusBar barStyle="light-content" />
 

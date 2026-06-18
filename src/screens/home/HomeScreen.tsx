@@ -83,9 +83,10 @@ const Home = () => {
     });
   }, [navigation]);
 
-  // 6. View All Magazines
+  // 6. View All Magazines - FIXED: Navigate to tab instead of screen
   const handleViewAllMagazines = useCallback(() => {
-    navigation.navigate('Magazines');
+    // Navigate to the Magazines tab (keeps bottom tabs visible)
+    navigation.navigate('MagazinesTab');
   }, [navigation]);
 
   // 7. Open Category
@@ -181,109 +182,108 @@ const Home = () => {
 
   // ===== RENDER =====
   return (
-
-       <MainLayout 
+    <MainLayout 
       title="Home" 
       routeName="Home"
       showHeader={true}
       showTopMenu={false}
       showBanner={false}
     >
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#c9060a']}
-            tintColor="#c9060a"
-          />
-        }
-      >
-        <TopMenu />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#c9060a']}
+              tintColor="#c9060a"
+            />
+          }
+        >
+          <TopMenu />
 
-        {/* HERO SECTION */}
-        {heroLoading ? (
-          <HeroSkeleton />
-        ) : (
-          <View style={styles.carouselWrapper}>
-            <Carousel
-              loop
-              autoPlay
-              width={width - 24}
-              height={HERO_HEIGHT}
-              data={sliderData}
-              renderItem={({ item, index }) => (
-                <HeroCard
-                  category={item.category}
-                  title={item.title}
-                  slug={item.slug}
+          {/* HERO SECTION */}
+          {heroLoading ? (
+            <HeroSkeleton />
+          ) : (
+            <View style={styles.carouselWrapper}>
+              <Carousel
+                loop
+                autoPlay
+                width={width - 24}
+                height={HERO_HEIGHT}
+                data={sliderData}
+                renderItem={({ item, index }) => (
+                  <HeroCard
+                    category={item.category}
+                    title={item.title}
+                    slug={item.slug}
+                    date={formatDate(item)}
+                    image={getImage(item.image)}
+                    onLoadEnd={index === 0 ? () => setHeroReady(true) : undefined}
+                    onPress={() => handleArticlePress(item)}
+                  />
+                )}
+              />
+            </View>
+          )}
+
+          {/* LATEST ARTICLES */}
+          {!heroReady ? (
+            <ListSkeleton />
+          ) : (
+            <View>
+              <Text style={styles.heading}>Latest Articles</Text>
+              {remainingCards.slice(0, 4).map(item => (
+                <ListCard
+                  key={item.id}
+                  {...item}
                   date={formatDate(item)}
-                  image={getImage(item.image)}
-                  onLoadEnd={index === 0 ? () => setHeroReady(true) : undefined}
                   onPress={() => handleArticlePress(item)}
                 />
-              )}
+              ))}
+            </View>
+          )}
+
+          {/* ADVERTISEMENT */}
+          <View style={styles.graySectionWrapper}>
+            <HomeAdvertisement />
+          </View>
+
+          {/* EDITOR PICKS */}
+          {restLoading ? (
+            <View style={styles.loadingBlock}>
+              <Text>Loading...</Text>
+            </View>
+          ) : (
+            <EditorPicksSection
+              data={editorPicks}
+              getImage={getImage}
+              onPressItem={handleArticlePress}
             />
-          </View>
-        )}
+          )}
 
-        {/* LATEST ARTICLES */}
-        {!heroReady ? (
-          <ListSkeleton />
-        ) : (
-          <View>
-            <Text style={styles.heading}>Latest Articles</Text>
-            {remainingCards.slice(0, 4).map(item => (
-              <ListCard
-                key={item.id}
-                {...item}
-                date={formatDate(item)}
-                onPress={() => handleArticlePress(item)}
-              />
-            ))}
-          </View>
-        )}
+          {/* HOME BANNER */}
+          <HomeBanner />
 
-        {/* ADVERTISEMENT */}
-        <View style={styles.graySectionWrapper}>
-          <HomeAdvertisement />
-        </View>
+          {/* LATEST EDITION */}
+          <LatestEdition onData={setLatestEditionData} />
 
-        {/* EDITOR PICKS */}
-        {restLoading ? (
-          <View style={styles.loadingBlock}>
-            <Text>Loading...</Text>
-          </View>
-        ) : (
-          <EditorPicksSection
-            data={editorPicks}
-            getImage={getImage}
-            onPressItem={handleArticlePress}
+          {/* EDITORIAL */}
+          <EditorialCard onPressItem={handleEditorialPress} />
+
+          {/* MAGAZINES */}
+          <LatestEditions
+            skipId={latestEditionData?.magazine?.id}
+            onPressItem={handleMagazinePress}
+            onPressViewAll={handleViewAllMagazines}
           />
-        )}
-
-        {/* HOME BANNER */}
-        <HomeBanner />
-
-        {/* LATEST EDITION */}
-        <LatestEdition onData={setLatestEditionData} />
-
-        {/* EDITORIAL */}
-        <EditorialCard onPressItem={handleEditorialPress} />
-
-        {/* MAGAZINES */}
-        <LatestEditions
-          skipId={latestEditionData?.magazine?.id}
-          onPressItem={handleMagazinePress}
-          onPressViewAll={handleViewAllMagazines}
-        />
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
     </MainLayout>
   );
 };

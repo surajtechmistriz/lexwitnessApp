@@ -76,6 +76,7 @@ const MainLayout = ({
     'Author',      // Hide Header on Author
     'Category',    // Hide Header on Category
     'Magazines',   // Hide Header on Magazines
+    'Archive',   // Hide Header on Archive
     'Tag',
     'ArticleDetail',
     'MagazineDetail',
@@ -127,7 +128,7 @@ const MainLayout = ({
           onBackPress={handleBackPress}
         />
       )}
-      
+
       {/* TOP MENU - Show on Author and Category (not hidden) */}
       {!hiddenTopMenu.includes(routeName || '') && showTopMenu && (
         <TopMenu activeSlug={activeSlug} />

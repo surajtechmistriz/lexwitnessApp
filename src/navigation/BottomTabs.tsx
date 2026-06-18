@@ -11,7 +11,7 @@ import HomeScreen from '../screens/home/HomeScreen';
 import CategoryList from '../components/common/CategoryList';
 import MagazinesScreen from '../screens/magazines/MagazinesScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
-import SignIn from '../screens/auth/screens/SignIn'; //  ADDED
+import SignIn from '../screens/auth/screens/SignIn';
 
 const Tab = createBottomTabNavigator();
 
@@ -40,17 +40,36 @@ export default function BottomTabs() {
       },
     })}>
       
-      <Tab.Screen name="HomeTab" component={HomeScreen} />
-      <Tab.Screen name="CategoriesTab" component={CategoryList} />
-      <Tab.Screen name="MagazinesTab" component={MagazinesScreen} />
+      <Tab.Screen 
+        name="HomeTab" 
+        component={HomeScreen} 
+        options={{ 
+          title: 'Home'  // This changes the display name
+        }} 
+      />
       
-      {/*  FIXED: Conditional component based on isLoggedIn */}
+      <Tab.Screen 
+        name="CategoriesTab" 
+        component={CategoryList} 
+        options={{ 
+          title: 'Categories'  // This changes the display name
+        }} 
+      />
+      
+      <Tab.Screen 
+        name="MagazinesTab" 
+        component={MagazinesScreen} 
+        options={{ 
+          title: 'Magazines'  // This changes the display name
+        }} 
+      />
+      
       {/* <Tab.Screen 
         name="AccountTab" 
         component={isLoggedIn ? DashboardScreen : SignIn}
         options={{ 
-          title: isLoggedIn ? 'Dashboard' : 'Sign In' 
-        }}
+          title: isLoggedIn ? 'Dashboard' : 'Sign In'  // Dynamic display name
+        }} 
       /> */}
       
     </Tab.Navigator>
