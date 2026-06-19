@@ -1,31 +1,34 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
+import { useTheme } from '../redux/useTheme';
 
 const { width } = Dimensions.get('window');
 
 const ArticleSkeleton = () => {
+  const { colors, isDark } = useTheme();
+
   return (
     <View style={styles.skeletonContainer}>
       <View style={styles.skeletonRow}>
         {/* Left: Square Thumbnail */}
-        <View style={styles.skeletonImageThumb} />
+        <View style={[styles.skeletonImageThumb, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
 
         {/* Right: Text Content */}
         <View style={styles.skeletonTextContent}>
-          <View style={styles.skeletonTitleLine} />
-          <View style={[styles.skeletonTitleLine, { width: '70%' }]} />
+          <View style={[styles.skeletonTitleLine, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
+          <View style={[styles.skeletonTitleLine, { backgroundColor: isDark ? colors.border : '#f2f2f2', width: '70%' }]} />
           
           <View style={styles.skeletonMetaRow}>
-            <View style={styles.skeletonAuthor} />
-            <View style={styles.skeletonDivider} />
-            <View style={styles.skeletonDateSmall} />
+            <View style={[styles.skeletonAuthor, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
+            <View style={[styles.skeletonDivider, { backgroundColor: isDark ? colors.border : '#ddd' }]} />
+            <View style={[styles.skeletonDateSmall, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
           </View>
 
-          <View style={styles.skeletonReadMore} />
+          <View style={[styles.skeletonReadMore, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
         </View>
       </View>
       {/* Dashed Separator */}
-      <View style={styles.skeletonSeparator} />
+      <View style={[styles.skeletonSeparator, { borderColor: isDark ? colors.border : '#eee' }]} />
     </View>
   );
 };
@@ -42,7 +45,6 @@ const styles = StyleSheet.create({
   skeletonImageThumb: {
     width: 100,
     height: 100,
-    backgroundColor: '#f2f2f2',
     borderRadius: 4,
   },
   skeletonTextContent: {
@@ -51,7 +53,6 @@ const styles = StyleSheet.create({
   },
   skeletonTitleLine: {
     height: 14,
-    backgroundColor: '#f2f2f2',
     marginBottom: 8,
     borderRadius: 2,
   },
@@ -63,29 +64,24 @@ const styles = StyleSheet.create({
   skeletonAuthor: {
     height: 10,
     width: 60,
-    backgroundColor: '#f2f2f2',
   },
   skeletonDivider: {
     width: 1,
     height: 10,
-    backgroundColor: '#ddd',
     marginHorizontal: 8,
   },
   skeletonDateSmall: {
     height: 10,
     width: 80,
-    backgroundColor: '#f2f2f2',
   },
   skeletonReadMore: {
     height: 12,
     width: 70,
-    backgroundColor: '#f2f2f2',
     marginTop: 15,
   },
   skeletonSeparator: {
     marginTop: 15,
     borderWidth: 0.5,
-    borderColor: '#eee',
     borderStyle: 'dashed',
   },
 });

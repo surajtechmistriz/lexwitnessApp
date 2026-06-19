@@ -7,8 +7,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { downloadInvoicePdf } from "../../Invoice/invoiceDownload";
+import { useTheme } from "../../../redux/useTheme";
 
 export default function InvoiceCard({ item }) {
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
 
   const isPending = item.status === "PENDING";
@@ -28,7 +30,7 @@ export default function InvoiceCard({ item }) {
   const getStatusStyles = () => {
     if (isActive) return { bg: "#e6f9f0", text: "#0f5132", label: "Active" };
     if (isPending) return { bg: "#fff7ed", text: "#9a3412", label: "Pending" };
-    return { bg: "#f3f4f6", text: "#4b5563", label: item.status };
+    return { bg: colors.border, text: colors.textMuted, label: item.status };
   };
 
   const getPurchaseTypeStyle = () => {
@@ -40,7 +42,7 @@ export default function InvoiceCard({ item }) {
       case "UPGRADE":
         return { bg: "#fef3c7", text: "#92400e" };
       default:
-        return { bg: "#f3f4f6", text: "#374151" };
+        return { bg: colors.border, text: colors.textMuted };
     }
   };
 
@@ -48,13 +50,18 @@ export default function InvoiceCard({ item }) {
   const purchase = getPurchaseTypeStyle();
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { 
+      backgroundColor: colors.card,
+      shadowColor: isDark ? '#000' : '#000',
+    }]}>
       
       {/* HEADER */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.planName}>{item.plan?.name} Plan</Text>
-          <Text style={styles.dateText}>
+          <Text style={[styles.planName, { color: colors.text }]}>
+            {item.plan?.name} Plan
+          </Text>
+          <Text style={[styles.dateText, { color: colors.textSecondary }]}>
             {item.start_date} → {item.end_date}
           </Text>
         </View>
@@ -66,24 +73,34 @@ export default function InvoiceCard({ item }) {
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       {/* AMOUNT ROW */}
       <View style={styles.row}>
         <View>
-          <Text style={styles.label}>Total Amount</Text>
-          <Text style={styles.amount}>₹{item.total_amount}</Text>
+          <Text style={[styles.label, { color: colors.textMuted }]}>
+            Total Amount
+          </Text>
+          <Text style={[styles.amount, { color: colors.primary }]}>
+            ₹{item.total_amount}
+          </Text>
         </View>
 
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={styles.label}>Tax</Text>
-          <Text style={styles.subText}>₹{item.tax_amount}</Text>
+          <Text style={[styles.label, { color: colors.textMuted }]}>
+            Tax
+          </Text>
+          <Text style={[styles.subText, { color: colors.text }]}>
+            ₹{item.tax_amount}
+          </Text>
         </View>
       </View>
 
-      {/* PURCHASE TYPE ( IMPROVED) */}
+      {/* PURCHASE TYPE */}
       <View style={styles.purchaseRow}>
-        <Text style={styles.label}>Purchase Type</Text>
+        <Text style={[styles.label, { color: colors.textMuted }]}>
+          Purchase Type
+        </Text>
 
         <View
           style={[
@@ -104,8 +121,8 @@ export default function InvoiceCard({ item }) {
 
       {/* ACTIVE INFO */}
       {isActive && (
-        <View style={styles.infoBoxActive}>
-          <Text style={styles.infoTextActive}>
+        <View style={[styles.infoBoxActive, { backgroundColor: "#e6f9f0" }]}>
+          <Text style={[styles.infoTextActive, { color: "#0f5132" }]}>
             ● Active subscription
           </Text>
         </View>
@@ -113,8 +130,8 @@ export default function InvoiceCard({ item }) {
 
       {/* UPCOMING */}
       {item.next_subscription_id && (
-        <View style={styles.infoBoxUpcoming}>
-          <Text style={styles.infoTextUpcoming}>
+        <View style={[styles.infoBoxUpcoming, { backgroundColor: "#eff6ff" }]}>
+          <Text style={[styles.infoTextUpcoming, { color: "#1e40af" }]}>
             Next plan scheduled
           </Text>
         </View>
@@ -126,13 +143,14 @@ export default function InvoiceCard({ item }) {
         disabled={loading}
         style={[
           styles.downloadBtn,
+          { borderColor: colors.primary },
           loading && { opacity: 0.6 },
         ]}
       >
         {loading ? (
-          <ActivityIndicator color="#c9060a" />
+          <ActivityIndicator color={colors.primary} />
         ) : (
-          <Text style={styles.downloadBtnText}>
+          <Text style={[styles.downloadBtnText, { color: colors.primary }]}>
             Download Invoice
           </Text>
         )}
@@ -140,21 +158,15 @@ export default function InvoiceCard({ item }) {
     </View>
   );
 }
-/* ---------------- STYLES ---------------- */
 
-const BRAND_RED = "#c9060a";
-const DARK_TEXT = "#333333";
-const GRAY_TEXT = "#666666";
-const LIGHT_GRAY = "#f3f4f6";
+/* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
     marginVertical: 8,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -170,12 +182,10 @@ const styles = StyleSheet.create({
   planName: {
     fontSize: 18,
     fontWeight: "700",
-    color: DARK_TEXT,
   },
 
   dateText: {
     fontSize: 13,
-    color: GRAY_TEXT,
     marginTop: 2,
   },
 
@@ -193,7 +203,6 @@ const styles = StyleSheet.create({
 
   divider: {
     height: 1,
-    backgroundColor: LIGHT_GRAY,
     marginVertical: 12,
   },
 
@@ -204,56 +213,38 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 12,
-    color: GRAY_TEXT,
     marginBottom: 2,
   },
+
   amount: {
     fontSize: 20,
     fontWeight: "800",
-    color: BRAND_RED,
     paddingTop: 2,
-    
-  },
-  purchase: {
-    fontSize: 12,
-    color: GRAY_TEXT,
-    marginTop: 2,
-  },
-
-  type: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: BRAND_RED,
   },
 
   subText: {
     fontSize: 14,
     fontWeight: "600",
-    color: DARK_TEXT,
   },
 
   infoBoxActive: {
-    backgroundColor: "#e6f9f0",
     padding: 8,
     borderRadius: 6,
     marginTop: 12,
   },
 
   infoTextActive: {
-    color: "#0f5132",
     fontSize: 12,
     fontWeight: "600",
   },
 
   infoBoxUpcoming: {
-    backgroundColor: "#eff6ff",
     padding: 8,
     borderRadius: 6,
     marginTop: 12,
   },
 
   infoTextUpcoming: {
-    color: "#1e40af",
     fontSize: 12,
     fontWeight: "600",
   },
@@ -261,33 +252,32 @@ const styles = StyleSheet.create({
   downloadBtn: {
     marginTop: 16,
     borderWidth: 1.5,
-    borderColor: BRAND_RED,
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
   },
 
   downloadBtnText: {
-    color: BRAND_RED,
     fontWeight: "700",
     fontSize: 14,
   },
+
   purchaseRow: {
-  marginTop: 10,
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-},
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
 
-purchaseBadge: {
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-  borderRadius: 20,
-},
+  purchaseBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
 
-purchaseText: {
-  fontSize: 11,
-  fontWeight: "700",
-  textTransform: "uppercase",
-},
+  purchaseText: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
 });

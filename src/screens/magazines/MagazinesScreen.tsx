@@ -22,9 +22,8 @@ import Pagination from '../../components/common/Pagination';
 
 import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
+import { useTheme } from '../../redux/useTheme';
 
-//  FIXED - RootStackParamList ko sahi jagah se import karo
-// AGAR aapke paas types file hai toh wahan se, warna direct define karo
 type RootStackParamList = {
   MagazineDetail: { slug: string };
   // ... other screens
@@ -44,6 +43,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors, isDark } = useTheme();
 
   const scrollOffset = useRef(0);
 
@@ -145,10 +145,15 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const renderItem = ({ item }: any) => (
     <TouchableOpacity
       activeOpacity={0.9}
-      style={styles.card}
-      onPress={() => handleMagazinePress(item)} //  FIXED - Using function
+      style={[
+        styles.card,
+        {
+          shadowColor: isDark ? '#000' : '#000',
+        },
+      ]}
+      onPress={() => handleMagazinePress(item)}
     >
-      <View style={styles.imageWrapper}>
+      <View style={[styles.imageWrapper, { backgroundColor: isDark ? colors.border : '#eee' }]}>
         <Image
           source={{
             uri: item.image
@@ -159,11 +164,11 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
           resizeMode="cover"
         />
 
-        <View style={styles.imageOverlay} />
+        <View style={[styles.imageOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.02)' }]} />
       </View>
 
       <View style={styles.cardContent}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {item.title || item.magazine_name}
         </Text>
       </View>
@@ -198,10 +203,10 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
         />
       )}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         {loading ? (
           <View style={styles.centerLoader}>
-            <ActivityIndicator size="large" color="#c9060a" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : (
           <FlatList
@@ -220,9 +225,11 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
             windowSize={10}
             ListHeaderComponent={
               <View style={styles.headerArea}>
-                <Text style={styles.heading}>ALL EDITIONS MAGAZINE</Text>
+                <Text style={[styles.heading, { color: colors.textMuted }]}>
+                  ALL EDITIONS MAGAZINE
+                </Text>
 
-                <View style={styles.underline} />
+                <View style={[styles.underline, { backgroundColor: colors.primary }]} />
               </View>
             }
             ListFooterComponent={
@@ -249,7 +256,6 @@ export default MagazinesScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
   },
 
   centerLoader: {
@@ -268,7 +274,6 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#888',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
@@ -276,7 +281,6 @@ const styles = StyleSheet.create({
   underline: {
     width: 30,
     height: 3,
-    backgroundColor: '#c9060a',
     marginTop: 6,
     borderRadius: 10,
   },
@@ -298,7 +302,6 @@ const styles = StyleSheet.create({
 
     ...Platform.select({
       ios: {
-        shadowColor: '#000',
         shadowOffset: {
           width: 0,
           height: 3,
@@ -318,7 +321,6 @@ const styles = StyleSheet.create({
     aspectRatio: 3 / 4,
     borderRadius: 8,
     overflow: 'hidden',
-    backgroundColor: '#eee',
   },
 
   image: {
@@ -328,7 +330,6 @@ const styles = StyleSheet.create({
 
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.02)',
   },
 
   cardContent: {
@@ -339,7 +340,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1A1A1B',
     textAlign: 'center',
   },
 

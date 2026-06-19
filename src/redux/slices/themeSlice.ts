@@ -1,9 +1,23 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { DarkColors, LightColors } from '../../utils/constants/colors';
 
-type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark';
 
-const initialState = {
-  mode: 'light' as ThemeMode,
+interface ThemeState {
+  mode: ThemeMode;
+  colors: typeof LightColors;
+}
+
+// Load initial theme from storage
+const loadTheme = (): ThemeMode => {
+  // For React Native, we'll use the persisted state from redux-persist
+  // This is just a fallback
+  return 'light';
+};
+
+const initialState: ThemeState = {
+  mode: 'light',
+  colors: LightColors,
 };
 
 const themeSlice = createSlice({
@@ -11,10 +25,13 @@ const themeSlice = createSlice({
   initialState,
   reducers: {
     toggleTheme: (state) => {
-      state.mode = state.mode === 'light' ? 'dark' : 'light';
+      const newMode = state.mode === 'light' ? 'dark' : 'light';
+      state.mode = newMode;
+      state.colors = newMode === 'dark' ? DarkColors : LightColors;
     },
-    setTheme: (state, action) => {
+    setTheme: (state, action: PayloadAction<ThemeMode>) => {
       state.mode = action.payload;
+      state.colors = action.payload === 'dark' ? DarkColors : LightColors;
     },
   },
 });

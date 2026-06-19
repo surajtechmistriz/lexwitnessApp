@@ -1,18 +1,27 @@
 import { StyleSheet, Text, View } from 'react-native';
 import React from 'react';
+import { useTheme } from '../../../redux/useTheme';
 
 const HomeAdvertisement = () => {
+  const { colors, isDark } = useTheme();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>ADVERTISEMENT</Text>
+      <Text style={[styles.label, { color: colors.textMuted }]}>
+        ADVERTISEMENT
+      </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.title}>Your Ad Here</Text>
-        <Text style={styles.subtitle}>
+      <View style={[styles.card, { 
+        backgroundColor: isDark ? colors.border : '#f5f5f5',
+      }]}>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Your Ad Here
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Promote your brand with us
         </Text>
 
-        {/* <View style={styles.button}> */}
+        {/* <View style={[styles.button, { backgroundColor: colors.primary }]}> */}
           {/* <Text style={styles.buttonText}>Learn More</Text> */}
         {/* </View> */}
       </View>
@@ -29,13 +38,11 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 11,
-    color: '#999',
     letterSpacing: 1,
     marginBottom: 8,
   },
 
   card: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 14,
     paddingVertical: 20,
     paddingHorizontal: 16,
@@ -45,18 +52,15 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111',
     marginBottom: 6,
   },
 
   subtitle: {
     fontSize: 13,
-    color: '#666',
     marginBottom: 14,
   },
 
   button: {
-    backgroundColor: '#111',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

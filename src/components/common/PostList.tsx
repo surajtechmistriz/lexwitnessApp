@@ -10,8 +10,8 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-//  REMOVE - import { RootStackParamList } from '../../navigation/AppNavigator';
 import { formatMonthYear } from '../../utils/helper/dateHelper';
+import { useTheme } from '../../redux/useTheme';
 
 interface PostListProps {
   posts: any[];
@@ -36,15 +36,14 @@ export default function PostList({
   emptyMessage = 'No posts available.',
 }: PostListProps) {
   const navigation = useNavigation<NavigationProp>();
+  const { colors, isDark } = useTheme();
 
   const getImageUrl = (image?: string) => {
     if (!image) return null;
     return image.startsWith('http') ? image : `${postBaseUrl}/${image}`;
   };
 
-  // ============================================================
-  //  FIXED NAVIGATION FUNCTIONS
-  // ============================================================
+  // ------FIXED NAVIGATION FUNCTIONS------
 
   const handleNavigateDetail = (article: any) => {
     navigation.navigate('ArticleDetail', {
@@ -64,30 +63,49 @@ export default function PostList({
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#c9060a" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>{emptyMessage}</Text>
+      <View
+        style={[
+          styles.emptyContainer,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+          {emptyMessage}
+        </Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {posts.map((article, index) => (
         <TouchableOpacity
           key={article.id || index}
-          style={styles.card}
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              shadowColor: isDark ? '#000' : '#000',
+            },
+          ]}
           activeOpacity={0.9}
           onPress={() => handleNavigateDetail(article)}
         >
           {/* Image Section */}
-          <View style={styles.imageWrapper}>
+          <View
+            style={[styles.imageWrapper, { backgroundColor: colors.border }]}
+          >
             {article.image ? (
               <Image
                 source={{ uri: getImageUrl(article.image) }}
@@ -96,14 +114,21 @@ export default function PostList({
               />
             ) : (
               <View style={styles.placeholderContainer}>
-                <Text style={styles.placeholderText}>No Image</Text>
+                <Text
+                  style={[styles.placeholderText, { color: colors.textMuted }]}
+                >
+                  No Image
+                </Text>
               </View>
             )}
           </View>
 
           {/* Content Section */}
           <View style={styles.contentContainer}>
-            <Text style={styles.title} numberOfLines={2}>
+            <Text
+              style={[styles.title, { color: colors.text }]}
+              numberOfLines={2}
+            >
               {article.title}
             </Text>
 
@@ -115,23 +140,27 @@ export default function PostList({
                   article.authors.map((author: any, index: number) => (
                     <TouchableOpacity
                       key={author.slug || index}
-                      onPress={() => handleAuthorPress(author)} //  FIXED
+                      onPress={() => handleAuthorPress(author)}
                     >
-                      <Text style={styles.authorText}>
+                      <Text
+                        style={[styles.authorText, { color: colors.primary }]}
+                      >
                         {author?.name || 'Unknown'}
                         {index < article.authors.length - 1 ? ', ' : ''}
                       </Text>
                     </TouchableOpacity>
                   ))
                 ) : (
-                  <Text style={styles.authorText}>Unknown</Text>
+                  <Text style={[styles.authorText, { color: colors.primary }]}>
+                    Unknown
+                  </Text>
                 )}
               </View>
 
-              <Text style={styles.dot}>•</Text>
+              <Text style={[styles.dot, { color: colors.textMuted }]}>•</Text>
 
               <Text
-                style={styles.dateText}
+                style={[styles.dateText, { color: colors.textMuted }]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -144,8 +173,10 @@ export default function PostList({
 
             {/* Action Indicator */}
             <View style={styles.actionRow}>
-              <Text style={styles.readMoreText}>Read Article</Text>
-              <View style={styles.chevron} />
+              <Text style={[styles.readMoreText, { color: colors.primary }]}>
+                Read Article
+              </Text>
+              <View style={[styles.chevron, { borderColor: colors.primary }]} />
             </View>
           </View>
         </TouchableOpacity>
@@ -158,7 +189,6 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#f8f9fb',
   },
   loaderContainer: {
     paddingVertical: 40,
@@ -167,25 +197,20 @@ const styles = StyleSheet.create({
   emptyContainer: {
     margin: 20,
     padding: 40,
-    backgroundColor: '#fff',
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#eee',
   },
   emptyText: {
-    color: '#888',
+    fontSize: 14,
   },
 
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 14,
     marginBottom: 12,
     padding: 12,
-
     borderWidth: 1,
-    borderColor: '#f0f0f0',
 
     ...Platform.select({
       ios: {
@@ -204,7 +229,6 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: '#f0f0f0',
   },
   image: {
     width: '100%',
@@ -216,7 +240,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   placeholderText: {
-    color: '#ccc',
     fontSize: 10,
   },
   contentContainer: {
@@ -227,7 +250,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111',
     lineHeight: 20,
   },
   metaRow: {
@@ -237,18 +259,15 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   authorText: {
-    color: '#c9060a',
     fontWeight: '600',
     fontSize: 12,
   },
   dot: {
     marginHorizontal: 6,
-    color: '#ccc',
     fontSize: 14,
   },
   dateText: {
     fontSize: 12,
-    color: '#777',
     flexShrink: 1,
   },
   actionRow: {
@@ -257,7 +276,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   readMoreText: {
-    color: '#c9060a',
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -268,7 +286,6 @@ const styles = StyleSheet.create({
     height: 5,
     borderTopWidth: 1.5,
     borderRightWidth: 1.5,
-    borderColor: '#c9060a',
     transform: [{ rotate: '45deg' }],
     marginLeft: 5,
   },

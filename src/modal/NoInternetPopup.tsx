@@ -14,10 +14,12 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import Icon from 'react-native-vector-icons/Feather';
+import { useTheme } from '../redux/useTheme';
 
 const { width, height } = Dimensions.get('window');
 
 const NoInternetPopup = () => {
+  const { colors, isDark } = useTheme();
   const [visible, setVisible] = useState(false);
   const [connectionState, setConnectionState] = useState('checking');
   const [retryCount, setRetryCount] = useState(0);
@@ -154,11 +156,11 @@ const NoInternetPopup = () => {
   const getTheme = () => {
     switch (connectionState) {
       case 'connected':
-        return { color: '#333333', icon: 'wifi', label: 'Back Online' }; // Professional charcoal
+        return { color: '#00C853', icon: 'wifi', label: 'Back Online' };
       case 'checking':
-        return { color: '#6b7280', icon: 'loader', label: 'Checking...' }; // Neutral gray
+        return { color: colors.textSecondary, icon: 'loader', label: 'Checking...' };
       default:
-        return { color: '#c9060a', icon: 'wifi-off', label: 'No Connection' }; // Your Red
+        return { color: colors.primary, icon: 'wifi-off', label: 'No Connection' };
     }
   };
 
@@ -183,9 +185,15 @@ const NoInternetPopup = () => {
         </Animated.View>
 
         <Animated.View
-          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
+          style={[
+            styles.sheet, 
+            { 
+              backgroundColor: colors.card,
+              shadowColor: isDark ? '#000' : '#000',
+            }
+          ]}
         >
-          <View style={styles.handle} />
+          <View style={[styles.handle, { backgroundColor: colors.border }]} />
 
           <View style={styles.content}>
             <Animated.View
@@ -204,8 +212,10 @@ const NoInternetPopup = () => {
               )}
             </Animated.View>
 
-            <Text style={styles.title}>{theme.label}</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: colors.text }]}>
+              {theme.label}
+            </Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {connectionState === 'disconnected'
                 ? "We can't reach our servers. Please check your data or Wi-Fi."
                 : connectionState === 'connected'
@@ -214,7 +224,7 @@ const NoInternetPopup = () => {
             </Text>
 
             {showTips && connectionState === 'disconnected' && (
-              <View style={styles.tipsBox}>
+              <View style={[styles.tipsBox, { backgroundColor: colors.background }]}>
                 <Tip item="Check Airplane Mode" icon="send" />
                 <Tip item="Restart Wi-Fi Router" icon="refresh-cw" />
               </View>
@@ -232,17 +242,17 @@ const NoInternetPopup = () => {
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.secondaryBtn}
+                    style={[styles.secondaryBtn, { borderColor: colors.border }]}
                     onPress={openDeviceSettings}
                   >
-                    <Text style={styles.secondaryBtnText}>
+                    <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>
                       Network Settings
                     </Text>
                   </TouchableOpacity>
                 </>
               ) : connectionState === 'connected' ? (
                 <View style={styles.progressWrapper}>
-                  <View style={styles.track}>
+                  <View style={[styles.track, { backgroundColor: colors.border }]}>
                     <Animated.View
                       style={[
                         styles.fill,
@@ -251,6 +261,7 @@ const NoInternetPopup = () => {
                             inputRange: [0, 1],
                             outputRange: ['0%', '100%'],
                           }),
+                          backgroundColor: colors.success || '#00C853',
                         },
                       ]}
                     />
@@ -265,12 +276,15 @@ const NoInternetPopup = () => {
   );
 };
 
-const Tip = ({ item, icon }) => (
-  <View style={styles.tipRow}>
-    <Icon name={icon} size={14} color="#666" />
-    <Text style={styles.tipText}>{item}</Text>
-  </View>
-);
+const Tip = ({ item, icon }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.tipRow}>
+      <Icon name={icon} size={14} color={colors.textSecondary} />
+      <Text style={[styles.tipText, { color: colors.text }]}>{item}</Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'flex-end' },
@@ -279,7 +293,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
   sheet: {
-    backgroundColor: '#FFF',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingBottom: Platform.OS === 'ios' ? 40 : 24,
@@ -294,7 +307,6 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 5,
-    backgroundColor: '#E0E0E0',
     borderRadius: 10,
     marginTop: 12,
     marginBottom: 24,
@@ -311,12 +323,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1A1A1A',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -324,13 +334,12 @@ const styles = StyleSheet.create({
   },
   tipsBox: {
     width: '100%',
-    backgroundColor: '#F5F5F7',
     borderRadius: 16,
     padding: 16,
     marginBottom: 24,
   },
   tipRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  tipText: { marginLeft: 10, fontSize: 14, color: '#444', fontWeight: '500' },
+  tipText: { marginLeft: 10, fontSize: 14, fontWeight: '500' },
   footer: { width: '100%', gap: 12 },
   mainBtn: {
     width: '100%',
@@ -346,17 +355,19 @@ const styles = StyleSheet.create({
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 16,
+    marginTop: 4,
   },
-  secondaryBtnText: { color: '#666', fontSize: 15, fontWeight: '500' },
+  secondaryBtnText: { fontSize: 15, fontWeight: '500' },
   progressWrapper: { width: '100%', paddingVertical: 20 },
   track: {
     width: '100%',
     height: 6,
-    backgroundColor: '#E0E0E0',
     borderRadius: 3,
     overflow: 'hidden',
   },
-  fill: { height: '100%', backgroundColor: '#00C853' },
+  fill: { height: '100%' },
 });
 
 export default NoInternetPopup;

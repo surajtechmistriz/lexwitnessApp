@@ -8,32 +8,32 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { RootState } from '../../redux/store';
+import { useTheme } from '../../redux/useTheme';
 
 type HeaderProps = {
   onSearchPress: () => void;
-  navigation?: any; //  Optional now
+  navigation?: any;
 };
 
 const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<any>(); //  USE HOOK
+  const navigation = useNavigation<any>();
+  const { colors, isDark } = useTheme();
 
   const { isLoggedIn, isHydrated } = useSelector(
     (state: RootState) => state.auth,
   );
 
-  // ============================================================
-  //  FIXED NAVIGATION FUNCTIONS
-  // ============================================================
+  // ------FIXED NAVIGATION FUNCTIONS ------
 
   // 1. Toggle Drawer
   const handleToggleDrawer = () => {
     navigation.dispatch(DrawerActions.toggleDrawer());
   };
 
-  // 2. Go Home -  FIXED
+  // 2. Go Home
   const handleGoHome = () => {
-    navigation.navigate('HomeTab'); //  SIMPLE
+    navigation.navigate('HomeTab');
   };
 
   // 3. Go to Login
@@ -52,6 +52,8 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
         styles.container,
         {
           paddingTop: insets.top,
+          backgroundColor: colors.card,
+          borderColor: colors.border,
         },
       ]}
     >
@@ -62,7 +64,7 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
         >
-          <Ionicons name="menu" size={28} color="#c9060a" />
+          <Ionicons name="menu" size={28} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -70,7 +72,11 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
       <View style={styles.centerContainer}>
         <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Image
-            source={require('../../assets/main-logo.png')}
+            source={
+              isDark
+                ? require('../../assets/logo-dark.png')
+                : require('../../assets/main-logo-removebg-preview.png')
+            }
             style={styles.logo}
             resizeMode="contain"
           />
@@ -86,7 +92,7 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
           activeOpacity={0.7}
           style={styles.searchButton}
         >
-          <Entypo name="magnifying-glass" size={24} color="#c9060a" />
+          <Entypo name="magnifying-glass" size={24} color={colors.primary} />
         </TouchableOpacity>
 
         {/* Login/Profile Button */}
@@ -97,7 +103,7 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
             activeOpacity={0.7}
             style={styles.loginButton}
           >
-            <Ionicons name="person-outline" size={24} color="#c9060a" />
+            <Ionicons name="person-outline" size={24} color={colors.primary} />
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
@@ -106,7 +112,11 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
             activeOpacity={0.7}
             style={styles.loginButton}
           >
-            <Ionicons name="person-circle-outline" size={28} color="#c9060a" />
+            <Ionicons
+              name="person-circle-outline"
+              size={28}
+              color={colors.primary}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -121,9 +131,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderColor: '#eee',
     paddingHorizontal: 16,
     paddingBottom: 1,
     minHeight: 70,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -31,14 +31,16 @@ import { useRefresh } from '../../hooks/useRefresh';
 import HeroSkeleton from '../../skeleton/HeroSkeleton';
 import ListSkeleton from '../../skeleton/ListSkeleton';
 import MainLayout from '../../MainLayout';
+import { useTheme } from '../../redux/useTheme';
 
 const { width } = Dimensions.get('window');
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
 
 const Home = () => {
   const navigation = useNavigation<any>();
-  
-  // ===== ALL HOOKS AT TOP (SAME ORDER EVERY RENDER) =====
+  const { colors, isDark } = useTheme();
+
+  // ------ ALL HOOKS AT TOP (SAME ORDER EVERY RENDER) ------
   const [articles, setArticles] = useState<any[]>([]);
   const [editorPicks, setEditorPicks] = useState<any[]>([]);
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
@@ -47,77 +49,66 @@ const Home = () => {
   const [heroReady, setHeroReady] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
 
-  // ===== useMemo HOOKS =====
-  const sliderData = useMemo(() => articles.slice(0, 3), [articles]);
-  const remainingCards = useMemo(() => articles.slice(3), [articles]);
+  // ------ useMemo HOOKS ------
+  const sliderData = articles.slice(0, 3);
+  const remainingCards = articles.slice(3);
 
-  // ===== useCallback HOOKS (SAB SE PEHLE) =====
-  
-  // 1. Format Date
-  const formatDate = useCallback((item: any) => {
+  // ------ useCallback HOOKS (SAB SE PEHLE) ------
+
+  // ------ Hero card aspect ratio (16:9) ------
+  const HERO_HEIGHT = ((width - 24) * 9) / 16;
+
+  // Format magazine date
+  const formatDate = (item: any) => {
     const month = item?.magazine?.month?.name || '';
     const year = item?.magazine?.year || '';
+
     return `${month} ${year}`;
-  }, []);
+  };
 
-  // 2. Get Image
-  const getImage = useCallback((img: string) => {
-    return `${IMAGE_BASE_URL}/${img}`;
-  }, []);
+  // ------ Generate image URL ------
+  const getImage = (image: string) => {
+    return `${IMAGE_BASE_URL}/${image}`;
+  };
 
-  // 3. Get Hero Height
-  const HERO_HEIGHT = useMemo(() => ((width - 24) * 9) / 16, []);
+  // ------ Open Article Detail ------
+  const handleArticlePress = useCallback(
+    (item: any) => {
+      navigation.navigate('ArticleDetail', {
+        slug: item.slug,
+        id: item.id,
+      });
+    },
+    [navigation],
+  );
 
-  // 4. Open Article Detail
-  const handleArticlePress = useCallback((item: any) => {
-    navigation.navigate('ArticleDetail', {
-      slug: item.slug,
-      id: item.id,
-    });
-  }, [navigation]);
+  // ------ Open Magazine Detail ------
+  const handleMagazinePress = useCallback(
+    (item: any) => {
+      navigation.navigate('MagazineDetail', {
+        slug: item.slug,
+      });
+    },
+    [navigation],
+  );
 
-  // 5. Open Magazine Detail
-  const handleMagazinePress = useCallback((item: any) => {
-    navigation.navigate('MagazineDetail', {
-      slug: item.slug,
-    });
-  }, [navigation]);
-
-  // 6. View All Magazines - FIXED: Navigate to tab instead of screen
+  // ------ View All Magazines - FIXED: Navigate to tab instead of screen ------
   const handleViewAllMagazines = useCallback(() => {
     // Navigate to the Magazines tab (keeps bottom tabs visible)
     navigation.navigate('MagazinesTab');
   }, [navigation]);
 
-  // 7. Open Category
-  const handleCategoryPress = useCallback((category: any) => {
-    navigation.navigate('Category', {
-      categoryId: category.id,
-      categoryName: category.name,
-    });
-  }, [navigation]);
+  // ------ Open Editorial ------
+  const handleEditorialPress = useCallback(
+    (item: any) => {
+      navigation.navigate('EditorialDetail', {
+        editorialId: item.id,
+      });
+    },
+    [navigation],
+  );
 
-  // 8. Open Author
-  const handleAuthorPress = useCallback((author: any) => {
-    navigation.navigate('Author', {
-      authorId: author.id,
-      authorName: author.name,
-    });
-  }, [navigation]);
-
-  // 9. Open Archive
-  const handleArchivePress = useCallback(() => {
-    navigation.navigate('Archive');
-  }, [navigation]);
-
-  // 10. Open Editorial
-  const handleEditorialPress = useCallback((item: any) => {
-    navigation.navigate('EditorialDetail', {
-      editorialId: item.id,
-    });
-  }, [navigation]);
-
-  // 11. Fetch Home Data
+  // ----- Fetch Home Data -----
   const fetchHomeData = useCallback(
     async (force = false) => {
       try {
@@ -152,8 +143,8 @@ const Home = () => {
           articles: heroRes || [],
           editorPicks: editorRes || [],
         });
-      } catch (e) {
-        console.log('Home error:', e);
+      } catch (error) {
+        console.error('Failed to load home data:', error);
       } finally {
         setHeroLoading(false);
         setRestLoading(false);
@@ -162,9 +153,7 @@ const Home = () => {
     [isConnected],
   );
 
-  // ===== useEffect HOOKS =====
-  
-  // Internet Listener
+  // ------ Internet Listener ------
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(!!state.isConnected);
@@ -177,20 +166,26 @@ const Home = () => {
     fetchHomeData();
   }, [fetchHomeData]);
 
-  // ===== CUSTOM HOOK =====
+  // ------ CUSTOM HOOK ------
   const { refreshing, onRefresh } = useRefresh(() => fetchHomeData(true));
 
-  // ===== RENDER =====
+  // ------ RENDER ------
   return (
-    <MainLayout 
-      title="Home" 
+    <MainLayout
+      title="Home"
       routeName="Home"
       showHeader={true}
       showTopMenu={false}
       showBanner={false}
     >
-      <SafeAreaView style={styles.container} edges={['bottom']}>
-        <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        edges={['bottom']}
+      >
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor={colors.background}
+        />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -199,8 +194,8 @@ const Home = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#c9060a']}
-              tintColor="#c9060a"
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         >
@@ -224,7 +219,9 @@ const Home = () => {
                     slug={item.slug}
                     date={formatDate(item)}
                     image={getImage(item.image)}
-                    onLoadEnd={index === 0 ? () => setHeroReady(true) : undefined}
+                    onLoadEnd={
+                      index === 0 ? () => setHeroReady(true) : undefined
+                    }
                     onPress={() => handleArticlePress(item)}
                   />
                 )}
@@ -237,7 +234,9 @@ const Home = () => {
             <ListSkeleton />
           ) : (
             <View>
-              <Text style={styles.heading}>Latest Articles</Text>
+              <Text style={[styles.heading, { color: colors.text }]}>
+                Latest Articles
+              </Text>
               {remainingCards.slice(0, 4).map(item => (
                 <ListCard
                   key={item.id}
@@ -250,14 +249,26 @@ const Home = () => {
           )}
 
           {/* ADVERTISEMENT */}
-          <View style={styles.graySectionWrapper}>
+          <View
+            style={[
+              styles.graySectionWrapper,
+              {
+                backgroundColor: isDark ? colors.border : '#f8f8f8',
+              },
+            ]}
+          >
             <HomeAdvertisement />
           </View>
 
           {/* EDITOR PICKS */}
           {restLoading ? (
-            <View style={styles.loadingBlock}>
-              <Text>Loading...</Text>
+            <View
+              style={[
+                styles.loadingBlock,
+                { backgroundColor: colors.background },
+              ]}
+            >
+              <Text style={{ color: colors.textSecondary }}>Loading...</Text>
             </View>
           ) : (
             <EditorPicksSection
@@ -293,7 +304,6 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
   },
   scrollContent: {
     paddingHorizontal: 12,
@@ -302,12 +312,7 @@ const styles = StyleSheet.create({
   carouselWrapper: {
     alignItems: 'center',
   },
-  fullWidth: {
-    marginHorizontal: -12,
-  },
-  listContainer: {},
   graySectionWrapper: {
-    backgroundColor: '#f8f8f8',
     paddingVertical: 30,
     paddingHorizontal: 20,
     justifyContent: 'center',
@@ -320,7 +325,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 10,
     marginTop: 20,
-    color: '#333',
   },
   loadingBlock: {
     padding: 20,

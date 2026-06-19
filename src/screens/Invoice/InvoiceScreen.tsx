@@ -9,12 +9,14 @@ import {
   StyleSheet,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import Icon from 'react-native-vector-icons/Ionicons'; //  ADDED
+import Icon from 'react-native-vector-icons/Ionicons';
 import { getUserInvoices, Invoice } from "./invoice";
 import InvoiceCard from "../home/components/InvoiceCard";
+import { useTheme } from "../../redux/useTheme";
 
 export default function InvoiceScreen() {
   const navigation = useNavigation<any>();
+  const { colors, isDark } = useTheme();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,16 +53,19 @@ export default function InvoiceScreen() {
   //  Empty State
   if (!loading && invoices.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
+      <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
-          style={styles.emptyBackButton} 
+          style={[styles.emptyBackButton, { 
+            backgroundColor: colors.card,
+            shadowColor: isDark ? '#000' : '#000',
+          }]} 
           onPress={handleBack}
         >
-          <Icon name="arrow-back" size={24} color="#000" />
+          <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.emptyIcon}>📄</Text>
-        <Text style={styles.emptyTitle}>No Invoices</Text>
-        <Text style={styles.emptySubtitle}>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>No Invoices</Text>
+        <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
           You haven't made any purchases yet.
         </Text>
       </View>
@@ -69,9 +74,9 @@ export default function InvoiceScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#c9060a" />
-        <Text style={styles.loaderText}>
+      <View style={[styles.loaderContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loaderText, { color: colors.textSecondary }]}>
           Fetching your billing history...
         </Text>
       </View>
@@ -79,18 +84,21 @@ export default function InvoiceScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/*  BACK BUTTON */}
       <TouchableOpacity 
-        style={styles.backButton} 
+        style={[styles.backButton, { 
+          backgroundColor: colors.card,
+          shadowColor: isDark ? '#000' : '#000',
+        }]} 
         onPress={handleBack}
         activeOpacity={0.7}
       >
-        <Icon name="arrow-back" size={24} color="#000" />
+        <Icon name="arrow-back" size={24} color={colors.text} />
       </TouchableOpacity>
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Invoices</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Invoices</Text>
       </View>
 
       <FlatList
@@ -102,8 +110,8 @@ export default function InvoiceScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#c9060a"
-            colors={["#c9060a"]}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
           />
         }
       />
@@ -114,7 +122,6 @@ export default function InvoiceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
   },
 
   //  BACK BUTTON STYLES
@@ -123,13 +130,11 @@ const styles = StyleSheet.create({
     top: 12,
     left: 12,
     zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 30,
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -145,7 +150,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#333",
   },
 
   listContent: {
@@ -155,20 +159,17 @@ const styles = StyleSheet.create({
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
-    backgroundColor: "#f8f9fa",
   },
 
   loaderText: {
     textAlign: "center",
     marginTop: 10,
-    color: "#666",
   },
 
   emptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8f9fa",
     paddingHorizontal: 30,
   },
 
@@ -177,13 +178,11 @@ const styles = StyleSheet.create({
     top: 12,
     left: 12,
     zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 30,
     width: 44,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -198,13 +197,11 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#333",
     marginBottom: 8,
   },
 
   emptySubtitle: {
     fontSize: 16,
-    color: "#888",
     textAlign: "center",
   },
 });

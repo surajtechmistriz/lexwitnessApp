@@ -1,30 +1,33 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '../redux/useTheme';
 
 const PopupSkeleton = () => {
+  const { colors, isDark } = useTheme();
+
   return (
-    <View borderRadius={8}>
+    <View style={{ borderRadius: 8 }}>
       <View style={styles.container}>
         {/* Magazine Cover */}
-        <View style={styles.image} />
+        <View style={[styles.image, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
 
         {/* Content Section */}
         <View style={{ paddingHorizontal: 5 }}>
-          <View style={styles.label} />
-          <View style={styles.title} />
-          <View style={styles.promo} />
+          <View style={[styles.label, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+          <View style={[styles.title, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+          <View style={[styles.promo, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
 
           {/* Feature Row */}
           <View style={styles.featureRow}>
-            <View style={styles.circle} />
+            <View style={[styles.circle, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
             <View>
-              <View style={styles.featureText} />
-              <View style={styles.subText} />
+              <View style={[styles.featureText, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+              <View style={[styles.subText, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
             </View>
           </View>
 
           {/* Button */}
-          <View style={styles.button} />
+          <View style={[styles.button, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
         </View>
       </View>
     </View>

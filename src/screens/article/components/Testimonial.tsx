@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { useTheme } from '../../../redux/useTheme';
 
 type TextAlignment = 'left' | 'right' | 'center';
 
@@ -13,6 +14,8 @@ interface TestimonialProps {
 }
 
 export default function TestimonialCard({ data }: TestimonialProps) {
+  const { colors, isDark } = useTheme();
+  
   if (!data) return null;
 
   const alignment = data.text_alignment ?? 'left';
@@ -32,7 +35,10 @@ export default function TestimonialCard({ data }: TestimonialProps) {
       : 'center';
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { 
+      backgroundColor: isDark ? colors.card : '#f3f4f6',
+      shadowColor: isDark ? '#000' : '#000',
+    }]}>
       
       {/* Left Quote */}
       <View style={styles.leftQuote}>
@@ -54,18 +60,27 @@ export default function TestimonialCard({ data }: TestimonialProps) {
 
       {/* Feedback */}
       <View style={[styles.contentWrapper, { alignItems: textAlignStyle }]}>
-        <Text style={[styles.feedbackText, { textAlign: textAlignText }]}>
+        <Text style={[styles.feedbackText, { 
+          textAlign: textAlignText,
+          color: colors.textSecondary,
+        }]}>
           {data.reader_feedback || ''}
         </Text>
 
         {/* Author */}
         <View style={{ alignItems: textAlignStyle }}>
-          <Text style={[styles.name, { textAlign: textAlignText }]}>
+          <Text style={[styles.name, { 
+            textAlign: textAlignText,
+            color: colors.text,
+          }]}>
             {data.reader_name || ''}
           </Text>
 
           {data.reader_designation ? (
-            <Text style={[styles.designation, { textAlign: textAlignText }]}>
+            <Text style={[styles.designation, { 
+              textAlign: textAlignText,
+              color: colors.textMuted,
+            }]}>
               {data.reader_designation}
             </Text>
           ) : null}
@@ -77,14 +92,17 @@ export default function TestimonialCard({ data }: TestimonialProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#f3f4f6',
     borderRadius: 8,
     padding: 20,
-   width: '100%',
-   alignSelf:'center',
+    width: '100%',
+    alignSelf: 'center',
     marginHorizontal: 16,
     position: 'relative',
-    marginTop:-20
+    marginTop: -20,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
 
   leftQuote: {
@@ -109,27 +127,23 @@ const styles = StyleSheet.create({
   },
 
   contentWrapper: {
-    // marginTop: 20,
-    marginHorizontal:18
+    marginHorizontal: 18,
   },
 
   feedbackText: {
     fontStyle: 'italic',
     fontSize: 14,
     lineHeight: 20,
-    color: '#333',
     marginBottom: 10,
   },
 
   name: {
     fontWeight: '600',
     fontSize: 15,
-    color: '#111',
   },
 
   designation: {
     fontSize: 12,
-    color: '#666',
     marginTop: 2,
   },
 });

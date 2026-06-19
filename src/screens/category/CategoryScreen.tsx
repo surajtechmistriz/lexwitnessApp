@@ -25,6 +25,7 @@ import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 
 import TopMenu from '../../components/common/Menubar';
 import Banner from '../../components/common/DynamicBanner';
+import { useTheme } from '../../redux/useTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -32,6 +33,7 @@ export default function Category() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
+  const { colors, isDark } = useTheme();
 
   const slug = route.params?.slug ?? '';
   const postBaseUrl = Config.POSTS_BASE_URL;
@@ -116,9 +118,11 @@ export default function Category() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar barStyle="light-content" backgroundColor="#c9060a" />
-      
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'light-content'} 
+        backgroundColor={colors.primary} 
+      />
 
       {/* BANNER WITH BACK BUTTON INTEGRATED */}
       <Banner
@@ -134,13 +138,12 @@ export default function Category() {
               setAppliedYear(selectedYear);
               close();
             }}
-            />
-          )}
+          />
+        )}
       />
 
       {/* TOP MENU */}
-
-          <TopMenu activeSlug={slug} />
+      <TopMenu activeSlug={slug} />
 
       <ScrollView
         ref={scrollRef}
@@ -148,17 +151,20 @@ export default function Category() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#c9060a']}
-            tintColor="#c9060a"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.content}>
+        <View style={[styles.content, { backgroundColor: colors.background }]}>
           {appliedYear && (
-            <View style={styles.activeFilterContainer}>
-              <Text style={styles.activeFilterText}>
+            <View style={[styles.activeFilterContainer, {
+              backgroundColor: colors.primaryBackground,
+              borderLeftColor: colors.primary,
+            }]}>
+              <Text style={[styles.activeFilterText, { color: colors.text }]}>
                 Showing posts from {appliedYear}
               </Text>
               <TouchableOpacity 
@@ -167,7 +173,7 @@ export default function Category() {
                   setAppliedYear(null);
                 }}
               >
-                <Icon name="close-circle" size={20} color="#c9060a" />
+                <Icon name="close-circle" size={20} color={colors.primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -207,27 +213,26 @@ export default function Category() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   scrollContent: {},
   content: {
     paddingTop: 10,
     minHeight: SCREEN_HEIGHT * 0.6,
-    backgroundColor: '#fff',
   },
   activeFilterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fef0f0',
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginHorizontal: 16,
     marginBottom: 10,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#c9060a',
   },
   activeFilterText: {
-    color: '#333',
     fontSize: 14,
   },
 });

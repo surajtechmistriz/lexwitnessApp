@@ -17,6 +17,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
+import { useTheme } from '../../../redux/useTheme';
 
 const { height } = Dimensions.get('window');
 
@@ -35,8 +36,8 @@ const THEME = {
 const ResetPasswordScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { colors, isDark } = useTheme();
 
-  // ✅ Get token from URL params (if any)
   const token = route.params?.token || '';
 
   const [newPassword, setNewPassword] = useState('');
@@ -46,17 +47,9 @@ const ResetPasswordScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ============================================================
-  // BACK BUTTON
-  // ============================================================
-
   const handleBack = () => {
     navigation.goBack();
   };
-
-  // ============================================================
-  // RESET PASSWORD
-  // ============================================================
 
   const handleResetPassword = async () => {
     if (!newPassword || newPassword.length < 6) {
@@ -73,17 +66,8 @@ const ResetPasswordScreen = () => {
     setError('');
 
     try {
-      // ✅ API Call - Reset password with token
-      // const response = await resetPasswordApi({ 
-      //   token, 
-      //   password: newPassword,
-      //   password_confirmation: confirmPassword
-      // });
-
-      // ✅ Mock API (Replace with actual)
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // if (response?.status) {
       Toast.show({
         type: 'success',
         text1: 'Password Reset',
@@ -92,15 +76,12 @@ const ResetPasswordScreen = () => {
         visibilityTime: 3000,
       });
 
-      // Navigate to SignIn
       setTimeout(() => {
         navigation.reset({
           index: 0,
           routes: [{ name: 'SignIn' }],
         });
       }, 500);
-      // }
-
     } catch (err: any) {
       setError(err?.message || 'Failed to reset password');
       Toast.show({
@@ -115,12 +96,8 @@ const ResetPasswordScreen = () => {
     }
   };
 
-  // ============================================================
-  // RENDER
-  // ============================================================
-
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
@@ -130,9 +107,8 @@ const ResetPasswordScreen = () => {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          {/* BACK BUTTON */}
           <TouchableOpacity 
-            style={styles.backButton} 
+            style={[styles.backButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]} 
             onPress={handleBack}
             activeOpacity={0.7}
           >
@@ -146,31 +122,40 @@ const ResetPasswordScreen = () => {
             style={styles.gradientHeader}
           >
             <Text style={styles.header}>Reset Password</Text>
-            <Text style={styles.subText}>
+            <Text style={[styles.subText, { color: 'rgba(255,255,255,0.9)' }]}>
               Enter your new password below
             </Text>
           </LinearGradient>
 
-          <View style={styles.formContainer}>
-            {/* Error Message */}
+          <View style={[styles.formContainer, { 
+            backgroundColor: colors.card,
+            shadowColor: isDark ? '#000' : '#000',
+          }]}>
             {error ? (
-              <View style={styles.errorContainer}>
+              <View style={[styles.errorContainer, { 
+                backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
+                borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
+              }]}>
                 <Ionicons name="alert-circle" size={18} color={THEME.error} />
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={[styles.errorText, { color: THEME.error }]}>{error}</Text>
               </View>
             ) : null}
 
             {/* New Password */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>New Password</Text>
+              <Text style={[styles.label, { color: colors.text }]}>New Password</Text>
               <View style={[
                 styles.inputWrapper,
+                { 
+                  backgroundColor: isDark ? colors.background : THEME.lightGray,
+                  borderColor: newPassword ? THEME.primary : (isDark ? colors.border : THEME.border),
+                },
                 newPassword && styles.inputWrapperFilled,
               ]}>
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color={THEME.grayText}
+                  color={colors.textMuted}
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -178,9 +163,9 @@ const ResetPasswordScreen = () => {
                   onChangeText={setNewPassword}
                   secureTextEntry={!showPassword}
                   editable={!loading}
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Enter new password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -188,7 +173,7 @@ const ResetPasswordScreen = () => {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={THEME.grayText}
+                    color={colors.textMuted}
                   />
                 </TouchableOpacity>
               </View>
@@ -196,15 +181,19 @@ const ResetPasswordScreen = () => {
 
             {/* Confirm Password */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirm Password</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Confirm Password</Text>
               <View style={[
                 styles.inputWrapper,
+                { 
+                  backgroundColor: isDark ? colors.background : THEME.lightGray,
+                  borderColor: confirmPassword ? THEME.primary : (isDark ? colors.border : THEME.border),
+                },
                 confirmPassword && styles.inputWrapperFilled,
               ]}>
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color={THEME.grayText}
+                  color={colors.textMuted}
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -212,9 +201,9 @@ const ResetPasswordScreen = () => {
                   onChangeText={setConfirmPassword}
                   secureTextEntry={!showConfirmPassword}
                   editable={!loading}
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Confirm new password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
                 />
                 <TouchableOpacity
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -222,7 +211,7 @@ const ResetPasswordScreen = () => {
                   <Ionicons
                     name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={THEME.grayText}
+                    color={colors.textMuted}
                   />
                 </TouchableOpacity>
               </View>
@@ -230,7 +219,10 @@ const ResetPasswordScreen = () => {
 
             {/* Reset Button */}
             <TouchableOpacity
-              style={[styles.resetBtn, loading && styles.disabledBtn]}
+              style={[styles.resetBtn, { 
+                backgroundColor: colors.primary,
+                shadowColor: colors.primary,
+              }, loading && styles.disabledBtn]}
               onPress={handleResetPassword}
               disabled={loading}
               activeOpacity={0.85}
@@ -252,8 +244,8 @@ const ResetPasswordScreen = () => {
                 });
               }}
             >
-              <Text style={styles.signInText}>
-                Remember your password? <Text style={styles.signInLinkText}>Sign In</Text>
+              <Text style={[styles.signInText, { color: colors.textSecondary }]}>
+                Remember your password? <Text style={[styles.signInLinkText, { color: colors.primary }]}>Sign In</Text>
               </Text>
             </TouchableOpacity>
           </View>
@@ -265,14 +257,9 @@ const ResetPasswordScreen = () => {
 
 export default ResetPasswordScreen;
 
-// ============================================================
-// STYLES
-// ============================================================
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
   },
   flex: {
     flex: 1,
@@ -281,13 +268,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: Platform.OS === 'ios' ? 20 : 30,
   },
-
   backButton: {
     position: 'absolute',
     top: 20,
     left: 16,
     zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 30,
     width: 44,
     height: 44,
@@ -299,7 +284,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-
   gradientHeader: {
     paddingTop: height * 0.06,
     paddingBottom: height * 0.06,
@@ -308,133 +292,100 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     alignItems: 'center',
   },
-
   header: {
     fontSize: 34,
     fontWeight: '800',
-    color: THEME.white,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
     marginBottom: 8,
     textAlign: 'center',
   },
-
   subText: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
     textAlign: 'center',
   },
-
   formContainer: {
     flex: 1,
-    backgroundColor: THEME.white,
     marginTop: -20,
     marginHorizontal: 20,
     borderRadius: 30,
     paddingHorizontal: 24,
     paddingTop: 32,
     paddingBottom: 40,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 5,
   },
-
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
     padding: 14,
     borderRadius: 14,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#FEE2E2',
   },
-
   errorText: {
-    color: THEME.error,
     fontSize: 14,
     marginLeft: 10,
     fontWeight: '500',
     flex: 1,
   },
-
   inputGroup: {
     marginBottom: 20,
   },
-
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: THEME.dark,
     marginBottom: 8,
     marginLeft: 4,
   },
-
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: THEME.lightGray,
     borderWidth: 1.5,
-    borderColor: THEME.border,
     borderRadius: 16,
     paddingHorizontal: 16,
   },
-
   inputWrapperFilled: {
-    borderColor: THEME.primary,
     borderWidth: 2,
-    backgroundColor: '#FFF5F5',
   },
-
   inputIcon: {
     marginRight: 12,
   },
-
   input: {
     flex: 1,
     paddingVertical: 16,
     fontSize: 15,
-    color: THEME.dark,
     fontWeight: '500',
   },
-
   resetBtn: {
-    backgroundColor: THEME.primary,
     paddingVertical: 16,
     alignItems: 'center',
     borderRadius: 16,
-    shadowColor: THEME.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
     marginTop: 10,
   },
-
   disabledBtn: {
     opacity: 0.6,
   },
-
   resetBtnText: {
     color: '#fff',
     fontWeight: '700',
     fontSize: 16,
     letterSpacing: 0.5,
   },
-
   signInLink: {
     marginTop: 20,
     alignItems: 'center',
   },
-
   signInText: {
-    color: THEME.grayText,
     fontSize: 15,
   },
-
   signInLinkText: {
-    color: THEME.primary,
     fontWeight: '700',
   },
 });

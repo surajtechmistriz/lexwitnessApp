@@ -24,14 +24,15 @@ import {
   verifySubscriptionPayment,
 } from '../../services/api/subscription';
 
-import { updateSubscription } from '../../redux/slices/authSlice';
 import { refreshProfile } from '../../utils/helper/refreshProfile';
+import { useTheme } from '../../redux/useTheme';
 
 const { width } = Dimensions.get('window');
 
 const PricingCard = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
+  const { colors, isDark } = useTheme();
 
   const { user, subscription } = useSelector((state: any) => state.auth);
 
@@ -77,9 +78,7 @@ const PricingCard = () => {
     return !!user;
   }, [user]);
 
-  // ============================================================
-  //  FIXED NAVIGATION FUNCTIONS
-  // ============================================================
+  // ------FIXED NAVIGATION FUNCTIONS------
 
   // 1. Go to Register with selected plan
   const goToRegister = () => {
@@ -93,16 +92,13 @@ const PricingCard = () => {
     navigation.navigate('Dashboard');
   };
 
-  // ============================================================
-  // SUBSCRIBE HANDLER
-  // ============================================================
+  // ------SUBSCRIBE HANDLER------
 
   const handleSubscribe = useCallback(async () => {
     try {
       if (!selectedPlan) return;
 
       if (!user) {
-        //  FIXED - Direct navigate to Register
         goToRegister();
         return;
       }
@@ -161,7 +157,6 @@ const PricingCard = () => {
 
       Alert.alert('Success', 'Plan upgraded successfully');
 
-      //  FIXED - Direct navigate to Dashboard
       goToDashboard();
     } catch (error: any) {
       if (error?.code === 0 || error?.description === 'Payment Cancelled') {
@@ -182,15 +177,15 @@ const PricingCard = () => {
 
   if (!plans.length) {
     return (
-      <View style={styles.loaderWrap}>
-        <ActivityIndicator size="large" color="#c9060a" />
+      <View style={[styles.loaderWrap, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{
         paddingBottom: 20,
@@ -198,11 +193,13 @@ const PricingCard = () => {
     >
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.title}>Membership Plans</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Membership Plans
+        </Text>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.primary }]} />
 
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           Choose the best plan for your access
         </Text>
       </View>
@@ -226,16 +223,19 @@ const PricingCard = () => {
               onPress={() => setSelectedPlanId(plan.id)}
               style={[
                 styles.card,
-
+                { 
+                  backgroundColor: colors.card,
+                  borderColor: isSelected ? colors.primary : colors.border,
+                  shadowColor: isDark ? '#000' : '#000',
+                },
                 isSelected && styles.activeCard,
-
                 disableFreePlan && {
                   opacity: 0.55,
                 },
               ]}
             >
               {plan.tag ? (
-                <View style={styles.badge}>
+                <View style={[styles.badge, { backgroundColor: colors.primary }]}>
                   <Text style={styles.badgeText}>
                     {disableFreePlan ? 'NOT AVAILABLE' : plan.tag}
                   </Text>
@@ -243,25 +243,33 @@ const PricingCard = () => {
               ) : null}
 
               <View style={styles.cardTop}>
-                <Text style={styles.planName}>{plan.name}</Text>
+                <Text style={[styles.planName, { color: colors.text }]}>
+                  {plan.name}
+                </Text>
 
                 {subscription?.plan_id === plan.id && (
-                  <Text style={styles.currentPlan}>Current Plan</Text>
+                  <Text style={[styles.currentPlan, { color: colors.success }]}>
+                    Current Plan
+                  </Text>
                 )}
               </View>
 
               <View style={styles.priceRow}>
-                <Text style={styles.currency}>₹</Text>
+                <Text style={[styles.currency, { color: colors.text }]}>₹</Text>
 
-                <Text style={styles.price}>{plan.price}</Text>
+                <Text style={[styles.price, { color: colors.text }]}>
+                  {plan.price}
+                </Text>
               </View>
 
               <View style={styles.featuresContainer}>
                 {features.slice(0, 4).map((item: string, index: number) => (
                   <View key={index} style={styles.featureRow}>
-                    <Text style={styles.check}>✓</Text>
+                    <Text style={[styles.check, { color: colors.success }]}>✓</Text>
 
-                    <Text style={styles.featureText}>{item}</Text>
+                    <Text style={[styles.featureText, { color: colors.textSecondary }]}>
+                      {item}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -269,16 +277,16 @@ const PricingCard = () => {
               <View
                 style={[
                   styles.selectButton,
-
+                  { backgroundColor: isSelected ? colors.primary : colors.background },
                   isSelected && {
-                    backgroundColor: '#c9060a',
+                    backgroundColor: colors.primary,
                   },
                 ]}
               >
                 <Text
                   style={[
                     styles.selectButtonText,
-
+                    { color: isSelected ? '#fff' : colors.textSecondary },
                     isSelected && {
                       color: '#fff',
                     },
@@ -294,13 +302,13 @@ const PricingCard = () => {
 
       {/* CTA */}
       <TouchableOpacity
-        style={styles.subscribeBtn}
+        style={[styles.subscribeBtn, { shadowColor: colors.primary }]}
         activeOpacity={0.88}
         disabled={loading}
         onPress={handleSubscribe}
       >
         <LinearGradient
-          colors={['#c9060a', '#9f0407']}
+          colors={[colors.primary, colors.primaryDark || '#9f0407']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.subscribeGradient}
@@ -309,15 +317,13 @@ const PricingCard = () => {
             <ActivityIndicator color="#fff" />
           ) : (
             <>
-              <>
-                <Text style={styles.subscribeText}>
-                  {user ? 'Upgrade Now' : 'Subscribe Now'}
-                </Text>
+              <Text style={styles.subscribeText}>
+                {user ? 'Upgrade Now' : 'Subscribe Now'}
+              </Text>
 
-                <View style={styles.iconCircle}>
-                  <Text style={styles.arrow}>→</Text>
-                </View>
-              </>
+              <View style={styles.iconCircle}>
+                <Text style={styles.arrow}>→</Text>
+              </View>
             </>
           )}
         </LinearGradient>
@@ -349,19 +355,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: width * 0.075,
     fontWeight: '800',
-    color: '#111',
   },
 
   divider: {
     width: 70,
     height: 4,
-    backgroundColor: '#c9060a',
     borderRadius: 10,
     marginTop: 10,
   },
 
   subtitle: {
-    color: '#666',
     marginTop: 12,
     fontSize: 14,
     textAlign: 'center',
@@ -373,11 +376,9 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 24,
     padding: 22,
     borderWidth: 1,
-    borderColor: '#ececec',
 
     shadowColor: '#000',
     shadowOpacity: 0.08,
@@ -391,13 +392,11 @@ const styles = StyleSheet.create({
   },
 
   activeCard: {
-    borderColor: '#c9060a',
     borderWidth: 2,
   },
 
   badge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#c9060a',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 30,
@@ -418,12 +417,10 @@ const styles = StyleSheet.create({
   planName: {
     fontSize: width * 0.06,
     fontWeight: '800',
-    color: '#111',
   },
 
   currentPlan: {
     marginTop: 8,
-    color: '#18b76a',
     fontWeight: '700',
     fontSize: 13,
   },
@@ -443,7 +440,6 @@ const styles = StyleSheet.create({
   price: {
     fontSize: width * 0.12,
     fontWeight: '900',
-    color: '#111',
     lineHeight: width * 0.12,
   },
 
@@ -458,7 +454,6 @@ const styles = StyleSheet.create({
   },
 
   check: {
-    color: '#18b76a',
     fontWeight: '900',
     marginRight: 12,
     marginTop: 1,
@@ -466,7 +461,6 @@ const styles = StyleSheet.create({
 
   featureText: {
     flex: 1,
-    color: '#444',
     fontWeight: '500',
     lineHeight: 22,
     fontSize: 14,
@@ -477,7 +471,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
 
-    shadowColor: '#c9060a',
     shadowOffset: {
       width: 0,
       height: 6,
@@ -527,34 +520,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  subscribeContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  subscribeLabel: {
-    color: 'rgba(255,255,255,0.75)',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginBottom: 4,
-  },
-
-  arrowContainer: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-  },
-
   selectButton: {
     marginTop: 24,
-    backgroundColor: '#f4f4f4',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -562,7 +529,6 @@ const styles = StyleSheet.create({
 
   selectButtonText: {
     fontWeight: '700',
-    color: '#555',
     fontSize: 14,
   },
 });

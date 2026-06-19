@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Text,
   Keyboard,
-  Platform,
   BackHandler,
   Animated,
 } from 'react-native';
@@ -18,13 +17,14 @@ import { getAuthor } from '../../services/api/author';
 import { getMenu } from '../../services/api/category';
 import { getYears } from '../../services/api/years';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../redux/useTheme';
 
 //  DEFINE TYPE LOCALLY
 type RootStackParamList = {
-  Archive: { 
-    search?: string; 
-    year?: string; 
-    category_id?: string; 
+  Archive: {
+    search?: string;
+    year?: string;
+    category_id?: string;
     author_id?: string;
     page?: number;
     mode?: string;
@@ -42,17 +42,18 @@ type Props = {
 
 const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  
+  const { colors, isDark } = useTheme();
+
   // Animation Values
-  const fadeAnim = useRef(new Animated.Value(0)).current; 
-  const scaleAnim = useRef(new Animated.Value(0.8)).current; 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   // Form States
   const [searchText, setSearchText] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedAuthor, setSelectedAuthor] = useState<string>('');
-  
+
   // App States
   const [years, setYears] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -69,14 +70,31 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
-        Animated.spring(scaleAnim, { toValue: 1, friction: 8, tension: 40, useNativeDriver: true }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
       ]).start();
     } else {
       setError(''); // Reset error on close
       Animated.parallel([
-        Animated.timing(fadeAnim, { toValue: 0, duration: 200, useNativeDriver: true }),
-        Animated.timing(scaleAnim, { toValue: 0.8, duration: 200, useNativeDriver: true }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.8,
+          duration: 200,
+          useNativeDriver: true,
+        }),
       ]).start();
     }
   }, [visible]);
@@ -102,18 +120,30 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 
   // Keyboard & Back Button Handlers
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (visible) { onClose?.(); return true; }
-      return false;
-    });
-    return () => { showSub.remove(); hideSub.remove(); backHandler.remove(); };
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false),
+    );
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (visible) {
+          onClose?.();
+          return true;
+        }
+        return false;
+      },
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+      backHandler.remove();
+    };
   }, [visible, onClose]);
 
-  // ============================================================
-  //  FIXED NAVIGATION
-  // ============================================================
+  // ------FIXED NAVIGATION------
 
   const handleSearch = () => {
     const params: any = { page: 1 };
@@ -143,29 +173,50 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 
     onClose?.();
 
-    //  FIXED - Direct navigation to Archive with params
     navigation.navigate('Archive', params);
   };
 
   return (
-    <Modal visible={visible} transparent statusBarTranslucent onRequestClose={onClose}>
-      <Animated.View style={[styles.overlayContainer, { opacity: fadeAnim }]}>
-        
-        <TouchableOpacity 
-          style={StyleSheet.absoluteFill} 
-          activeOpacity={1} 
-          onPress={() => { Keyboard.dismiss(); onClose?.(); }} 
+    <Modal
+      visible={visible}
+      transparent
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <Animated.View
+        style={[
+          styles.overlayContainer,
+          {
+            opacity: fadeAnim,
+            backgroundColor: isDark
+              ? 'rgba(0, 0, 0, 0.98)'
+              : 'rgba(20, 20, 20, 0.98)',
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={() => {
+            Keyboard.dismiss();
+            onClose?.();
+          }}
         />
 
-        <Animated.View style={[styles.contentWrapper, { transform: [{ scale: scaleAnim }] }]}>
+        <Animated.View
+          style={[styles.contentWrapper, { transform: [{ scale: scaleAnim }] }]}
+        >
           {!keyboardVisible && (
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close" size={35} color="white" />
+              <Ionicons
+                name="close"
+                size={35}
+                color={isDark ? '#fff' : 'white'}
+              />
             </TouchableOpacity>
           )}
 
           <View style={styles.formContainer}>
-            
             {/* ERROR MESSAGE DISPLAYED ABOVE SEARCH FIELD */}
             {error ? (
               <View style={styles.errorBox}>
@@ -174,11 +225,17 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               </View>
             ) : null}
 
-            <View style={[styles.searchBar, error ? styles.searchBarError : null]}>
+            <View
+              style={[
+                styles.searchBar,
+                error ? styles.searchBarError : null,
+                { borderColor: error ? '#ff4d4d' : isDark ? '#666' : '#555' },
+              ]}
+            >
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: isDark ? '#fff' : 'white' }]}
                 placeholder="Search here..."
-                placeholderTextColor="#999"
+                placeholderTextColor={isDark ? '#888' : '#999'}
                 value={searchText}
                 onChangeText={setSearchText}
                 onSubmitEditing={handleSearch}
@@ -188,46 +245,114 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.orText}>or</Text>
+            <Text style={[styles.orText, { color: isDark ? '#888' : '#777' }]}>
+              or
+            </Text>
 
             {/* PICKERS */}
-            <View style={styles.pickerWrapper}>
+            <View
+              style={[
+                styles.pickerWrapper,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(255,255,255,0.05)',
+                  borderColor: isDark ? '#555' : '#444',
+                },
+              ]}
+            >
               <Picker
                 selectedValue={selectedYear}
-                style={styles.picker}
-                dropdownIconColor="white"
+                style={[styles.picker, { color: isDark ? '#bbb2b2' : 'white' }]}
+                dropdownIconColor={isDark ? '#fff' : 'white'}
                 onValueChange={v => setSelectedYear(String(v))}
               >
-                <Picker.Item label="Select Year" value="" color="#888" />
-                {years.map(y => <Picker.Item key={y} label={String(y)} value={String(y)} color="#000" />)}
+                <Picker.Item
+                  label="Select Year"
+                  value=""
+                  color={isDark ? '#888' : '#888'}
+                />
+                {years.map(y => (
+                  <Picker.Item
+                    key={y}
+                    label={String(y)}
+                    value={String(y)}
+                    color={isDark ? '#000' : '#000'}
+                  />
+                ))}
               </Picker>
             </View>
 
-            <View style={styles.pickerWrapper}>
+            <View
+              style={[
+                styles.pickerWrapper,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(255,255,255,0.05)',
+                  borderColor: isDark ? '#555' : '#444',
+                },
+              ]}
+            >
               <Picker
                 selectedValue={selectedCategory}
-                style={styles.picker}
-                dropdownIconColor="white"
+                style={[styles.picker, { color: isDark ? '#bbb2b2' : 'white' }]}
+                dropdownIconColor={isDark ? '#fff' : 'white'}
                 onValueChange={v => setSelectedCategory(String(v))}
               >
-                <Picker.Item label="Select Category" value="" color="#888" />
-                {categories.map(c => <Picker.Item key={c.id} label={c.name} value={String(c.id)} color="#000" />)}
+                <Picker.Item
+                  label="Select Category"
+                  value=""
+                  color={isDark ? '#888' : '#888'}
+                />
+                {categories.map(c => (
+                  <Picker.Item
+                    key={c.id}
+                    label={c.name}
+                    value={String(c.id)}
+                    color={isDark ? '#000' : '#000'}
+                  />
+                ))}
               </Picker>
             </View>
 
-            <View style={styles.pickerWrapper}>
+            <View
+              style={[
+                styles.pickerWrapper,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(255,255,255,0.05)'
+                    : 'rgba(255,255,255,0.05)',
+                  borderColor: isDark ? '#555' : '#444',
+                },
+              ]}
+            >
               <Picker
                 selectedValue={selectedAuthor}
-                style={styles.picker}
-                dropdownIconColor="white"
+                style={[styles.picker, { color: isDark ? '#bbb2b2' : 'white' }]}
+                dropdownIconColor={isDark ? '#fff' : 'white'}
                 onValueChange={v => setSelectedAuthor(String(v))}
               >
-                <Picker.Item label="Select Author" value="" color="#888" />
-                {authors.map(a => <Picker.Item key={a.id} label={a.name} value={String(a.id)} color="#000" />)}
+                <Picker.Item
+                  label="Select Author"
+                  value=""
+                  color={isDark ? '#888' : '#888'}
+                />
+                {authors.map(a => (
+                  <Picker.Item
+                    key={a.id}
+                    label={a.name}
+                    value={String(a.id)}
+                    color={isDark ? '#000' : '#000'}
+                  />
+                ))}
               </Picker>
             </View>
 
-            <TouchableOpacity style={styles.searchBtn} onPress={handleSearch}>
+            <TouchableOpacity
+              style={[styles.searchBtn, { backgroundColor: colors.primary }]}
+              onPress={handleSearch}
+            >
               <Text style={styles.searchBtnText}>SEARCH</Text>
             </TouchableOpacity>
           </View>
@@ -240,7 +365,6 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   overlayContainer: {
     flex: 1,
-    backgroundColor: 'rgba(20, 20, 20, 0.98)',
     justifyContent: 'center',
     padding: 25,
   },
@@ -273,7 +397,6 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     borderBottomWidth: 1.5,
-    borderColor: '#555',
     paddingBottom: 5,
     alignItems: 'center',
   },
@@ -282,12 +405,10 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: 'white',
     fontSize: 20,
     height: 50,
   },
   orText: {
-    color: '#777',
     textAlign: 'center',
     marginVertical: 20,
     fontSize: 16,
@@ -295,19 +416,15 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   pickerWrapper: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: 1,
-    borderColor: '#444',
     marginBottom: 15,
     borderRadius: 8,
     overflow: 'hidden',
   },
   picker: {
-    color: 'white',
     width: '100%',
   },
   searchBtn: {
-    backgroundColor: '#c9060a',
     padding: 16,
     alignItems: 'center',
     marginTop: 15,

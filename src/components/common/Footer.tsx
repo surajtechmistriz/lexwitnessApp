@@ -7,14 +7,21 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
+import { useTheme } from '../../redux/useTheme';
 
 const Footer = () => {
   const year = new Date().getFullYear();
+  const { colors, isDark } = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDark ? '#1a1a1a' : '#2f2f2f' },
+      ]}
+    >
       <View style={styles.inner}>
-        {/* ================= LEFT ================= */}
+        {/* ------ LEFT ------ */}
         <View style={styles.section}>
           <Image
             source={{
@@ -24,17 +31,20 @@ const Footer = () => {
             resizeMode="contain"
           />
 
-          <Text style={styles.heading}>
-            ABOUT <Text style={styles.red}>WITNESS</Text>
+          <Text style={[styles.heading, { color: colors.text }]}>
+            ABOUT{' '}
+            <Text style={[styles.red, { color: colors.primary }]}>WITNESS</Text>
           </Text>
 
-          <Text style={styles.text}>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>
             For over 10 years, since its inception in 2009 as a monthly, Lex
             Witness has become India’s most credible platform for the legal
             luminaries to opine, comment and share their views.
           </Text>
 
-          <Text style={styles.connect}>Connect Us:</Text>
+          <Text style={[styles.connect, { color: colors.textSecondary }]}>
+            Connect Us:
+          </Text>
 
           <TouchableOpacity
             style={styles.socialBox}
@@ -44,9 +54,9 @@ const Footer = () => {
           </TouchableOpacity>
         </View>
 
-        {/* ================= MIDDLE ================= */}
+        {/* ------ MIDDLE ------ */}
         <View style={styles.section}>
-          <Text style={styles.heading}>
+          <Text style={[styles.heading, { color: colors.text }]}>
             THE LEX WITNESS SUMMITS LEGACY
           </Text>
 
@@ -56,7 +66,10 @@ const Footer = () => {
               'www.grandmasters.in',
             ],
             ['The Real Estate & Construction Legal Summit', 'www.rcls.in'],
-            ['The Information Technology Legal Summit', 'www.itlegalsummit.com'],
+            [
+              'The Information Technology Legal Summit',
+              'www.itlegalsummit.com',
+            ],
             ['The Banking & Finance Legal Summit', 'www.bfls.in'],
             [
               'The Media, Advertising and Entertainment Legal Summit',
@@ -65,20 +78,26 @@ const Footer = () => {
             ['The Pharma Legal & Compliance Summit', 'www.plcs.co.in'],
           ].map(([title, link], index) => (
             <View key={index} style={styles.listItem}>
-              <Text style={styles.text}>{title}</Text>
-              <Text style={styles.link}>
+              <Text style={[styles.text, { color: colors.textSecondary }]}>
+                {title}
+              </Text>
+              <Text style={[styles.link, { color: colors.primary }]}>
                 {link}{' '}
-                <Text style={styles.smallText}>| 8 Years & Counting</Text>
+                <Text style={[styles.smallText, { color: colors.textMuted }]}>
+                  | 8 Years & Counting
+                </Text>
               </Text>
             </View>
           ))}
         </View>
 
-        {/* ================= RIGHT ================= */}
+        {/* ------ RIGHT ------ */}
         <View style={styles.section}>
-          <Text style={styles.heading}>EXPLORE FURTHER!</Text>
+          <Text style={[styles.heading, { color: colors.text }]}>
+            EXPLORE FURTHER!
+          </Text>
 
-          <Text style={styles.text}>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>
             We at Lex Witness strategically assist firms in reaching out to the
             relevant audience sets through various knowledge sharing
             initiatives.
@@ -86,13 +105,13 @@ const Footer = () => {
         </View>
       </View>
 
-      {/* ================= BOTTOM ================= */}
-      <View style={styles.bottom}>
-        <Text style={styles.bottomText}>
-          Copyright © {year} Lex Witness – India’s 1st Magazine On Legal &
+      {/* ------ BOTTOM ------ */}
+      <View style={[styles.bottom, { borderColor: isDark ? '#333' : '#555' }]}>
+        <Text style={[styles.bottomText, { color: colors.textMuted }]}>
+          Copyright © {year} Lex Witness – India's 1st Magazine On Legal &
           Corporate Affairs
         </Text>
-        <Text style={styles.bottomText}>
+        <Text style={[styles.bottomText, { color: colors.textMuted }]}>
           Rights Of Admission Reserved
         </Text>
       </View>
@@ -105,7 +124,6 @@ export default Footer;
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    backgroundColor: '#2f2f2f',
   },
 
   inner: {
@@ -124,25 +142,22 @@ const styles = StyleSheet.create({
   },
 
   heading: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
   },
 
   red: {
-    color: '#c9060a',
+    // Color will be applied dynamically
   },
 
   text: {
-    color: '#E2E2E2',
     fontSize: 13,
     lineHeight: 18,
   },
 
   connect: {
     marginTop: 10,
-    color: '#E2E2E2',
     fontSize: 13,
   },
 
@@ -166,24 +181,21 @@ const styles = StyleSheet.create({
   },
 
   link: {
-    color: '#c9060a',
     fontSize: 12,
   },
 
   smallText: {
-    color: '#E2E2E2',
+    // Color will be applied dynamically
   },
 
   bottom: {
     borderTopWidth: 1,
-    borderColor: '#555',
     paddingVertical: 15,
     paddingHorizontal: 10,
     alignItems: 'center',
   },
 
   bottomText: {
-    color: '#E2E2E2',
     fontSize: 12,
     textAlign: 'center',
     marginBottom: 4,

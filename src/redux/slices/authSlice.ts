@@ -1,5 +1,6 @@
-// src/redux/slices/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { persistReducer } from 'redux-persist'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /* ---------------- TYPES ---------------- */
 
@@ -139,16 +140,23 @@ const authSlice = createSlice({
     },
 
     //  Logout
-    logout: (state) => {
-      state.isLoggedIn = false;
-      state.user = null;
-      state.token = null;
-      state.subscription = null;
-      state.nextSubscriptions = [];
-      state.isHydrated = true;
-      state.isLoading = false;
-      state.error = null;
-    },
+logout: (state) => {
+  state.isLoggedIn = false;
+  state.user = null;
+  state.token = null;
+  state.subscription = null;
+  state.nextSubscriptions = [];
+  state.isHydrated = true;
+  state.isLoading = false;
+  state.error = null;
+  
+  //  Clear persist data immediately
+  try {
+    AsyncStorage.removeItem('persist:root');
+  } catch (e) {
+    console.log('Clear persist error:', e);
+  }
+},
   },
 });
 

@@ -1,11 +1,13 @@
-
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '../redux/useTheme';
 
 const HeroSkeleton = () => {
+  const { colors, isDark } = useTheme();
+
   return (
     <View style={styles.wrapper}>
-      <View style={styles.hero} />
+      <View style={[styles.hero, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
     </View>
   );
 };
@@ -19,7 +21,6 @@ const styles = StyleSheet.create({
   hero: {
     width: '100%',
     aspectRatio: 16 / 9,
-    backgroundColor: '#f2f2f2',
     borderRadius: 16,
   },
 });

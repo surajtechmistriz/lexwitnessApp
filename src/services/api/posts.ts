@@ -36,11 +36,11 @@ export const getPosts = async ({
       ...(tag_id && { tag_id }),
     };
 
-    console.log("API PARAMS =>", params);
+    // console.log("API PARAMS =>", params);
 
     const response = await api.get("/posts", { params });
 
-    console.log("API RESPONSE =>", response.data);
+    // console.log("API RESPONSE =>", response.data);
 
     return response.data;
   } catch (error) {

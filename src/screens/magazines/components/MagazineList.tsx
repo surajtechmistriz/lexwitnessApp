@@ -9,6 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import { useTheme } from '../../../redux/useTheme';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;
@@ -33,22 +34,24 @@ const MagazineList: React.FC<MagazineListProps> = ({
   numColumns = 2,
   onPressItem,
 }) => {
+  const { colors } = useTheme();
+
   const renderItem = ({ item }: { item: Magazine }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.card }]}
       onPress={() => onPressItem && onPressItem(item)}
       activeOpacity={0.8}
     >
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.cardContent}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.readMore}>Read more</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+        <Text style={[styles.readMore, { color: colors.primary }]}>Read more</Text>
       </View>
     </TouchableOpacity>
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#c9060a" style={{ marginTop: 50 }} />;
+    return <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />;
   }
 
   return (
@@ -57,9 +60,9 @@ const MagazineList: React.FC<MagazineListProps> = ({
       renderItem={renderItem}
       keyExtractor={(item) => item.id.toString()}
       numColumns={numColumns}
-      columnWrapperStyle={{ justifyContent: 'space-between' }}
+      columnWrapperStyle={styles.columnWrapper}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 20 }}
+      contentContainerStyle={styles.contentContainer}
     />
   );
 };
@@ -70,6 +73,8 @@ const styles = StyleSheet.create({
   card: {
     width: ITEM_WIDTH,
     marginBottom: 20,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
@@ -82,11 +87,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 13,
-    color: '#333',
   },
   readMore: {
-    color: '#c9060a',
     fontWeight: '500',
     marginTop: 4,
+  },
+  columnWrapper: {
+    justifyContent: 'space-between',
+  },
+  contentContainer: {
+    paddingBottom: 20,
   },
 });

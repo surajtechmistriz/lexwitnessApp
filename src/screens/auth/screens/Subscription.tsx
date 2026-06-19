@@ -20,6 +20,7 @@ import PricingCard from '../../../components/common/PricingCard';
 import { latesteEdition } from '../../../services/api/latestedition';
 import MainLayout from '../../../MainLayout';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../../redux/useTheme';
 
 type Magazine = {
   id: number;
@@ -32,6 +33,7 @@ const { width } = Dimensions.get('window');
 
 export default function SubscriptionPage() {
   const navigation = useNavigation<any>();
+  const { colors, isDark } = useTheme();
 
   const [magazine, setMagazine] = useState<Magazine | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -66,22 +68,21 @@ export default function SubscriptionPage() {
     ? `${Config.MAGAZINES_BASE_URL}/${magazine.image}`
     : 'https://via.placeholder.com/300x400';
 
-
-      // BACK BUTTON HANDLER
   const handleBack = () => {
     navigation.goBack();
   };
+
   return (
     <MainLayout
       title="Subscription"
       showFilter={false}
       routeName="Subscription"
-       showBackButton={true}
+      showBackButton={true}
       onBackPress={handleBack}
     >
       <StatusBar barStyle="light-content" />
 
-      <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
@@ -104,7 +105,7 @@ export default function SubscriptionPage() {
 
               {/* IMAGE */}
               <View style={styles.imageWrapper}>
-                <View style={styles.imageContainer}>
+                <View style={[styles.imageContainer, { backgroundColor: '#222' }]}>
                   {loading ? (
                     <ActivityIndicator color="#fff" size="large" />
                   ) : (
@@ -120,7 +121,7 @@ export default function SubscriptionPage() {
               {/* BUTTONS */}
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
-                  style={styles.primaryBtn}
+                  style={[styles.primaryBtn, { backgroundColor: '#fff' }]}
                   activeOpacity={0.9}
                   onPress={() =>
                     navigation.navigate('Register', {
@@ -128,17 +129,17 @@ export default function SubscriptionPage() {
                     })
                   }
                 >
-                  <Text style={styles.primaryBtnText}>
+                  <Text style={[styles.primaryBtnText, { color: colors.primary }]}>
                     Your First Year is on Us
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.secondaryBtn}
+                  style={[styles.secondaryBtn, { borderColor: 'rgba(255,255,255,0.5)' }]}
                   activeOpacity={0.7}
                   onPress={scrollToPricing}
                 >
-                  <Text style={styles.secondaryBtnText}>
+                  <Text style={[styles.secondaryBtnText, { color: '#fff' }]}>
                     Choose your Subscription Plan
                   </Text>
                 </TouchableOpacity>
@@ -147,15 +148,22 @@ export default function SubscriptionPage() {
           </LinearGradient>
 
           {/* --- TRUST BAR --- */}
-          <View style={styles.trustBar}>
-            <Text style={styles.trustText}>Join 100,000+ Premium Readers</Text>
+          <View style={[styles.trustBar, { 
+            backgroundColor: isDark ? colors.card : '#f8f9fa',
+            borderColor: isDark ? colors.border : '#eee',
+          }]}>
+            <Text style={[styles.trustText, { color: colors.textSecondary }]}>
+              Join 100,000+ Premium Readers
+            </Text>
           </View>
 
           {/* --- BENEFITS --- */}
           <View style={styles.benefitsSection}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Subscription Benefits</Text>
-              <View style={styles.titleUnderline} />
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Subscription Benefits
+              </Text>
+              <View style={[styles.titleUnderline, { backgroundColor: colors.primary }]} />
             </View>
 
             <View style={styles.benefitsGrid}>
@@ -163,18 +171,24 @@ export default function SubscriptionPage() {
                 icon="book-outline"
                 title="Unlimited Access"
                 text="Read all articles across web and app without limits"
+                colors={colors}
+                isDark={isDark}
               />
 
               <BenefitItem
                 icon="newspaper-outline"
                 title="Weekly Magazine"
                 text="Get the latest print edition delivered to your doorstep"
+                colors={colors}
+                isDark={isDark}
               />
 
               <BenefitItem
                 icon="analytics-outline"
                 title="Premium Analysis"
                 text="Expert opinions and deep-dive editorial insights"
+                colors={colors}
+                isDark={isDark}
               />
             </View>
           </View>
@@ -199,24 +213,34 @@ const BenefitItem = ({
   icon,
   title,
   text,
+  colors,
+  isDark,
 }: {
   icon: string;
   title: string;
   text: string;
+  colors: any;
+  isDark: boolean;
 }) => (
-  <View style={styles.benefitCard}>
-    <Icon name={icon} size={28} color="#c9060a" style={styles.benefitIcon} />
+  <View style={[
+    styles.benefitCard, 
+    { 
+      backgroundColor: colors.card,
+      borderColor: colors.border,
+    }
+  ]}>
+    <Icon name={icon} size={28} color={colors.primary} style={styles.benefitIcon} />
 
     <View style={styles.benefitContent}>
-      <Text style={styles.benefitTitle}>{title}</Text>
-      <Text style={styles.benefitText}>{text}</Text>
+      <Text style={[styles.benefitTitle, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.benefitText, { color: colors.textSecondary }]}>{text}</Text>
     </View>
   </View>
 );
 
 /* -------------------- STYLES -------------------- */
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
+  safeArea: { flex: 1 },
   scrollContent: { paddingBottom: 10 },
 
   /* HERO */
@@ -267,7 +291,6 @@ const styles = StyleSheet.create({
     height: width * 0.75,
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#222',
   },
   heroImage: {
     width: '100%',
@@ -280,13 +303,11 @@ const styles = StyleSheet.create({
     gap: 15,
   },
   primaryBtn: {
-    backgroundColor: '#fff',
     paddingVertical: 18,
     borderRadius: 12,
     alignItems: 'center',
   },
   primaryBtnText: {
-    color: '#c9060a',
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -295,10 +316,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
   },
   secondaryBtnText: {
-    color: '#fff',
     fontWeight: '600',
     fontSize: 15,
   },
@@ -307,16 +326,13 @@ const styles = StyleSheet.create({
   trustBar: {
     marginTop: -20,
     alignSelf: 'center',
-    backgroundColor: '#f8f9fa',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: '#eee',
   },
   trustText: {
     fontSize: 12,
-    color: '#666',
     fontWeight: '600',
   },
 
@@ -332,12 +348,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#1a1a1a',
   },
   titleUnderline: {
     width: 40,
     height: 4,
-    backgroundColor: '#c9060a',
     marginTop: 8,
   },
   benefitsGrid: {
@@ -345,11 +359,9 @@ const styles = StyleSheet.create({
   },
   benefitCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
     alignItems: 'flex-start',
   },
   benefitIcon: {
@@ -362,12 +374,10 @@ const styles = StyleSheet.create({
   benefitTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#1a1a1a',
     marginBottom: 4,
   },
   benefitText: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
   },
 

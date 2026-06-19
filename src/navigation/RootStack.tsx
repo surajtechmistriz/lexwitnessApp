@@ -1,4 +1,3 @@
-// navigation/RootStack.js
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigator from './DrawerNavigator';
@@ -33,10 +32,20 @@ import PrivacyPolicy from '../screens/PrivacyPolicy';
 import ContactUs from '../screens/ContactUs';
 import ForgetPassword from '../screens/auth/screens/ForgetPassword';
 import ResetPassword from '../screens/auth/screens/ResetPassword';
+import { useSelector } from 'react-redux';
 
 const Stack = createNativeStackNavigator();
 
+
 export default function RootStack() {
+  const isHydrated = useSelector(
+    (state: any) => state.auth.isHydrated
+  );
+
+  if (!isHydrated) {
+    return null;
+  }
+
   return (
     <Stack.Navigator screenOptions={defaultStackOptions}>
       

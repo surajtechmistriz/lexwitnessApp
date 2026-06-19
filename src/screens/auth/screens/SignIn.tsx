@@ -24,6 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { setProfile } from '../../../redux/slices/authSlice';
 import { loginApi } from '../api/auth';
 import { getProfile } from '../../dashboard/api';
+import { useTheme } from '../../../redux/useTheme';
 
 const { height, width } = Dimensions.get('window');
 
@@ -46,6 +47,7 @@ const BRAND = {
 const SignInScreen = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
+  const { colors, isDark } = useTheme();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -153,7 +155,7 @@ const SignInScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
@@ -165,7 +167,7 @@ const SignInScreen = () => {
         >
           {/* BACK BUTTON - Premium */}
           <TouchableOpacity 
-            style={styles.backButton} 
+            style={[styles.backButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]} 
             onPress={handleBack}
             activeOpacity={0.7}
           >
@@ -180,37 +182,49 @@ const SignInScreen = () => {
             style={styles.gradientHeader}
           >
             <View style={styles.logoContainer}>
-              <View style={styles.logoCircle}>
+              <View style={[styles.logoCircle, { backgroundColor: BRAND.white }]}>
                 <Ionicons name="newspaper-outline" size={40} color={BRAND.primary} />
               </View>
             </View>
             <Text style={styles.header}>Welcome Back!</Text>
-            <Text style={styles.subText}>Sign in to continue reading</Text>
+            <Text style={[styles.subText, { color: 'rgba(255,255,255,0.85)' }]}>
+              Sign in to continue reading
+            </Text>
           </LinearGradient>
 
           {/* FORM */}
-          <View style={styles.formContainer}>
+          <View style={[styles.formContainer, { 
+            backgroundColor: colors.card,
+            shadowColor: isDark ? '#000' : '#000',
+          }]}>
             {/* Error */}
             {error ? (
-              <View style={styles.errorContainer}>
+              <View style={[styles.errorContainer, { 
+                backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
+                borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
+              }]}>
                 <Ionicons name="alert-circle" size={18} color={BRAND.error} />
-                <Text style={styles.errorText}>{error}</Text>
+                <Text style={[styles.errorText, { color: BRAND.error }]}>{error}</Text>
               </View>
             ) : null}
 
             {/* Email */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Email Address</Text>
               <View
                 style={[
                   styles.inputWrapper,
+                  { 
+                    backgroundColor: isDark ? colors.background : BRAND.lightGray,
+                    borderColor: email ? BRAND.primary : (isDark ? colors.border : BRAND.border),
+                  },
                   email && styles.inputWrapperFilled,
                 ]}
               >
                 <Ionicons
                   name="mail-outline"
                   size={20}
-                  color={email ? BRAND.primary : BRAND.grayText}
+                  color={email ? BRAND.primary : colors.textMuted}
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -219,13 +233,13 @@ const SignInScreen = () => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   editable={!loading}
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Enter your email"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
                 />
                 {email !== '' && !loading && (
                   <TouchableOpacity onPress={() => setEmail('')}>
-                    <Ionicons name="close-circle" size={18} color={BRAND.grayText} />
+                    <Ionicons name="close-circle" size={18} color={colors.textMuted} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -233,17 +247,21 @@ const SignInScreen = () => {
 
             {/* Password */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Password</Text>
               <View
                 style={[
                   styles.inputWrapper,
+                  { 
+                    backgroundColor: isDark ? colors.background : BRAND.lightGray,
+                    borderColor: password ? BRAND.primary : (isDark ? colors.border : BRAND.border),
+                  },
                   password && styles.inputWrapperFilled,
                 ]}
               >
                 <Ionicons
                   name="lock-closed-outline"
                   size={20}
-                  color={password ? BRAND.primary : BRAND.grayText}
+                  color={password ? BRAND.primary : colors.textMuted}
                   style={styles.inputIcon}
                 />
                 <TextInput
@@ -251,9 +269,9 @@ const SignInScreen = () => {
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   editable={!loading}
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   placeholder="Enter your password"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(prev => !prev)}
@@ -261,7 +279,7 @@ const SignInScreen = () => {
                   <Ionicons
                     name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                     size={20}
-                    color={BRAND.grayText}
+                    color={colors.textMuted}
                   />
                 </TouchableOpacity>
               </View>
@@ -276,20 +294,27 @@ const SignInScreen = () => {
                 activeOpacity={0.7}
               >
                 <View
-                  style={[styles.checkbox, rememberMe && styles.checkboxActive]}
+                  style={[
+                    styles.checkbox, 
+                    { 
+                      borderColor: rememberMe ? BRAND.primary : (isDark ? colors.border : '#D1D5DB'),
+                      backgroundColor: rememberMe ? BRAND.primary : '#fff',
+                    },
+                    rememberMe && styles.checkboxActive
+                  ]}
                 >
                   {rememberMe && (
                     <Ionicons name="checkmark" size={12} color={BRAND.white} />
                   )}
                 </View>
-                <Text style={styles.checkboxText}>Remember me</Text>
+                <Text style={[styles.checkboxText, { color: colors.text }]}>Remember me</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('ForgetPassword')}
                 activeOpacity={0.7}
               >
-                <Text style={styles.forgotText}>Forgot Password?</Text>
+                <Text style={[styles.forgotText, { color: colors.primary }]}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
@@ -316,12 +341,16 @@ const SignInScreen = () => {
 
             {/* Sign Up Link */}
             <View style={styles.footerLinks}>
-              <Text style={styles.noAccountText}>Don't have an account? </Text>
+              <Text style={[styles.noAccountText, { color: colors.textSecondary }]}>
+                Don't have an account? 
+              </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Register')}
                 activeOpacity={0.7}
               >
-                <Text style={styles.registerLink}>Sign Up</Text>
+                <Text style={[styles.registerLink, { color: colors.primary }]}>
+                  Sign Up
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -336,23 +365,20 @@ export default SignInScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
   },
   flex: {
     flex: 1,
   },
- scrollContent: {
+  scrollContent: {
     flexGrow: 1,
     paddingBottom: Platform.OS === 'ios' ? 20 : 30,
   },
-
 
   backButton: {
     position: 'absolute',
     top: 20,
     left: 16,
     zIndex: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 30,
     width: 44,
     height: 44,
@@ -360,9 +386,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 4,
-    // elevation: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   gradientHeader: {
@@ -382,7 +408,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: BRAND.white,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -395,7 +420,7 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 28,
     fontWeight: '800',
-    color: BRAND.white,
+    color: '#FFFFFF',
     letterSpacing: -0.5,
     marginBottom: 6,
     textAlign: 'center',
@@ -403,20 +428,17 @@ const styles = StyleSheet.create({
 
   subText: {
     fontSize: 15,
-    color: 'rgba(255,255,255,0.85)',
     textAlign: 'center',
   },
 
   formContainer: {
     flex: 1,
-    backgroundColor: BRAND.white,
     marginTop: -20,
     marginHorizontal: 20,
     borderRadius: 30,
     paddingHorizontal: 24,
     paddingTop: 28,
     paddingBottom: 28,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
@@ -426,16 +448,13 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF2F2',
     padding: 14,
     borderRadius: 14,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#FEE2E2',
   },
 
   errorText: {
-    color: BRAND.error,
     fontSize: 14,
     marginLeft: 10,
     fontWeight: '500',
@@ -449,7 +468,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: BRAND.dark,
     marginBottom: 6,
     marginLeft: 4,
   },
@@ -457,17 +475,13 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: BRAND.lightGray,
     borderWidth: 1.5,
-    borderColor: BRAND.border,
     borderRadius: 14,
     paddingHorizontal: 16,
   },
 
   inputWrapperFilled: {
-    borderColor: BRAND.primary,
     borderWidth: 2,
-    backgroundColor: BRAND.primaryLight,
   },
 
   inputIcon: {
@@ -478,7 +492,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     fontSize: 15,
-    color: BRAND.dark,
     fontWeight: '500',
   },
 
@@ -499,27 +512,22 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: '#D1D5DB',
     marginRight: 10,
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
 
   checkboxActive: {
-    backgroundColor: BRAND.primary,
     borderColor: BRAND.primary,
   },
 
   checkboxText: {
     fontSize: 14,
-    color: BRAND.dark,
     fontWeight: '500',
   },
 
   forgotText: {
-    color: BRAND.primary,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -527,7 +535,6 @@ const styles = StyleSheet.create({
   loginBtn: {
     borderRadius: 14,
     overflow: 'hidden',
-    shadowColor: BRAND.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -545,7 +552,7 @@ const styles = StyleSheet.create({
   },
 
   loginBtnText: {
-    color: BRAND.white,
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 16,
     letterSpacing: 0.5,
@@ -559,12 +566,10 @@ const styles = StyleSheet.create({
   },
 
   noAccountText: {
-    color: BRAND.grayText,
     fontSize: 15,
   },
 
   registerLink: {
-    color: BRAND.primary,
     fontWeight: '700',
     fontSize: 15,
   },

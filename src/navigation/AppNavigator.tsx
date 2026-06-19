@@ -1,4 +1,3 @@
-// AppNavigator.js - UPDATE THIS FILE
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import Animated, { FadeIn } from 'react-native-reanimated';

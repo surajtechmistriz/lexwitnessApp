@@ -1,4 +1,3 @@
-// src/redux/AppInitializer.tsx
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,16 +10,24 @@ const AppInitializer = ({ children }: any) => {
   useEffect(() => {
     const init = async () => {
       try {
-        //  Fetch all data from AsyncStorage
-        const [token, userStr, subscriptionStr, nextSubscriptionsStr] =
+        //  Fetch token first
+        const token = await AsyncStorage.getItem('token');
+
+        //  If no token, don't hydrate user data
+        if (!token) {
+          dispatch(hydrateAuth(null));
+          return;
+        }
+
+        //  Only fetch user data if token exists
+        const [userStr, subscriptionStr, nextSubscriptionsStr] =
           await Promise.all([
-            AsyncStorage.getItem('token'),
             AsyncStorage.getItem('user'),
             AsyncStorage.getItem('subscription'),
             AsyncStorage.getItem('nextSubscriptions'),
           ]);
 
-        if (token && userStr) {
+        if (userStr) {
           const user = JSON.parse(userStr);
           const subscription = subscriptionStr
             ? JSON.parse(subscriptionStr)

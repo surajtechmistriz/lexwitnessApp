@@ -13,13 +13,13 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useTheme } from '../../redux/useTheme';
 
 const EditorialDetail = () => {
-  //  USE ROUTE HOOK (BETTER THAN route.params)
   const route = useRoute();
   const navigation = useNavigation();
+  const { colors, isDark } = useTheme();
   
-  //  SAFE PARAMS - Agar koi param missing ho toh crash nahi
   const editorialData = route.params?.editorialData || {};
   
   const imgUrl = Config.EDITORIAL_IMAGE_URL || '';
@@ -45,25 +45,25 @@ const EditorialDetail = () => {
 
   // ===== NAVIGATION FUNCTIONS =====
   const handleBack = () => {
-    navigation.goBack(); //  Simple back
+    navigation.goBack();
   };
 
   // ===== RENDER =====
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
       <StatusBar
         translucent={false}
-        backgroundColor="#f8f9fa"
-        barStyle="dark-content"
+        backgroundColor={colors.background}
+        barStyle={isDark ? 'light-content' : 'dark-content'}
       />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/*  BACK BUTTON - ADDED */}
+        {/* BACK BUTTON */}
         <TouchableOpacity 
-          style={styles.backButton} 
+          style={[styles.backButton, { backgroundColor: 'rgba(0,0,0,0.3)' }]} 
           onPress={handleBack}
           activeOpacity={0.7}
         >
@@ -83,13 +83,13 @@ const EditorialDetail = () => {
             colors={[
               'rgba(0,0,0,0.1)',
               'rgba(0,0,0,0.45)',
-              '#f8f9fa',
+              isDark ? 'rgba(18,18,18,0.95)' : '#f8f9fa',
             ]}
             style={styles.overlay}
           />
 
           <View style={styles.heroContent}>
-            <View style={styles.badge}>
+            <View style={[styles.badge, { backgroundColor: colors.primary }]}>
               <Text style={styles.badgeText}>FEATURED STORY</Text>
             </View>
 
@@ -107,19 +107,27 @@ const EditorialDetail = () => {
         </View>
 
         {/* INFO GRID */}
-        <View style={styles.infoGrid}>
+        <View style={[styles.infoGrid, { 
+          backgroundColor: colors.card,
+          shadowColor: isDark ? '#000' : '#000',
+          borderColor: colors.border,
+        }]}>
           <View style={styles.infoBox}>
-            <Icon name="briefcase-outline" size={22} color="#c9060a" />
-            <Text style={styles.infoLabel}>DESIGNATION</Text>
-            <Text style={styles.infoValue} numberOfLines={2}>
+            <Icon name="briefcase-outline" size={22} color={colors.primary} />
+            <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+              DESIGNATION
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={2}>
               {editorialData?.designation || 'Editor'}
             </Text>
           </View>
 
-          <View style={[styles.infoBox, styles.borderLeft]}>
-            <Icon name="location-outline" size={22} color="#c9060a" />
-            <Text style={styles.infoLabel}>LOCATION</Text>
-            <Text style={styles.infoValue}>
+          <View style={[styles.infoBox, styles.borderLeft, { borderLeftColor: colors.border }]}>
+            <Icon name="location-outline" size={22} color={colors.primary} />
+            <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+              LOCATION
+            </Text>
+            <Text style={[styles.infoValue, { color: colors.text }]}>
               {editorialData?.place || 'India'}
             </Text>
           </View>
@@ -128,11 +136,13 @@ const EditorialDetail = () => {
         {/* CONTENT */}
         <View style={styles.contentBody}>
           <View style={styles.sectionHeader}>
-            <View style={styles.accentBar} />
-            <Text style={styles.sectionTitle}>The Insight</Text>
+            <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              The Insight
+            </Text>
           </View>
 
-          <Text style={styles.description}>
+          <Text style={[styles.description, { color: colors.textSecondary }]}>
             {cleanDescription}
           </Text>
         </View>
@@ -146,7 +156,6 @@ export default EditorialDetail;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
 
   scrollContent: {
@@ -176,13 +185,11 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
 
-  //  BACK BUTTON STYLES
   backButton: {
     position: 'absolute',
     top: 16,
     left: 16,
     zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 30,
     width: 44,
     height: 44,
@@ -191,7 +198,6 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    backgroundColor: '#c9060a',
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
     paddingVertical: 5,
@@ -228,16 +234,15 @@ const styles = StyleSheet.create({
 
   infoGrid: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     marginHorizontal: 20,
     marginTop: -35,
     borderRadius: 18,
     paddingVertical: 22,
     elevation: 5,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    borderWidth: 1,
   },
 
   infoBox: {
@@ -248,13 +253,11 @@ const styles = StyleSheet.create({
 
   borderLeft: {
     borderLeftWidth: 1,
-    borderLeftColor: '#eee',
   },
 
   infoLabel: {
     marginTop: 8,
     fontSize: 11,
-    color: '#888',
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -262,7 +265,6 @@ const styles = StyleSheet.create({
   infoValue: {
     marginTop: 5,
     fontSize: 15,
-    color: '#222',
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -281,7 +283,6 @@ const styles = StyleSheet.create({
   accentBar: {
     width: 4,
     height: 24,
-    backgroundColor: '#c9060a',
     borderRadius: 10,
     marginRight: 12,
   },
@@ -289,12 +290,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#222',
   },
 
   description: {
     fontSize: 16,
     lineHeight: 30,
-    color: '#444',
   },
 });

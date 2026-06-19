@@ -13,7 +13,8 @@ import {
 import { latesteEdition } from '../services/api/latestedition';
 import Config from 'react-native-config';
 import PopupSkeleton from '../skeleton/PopupSkeleton';
-import { useNavigation } from '@react-navigation/native'; //  ADDED
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../redux/useTheme';
 
 // --- Types ---
 type Magazine = {
@@ -38,7 +39,8 @@ const Popup = ({
   visible: boolean;
   onClose: () => void;
 }) => {
-  const navigation = useNavigation<any>(); //  ADDED
+  const navigation = useNavigation<any>();
+  const { colors, isDark } = useTheme();
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +75,7 @@ const Popup = ({
   // 1. Go to Subscription
   const goToSubscription = () => {
     handleClose();
-    navigation.navigate('Subscription'); //  SIMPLE
+    navigation.navigate('Subscription');
   };
 
   // 2. Go to Magazine Detail
@@ -83,7 +85,7 @@ const Popup = ({
     handleClose();
     navigation.navigate('MagazineDetail', {
       slug: data.magazine.slug || String(data.magazine.id),
-    }); //  SIMPLE
+    });
   };
 
   return (
@@ -94,12 +96,21 @@ const Popup = ({
       statusBarTranslucent
       onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
+      <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.75)' }]}>
+        <View style={[
+          styles.card, 
+          { 
+            backgroundColor: colors.card,
+            shadowColor: isDark ? '#000' : '#000',
+          }
+        ]}>
 
           {/* CLOSE BUTTON */}
-          <Pressable onPress={handleClose} style={styles.closeBtn}>
-            <Text style={styles.closeBtnTxt}>✕</Text>
+          <Pressable 
+            onPress={handleClose} 
+            style={[styles.closeBtn, { backgroundColor: colors.background }]}
+          >
+            <Text style={[styles.closeBtnTxt, { color: colors.text }]}>✕</Text>
           </Pressable>
 
           {loading ? (
@@ -123,21 +134,23 @@ const Popup = ({
 
               {/* CONTENT */}
               <View>
-                <Text style={styles.label}>LATEST ISSUE</Text>
+                <Text style={[styles.label, { color: colors.primary }]}>
+                  LATEST ISSUE
+                </Text>
 
-                <Text style={styles.headline}>
+                <Text style={[styles.headline, { color: colors.text }]}>
                   {data?.magazine?.magazine_name || 'Magazine'}
                 </Text>
 
-                <Text style={styles.promoText}>
-                  Start Your <Text style={styles.redText}>Free Month Now</Text>
+                <Text style={[styles.promoText, { color: colors.text }]}>
+                  Start Your <Text style={[styles.redText, { color: colors.primary }]}>Free Month Now</Text>
                 </Text>  
-                <Text style={styles.credit}>
-                 No credit card required
+                <Text style={[styles.credit, { color: colors.textSecondary }]}>
+                  No credit card required
                 </Text>
 
                 <TouchableOpacity
-                  style={styles.subscribeBtn}
+                  style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
                   onPress={goToSubscription}
                 >
                   <Text style={styles.subscribeBtnTxt}>
@@ -158,24 +171,26 @@ export default Popup;
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   card: {
-    backgroundColor: '#fff',
     width: width * 0.88,
     borderRadius: 16,
     paddingTop: 45,
     paddingBottom: 30,
     paddingHorizontal: 22,
     position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
   closeBtn: {
     position: 'absolute',
     right: 12,
     top: 12,
-    backgroundColor: '#eee',
     width: 34,
     height: 34,
     borderRadius: 17,
@@ -198,7 +213,6 @@ const styles = StyleSheet.create({
   },
   contentSection: {},
   label: {
-    color: '#c9060a',
     fontWeight: '800',
     fontSize: 12,
     marginBottom: 5,
@@ -220,10 +234,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   redText: {
-    color: '#c9060a',
+    // Color applied dynamically
   },
   subscribeBtn: {
-    backgroundColor: '#c9060a',
     paddingVertical: 14,
     borderRadius: 6,
     alignItems: 'center',

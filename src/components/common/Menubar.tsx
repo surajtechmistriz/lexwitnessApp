@@ -12,6 +12,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { getMenu } from '../../services/api/category';
 import { getCache, setCache } from '../../utils/cache';
+import { useTheme } from '../../redux/useTheme';
 
 type MenuItem = {
   id: number;
@@ -24,12 +25,15 @@ const CACHE_KEY = 'TOP_MENU';
 
 const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   const navigation = useNavigation<any>();
+  const { colors, isDark } = useTheme();
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const scrollRef = useRef<ScrollView>(null);
-  const itemLayouts = useRef<{ [key: string]: { x: number; width: number } }>({});
+  const itemLayouts = useRef<{ [key: string]: { x: number; width: number } }>(
+    {},
+  );
 
   const currentSlug = activeSlug || '';
 
@@ -38,7 +42,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     try {
       setLoading(true);
 
-      // 1️⃣ LOAD CACHE FIRST
+      //   LOAD CACHE FIRST
       const cached = await getCache(CACHE_KEY);
 
       if (cached?.data?.length) {
@@ -46,19 +50,19 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
         setLoading(false);
       }
 
-      // 2️⃣ CALL API
+      //   CALL API
       const data = await getMenu();
 
       if (data?.length) {
         setMenuItems(data);
 
-        // 3️⃣ SAVE CACHE PROPERLY
+        //   SAVE CACHE PROPERLY
         await setCache(CACHE_KEY, data);
       }
     } catch (error) {
       console.log('Menu error:', error);
 
-      // 4️⃣ FALLBACK CACHE
+      //   FALLBACK CACHE
       const cached = await getCache(CACHE_KEY);
       if (cached?.data?.length) {
         setMenuItems(cached.data);
@@ -93,7 +97,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   // ---------------- CENTER SCROLL ----------------
   const scrollToCenter = (slug: string) => {
     if (!slug) return;
-    
+
     const layout = itemLayouts.current[slug];
     if (!layout) return;
 
@@ -105,20 +109,26 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     });
   };
 
-  // ============================================================
-  //  FIXED NAVIGATION
-  // ============================================================
+  // ------ FIXED NAVIGATION ------
 
   const handlePress = (slug: string) => {
-    navigation.navigate('Category', { slug }); //  SAHI HAI
+    navigation.navigate('Category', { slug });
     scrollToCenter(slug);
   };
 
   // ---------------- UI ----------------
   return (
-    <View style={styles.wrapper}>
+    <View
+      style={[
+        styles.wrapper,
+        {
+          backgroundColor: colors.background,
+          borderBottomColor: colors.border,
+        },
+      ]}
+    >
       {loading && menuItems.length === 0 ? (
-        <MenuSkeleton />
+        <MenuSkeleton isDark={isDark} />
       ) : (
         <ScrollView
           ref={scrollRef}
@@ -134,10 +144,23 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
                 key={item.id}
                 onPress={() => handlePress(item.slug)}
                 onLayout={e => handleLayout(item.slug, e)}
-                style={[styles.menuItem, isActive && styles.activeItem]}
+                style={[
+                  styles.menuItem,
+                  {
+                    backgroundColor: isActive ? colors.card : colors.card,
+                    borderColor: isActive ? colors.primary : colors.border,
+                  },
+                  isActive && styles.activeItem,
+                ]}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.menuText, isActive && styles.activeText]}>
+                <Text
+                  style={[
+                    styles.menuText,
+                    { color: isActive ? colors.primary : colors.textSecondary },
+                    isActive && styles.activeText,
+                  ]}
+                >
                   {item.name}
                 </Text>
               </TouchableOpacity>
@@ -155,10 +178,8 @@ export default TopMenu;
 const styles = StyleSheet.create({
   wrapper: {
     height: 50,
-    backgroundColor: '#f5f5f7',
     justifyContent: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#eaeaea',
   },
 
   container: {
@@ -172,27 +193,21 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     marginRight: 10,
     borderRadius: 18,
-    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#eeeeee',
     minWidth: 60,
     alignItems: 'center',
   },
 
   activeItem: {
-    backgroundColor: '#fff',
-    borderColor: '#c9060a',
     borderWidth: 1.5,
   },
 
   menuText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#444',
   },
 
   activeText: {
-    color: '#c9060a',
     fontWeight: '600',
   },
 
@@ -200,13 +215,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 28,
     borderRadius: 18,
-    backgroundColor: '#e5e7eb',
     marginRight: 10,
   },
 });
 
 // ---------------- SKELETON ----------------
-const MenuSkeleton = () => {
+const MenuSkeleton = ({ isDark }: { isDark: boolean }) => {
+  const { colors } = useTheme();
+
   return (
     <ScrollView
       horizontal
@@ -214,7 +230,13 @@ const MenuSkeleton = () => {
       contentContainerStyle={styles.container}
     >
       {Array.from({ length: 6 }).map((_, index) => (
-        <View key={index} style={styles.skeletonItem} />
+        <View
+          key={index}
+          style={[
+            styles.skeletonItem,
+            { backgroundColor: isDark ? colors.border : '#e5e7eb' },
+          ]}
+        />
       ))}
     </ScrollView>
   );

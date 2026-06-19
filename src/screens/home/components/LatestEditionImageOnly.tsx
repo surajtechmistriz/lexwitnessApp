@@ -12,6 +12,7 @@ import {
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../../redux/useTheme';
 
 /* ---------- TYPES ---------- */
 
@@ -35,6 +36,7 @@ const MagimgUrl = Config.MAGAZINES_BASE_URL;
 /* ---------- COMPONENT ---------- */
 
 const LatestEditionImageOnly = () => {
+  const { colors, isDark } = useTheme();
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +63,7 @@ const LatestEditionImageOnly = () => {
     return (
       <ActivityIndicator
         size="large"
-        color="#D80000"
+        color={colors.primary}
         style={{ marginTop: 50 }}
       />
     );
@@ -79,10 +81,12 @@ const LatestEditionImageOnly = () => {
 
   /* UI */
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* header */}
-      <Text style={styles.headerText}>LATEST EDITION</Text>
-      <View style={styles.redUnderline} />
+      <Text style={[styles.headerText, { color: colors.text }]}>
+        LATEST EDITION
+      </Text>
+      <View style={[styles.redUnderline, { backgroundColor: colors.primary }]} />
 
       {/* magazine image */}
       <TouchableOpacity onPress={goToMagazine}>
@@ -103,7 +107,6 @@ export default LatestEditionImageOnly;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
 
   bigImg: {
@@ -114,14 +117,12 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginTop: 30,
   },
 
   redUnderline: {
     width: 60,
     height: 4,
-    backgroundColor: '#D80000',
     marginTop: 4,
   },
 });

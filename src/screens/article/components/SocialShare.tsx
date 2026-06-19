@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
+import { useTheme } from '../../../redux/useTheme';
 
 type Props = {
   title: string;
@@ -8,6 +9,7 @@ type Props = {
 };
 
 const SocialShare = ({ title, url }: Props) => {
+  const { colors, isDark } = useTheme();
   const shareUrl = url;
 
   const openLink = (link: string) => {
@@ -49,7 +51,14 @@ const SocialShare = ({ title, url }: Props) => {
       {/* X (Twitter) */}
       <TouchableOpacity
         activeOpacity={0.8}
-        style={[styles.btn, styles.twitter]}
+        style={[
+          styles.btn, 
+          styles.twitter, 
+          { 
+            backgroundColor: isDark ? colors.card : '#000',
+            borderColor: isDark ? colors.border : '#000',
+          }
+        ]}
         onPress={() =>
           openLink(
             `https://twitter.com/intent/tweet?url=${encodeURIComponent(
@@ -58,7 +67,11 @@ const SocialShare = ({ title, url }: Props) => {
           )
         }
       >
-        <Icon name="x-twitter" size={12} color="#fff" />
+        <Icon 
+          name="x-twitter" 
+          size={12} 
+          color={isDark ? colors.text : '#fff'} 
+        />
       </TouchableOpacity>
 
       {/* WhatsApp */}
@@ -81,12 +94,11 @@ const SocialShare = ({ title, url }: Props) => {
 
 export default SocialShare;
 
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     gap: 4,
-    marginBottom:6
+    marginBottom: 6,
   },
 
   btn: {
@@ -95,6 +107,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 4,
   },
 
   linkedin: {
@@ -108,8 +121,7 @@ const styles = StyleSheet.create({
   },
 
   twitter: {
-    backgroundColor: '#000',
-    borderColor: '#000',
+    borderWidth: 1,
   },
 
   whatsapp: {

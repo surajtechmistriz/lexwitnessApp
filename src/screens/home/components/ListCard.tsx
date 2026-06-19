@@ -3,6 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 import Config from 'react-native-config';
+import { useTheme } from '../../../redux/useTheme';
 
 /* ---------- TYPES ---------- */
 type HeroCardProps = {
@@ -25,6 +26,7 @@ const imgUrl = Config.POSTS_BASE_URL;
 
 const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
   const navigation = useNavigation<NavigationProp>();
+  const { colors, isDark } = useTheme();
 
   const categoryName = typeof category === 'string' ? category : category?.name;
 
@@ -35,7 +37,11 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      style={styles.card}
+      style={[styles.card, { 
+        backgroundColor: colors.card,
+        borderColor: colors.border,
+        shadowColor: isDark ? '#000' : '#000',
+      }]}
       onPress={() =>
         navigation.navigate('ArticleDetail', {
           slug,
@@ -55,29 +61,29 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
                 })
               }
             >
-              <Text numberOfLines={1} style={styles.categoryText}>
+              <Text numberOfLines={1} style={[styles.categoryText, { color: colors.primary }]}>
                 {categoryName.toUpperCase()}
               </Text>
             </TouchableOpacity>
           )}
 
-          <Text style={styles.title} numberOfLines={2}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
             {title}
           </Text>
 
-          {date && <Text style={styles.date}>{date}</Text>}
+          {date && <Text style={[styles.date, { color: colors.textMuted }]}>{date}</Text>}
         </View>
 
         {/* IMAGE */}
         {fullImageUrl ? (
           <Image
             source={{ uri: fullImageUrl }}
-            style={styles.thumbnail}
+            style={[styles.thumbnail, { backgroundColor: isDark ? colors.border : '#eee' }]}
             resizeMode="cover"
             fadeDuration={300}
           />
         ) : (
-          <View style={styles.thumbnailPlaceholder} />
+          <View style={[styles.thumbnailPlaceholder, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
         )}
       </View>
     </TouchableOpacity>
@@ -88,27 +94,17 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 10, // reduced from 12
+    padding: 10,
     marginBottom: 8,
-
-    // softer premium shadow
     elevation: 2,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
     shadowRadius: 6,
-
     borderWidth: 1,
-    borderColor: '#f0f0f0',
   },
-  //   category: {
-  //   marginBottom: 4,
-  // },
 
   categoryText: {
-    color: '#c9060a',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -125,7 +121,6 @@ const styles = StyleSheet.create({
   },
 
   category: {
-    color: '#c9060a',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -135,28 +130,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#111',
     lineHeight: 20,
     marginBottom: 4,
   },
 
   date: {
     fontSize: 12,
-    color: '#888',
   },
 
   thumbnail: {
     width: 96,
-    height: 64, // smaller 16:9
+    height: 64,
     borderRadius: 10,
-    backgroundColor: '#eee',
   },
 
   thumbnailPlaceholder: {
     width: 96,
     height: 64,
     borderRadius: 10,
-    backgroundColor: '#f2f2f2',
   },
 });
 

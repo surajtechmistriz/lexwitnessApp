@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '../redux/useTheme';
 
 const ListSkeleton = () => {
+  const { colors, isDark } = useTheme();
+
   return (
     <View style={styles.container}>
       {[1, 2, 3, 4].map(item => (
         <View key={item} style={styles.card}>
-          <View style={styles.image} />
+          <View style={[styles.image, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
           <View style={styles.textBlock}>
-            <View style={styles.category} />
-            <View style={styles.title} />
-            <View style={[styles.title, { width: '70%' }]} />
-            <View style={styles.date} />
+            <View style={[styles.category, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
+            <View style={[styles.title, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
+            <View style={[styles.title, { backgroundColor: isDark ? colors.border : '#f2f2f2', width: '70%' }]} />
+            <View style={[styles.date, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
           </View>
         </View>
       ))}
@@ -30,7 +33,6 @@ const styles = StyleSheet.create({
   image: {
     width: 110,
     height: 80,
-    backgroundColor: '#f2f2f2',
     borderRadius: 8,
   },
   textBlock: {
@@ -40,19 +42,16 @@ const styles = StyleSheet.create({
   category: {
     width: '40%',
     height: 10,
-    backgroundColor: '#f2f2f2',
     marginBottom: 6,
   },
   title: {
     width: '90%',
     height: 12,
-    backgroundColor: '#f2f2f2',
     marginBottom: 6,
   },
   date: {
     width: '30%',
     height: 10,
-    backgroundColor: '#f2f2f2',
     marginTop: 4,
   },
 });

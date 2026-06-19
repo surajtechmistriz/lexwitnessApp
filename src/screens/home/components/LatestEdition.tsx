@@ -13,7 +13,7 @@ import {
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '../../../theme/colors';
+import { useTheme } from '../../../redux/useTheme';
 
 /* ---------- TYPES ---------- */
 
@@ -53,6 +53,7 @@ const PostimgUrl = Config.POSTS_BASE_URL;
 /* ---------- COMPONENT ---------- */
 
 const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
+  const { colors, isDark } = useTheme();
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -78,7 +79,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
     return (
       <ActivityIndicator
         size="small"
-        color={COLORS.primary}
+        color={colors.primary}
         style={{ marginTop: 24 }}
       />
     );
@@ -107,24 +108,30 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <Text style={styles.heading}>Latest Edition</Text>
-      <View style={styles.redLine} />
+      <Text style={[styles.heading, { color: colors.text }]}>Latest Edition</Text>
+      <View style={[styles.redLine, { backgroundColor: colors.primary }]} />
 
       {/* Magazine Card */}
-      <TouchableOpacity style={styles.magCard} onPress={goToMagazine}>
+      <TouchableOpacity 
+        style={[styles.magCard, { 
+          backgroundColor: colors.card,
+          shadowColor: isDark ? '#000' : '#000',
+        }]} 
+        onPress={goToMagazine}
+      >
         <Image
           source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
-          style={styles.magImage}
+          style={[styles.magImage, { backgroundColor: isDark ? colors.border : '#f5f5f5' }]}
           resizeMode="contain"
         />
 
         <View style={styles.magContent}>
-          <Text style={styles.magTitle} numberOfLines={1}>
+          <Text style={[styles.magTitle, { color: colors.text }]} numberOfLines={1}>
             {data.magazine?.title}
           </Text>
-          <Text style={styles.magSubtitle} numberOfLines={1}>
+          <Text style={[styles.magSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
             {data.magazine?.magazine_name}
           </Text>
         </View>
@@ -132,7 +139,7 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
 
       {/* Subscribe */}
       <TouchableOpacity
-        style={styles.subscribeBtn}
+        style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
         onPress={handleSubscribe}
       >
         <Text style={styles.subscribeText}>Subscribe Now</Text>
@@ -143,25 +150,33 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
         {data.posts.slice(0, 3).map(item => (
           <TouchableOpacity
             key={item.id}
-            style={styles.articleCard}
+            style={[styles.articleCard, { 
+              backgroundColor: colors.card,
+              shadowColor: isDark ? '#000' : '#000',
+            }]}
             onPress={() => goToArticle(item)}
           >
             <Image
               source={{ uri: `${PostimgUrl}/${item.image}` }}
-              style={styles.articleImage}
+              style={[styles.articleImage, { backgroundColor: isDark ? colors.border : '#eee' }]}
             />
 
             <View style={styles.articleContent}>
-              <Text numberOfLines={2} style={styles.articleTitle}>
+              <Text numberOfLines={2} style={[styles.articleTitle, { color: colors.text }]}>
                 {item.title}
               </Text>
 
-              <Text numberOfLines={2} style={styles.articleDesc}>
+              <Text numberOfLines={2} style={[styles.articleDesc, { color: colors.textSecondary }]}>
                 {item.short_description}
               </Text>
 
               {item.category?.slug && (
-                <Text style={styles.categoryBadge}>{item.category.slug}</Text>
+                <Text style={[styles.categoryBadge, { 
+                  color: colors.primary,
+                  backgroundColor: isDark ? colors.primaryBackground : 'rgba(201, 6, 10, 0.1)',
+                }]}>
+                  {item.category.slug}
+                </Text>
               )}
             </View>
           </TouchableOpacity>
@@ -185,21 +200,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
-    color: '#111',
   },
   redLine: {
     width: 36,
     height: 4,
-    backgroundColor: COLORS.primary,
     marginBottom: 12,
   },
 
   magCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
@@ -208,7 +219,6 @@ const styles = StyleSheet.create({
   magImage: {
     width: '100%',
     aspectRatio: 4 / 3,
-    backgroundColor: '#f5f5f5',
   },
   magContent: {
     padding: 12,
@@ -217,17 +227,14 @@ const styles = StyleSheet.create({
   magTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
   },
 
   magSubtitle: {
     fontSize: 13,
-    color: '#666',
     marginTop: 4,
   },
 
   subscribeBtn: {
-    backgroundColor: COLORS.primary,
     borderRadius: 10,
     height: 40,
     justifyContent: 'center',
@@ -246,12 +253,10 @@ const styles = StyleSheet.create({
   },
 
   articleCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     flexDirection: 'row',
     overflow: 'hidden',
     marginBottom: 10,
-    shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
@@ -263,7 +268,6 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9,
     borderRadius: 10,
     margin: 10,
-    backgroundColor: '#eee',
   },
 
   articleContent: {
@@ -275,25 +279,21 @@ const styles = StyleSheet.create({
   articleTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#111',
     marginBottom: 4,
   },
 
   articleDesc: {
     fontSize: 12,
-    color: '#666',
     lineHeight: 16,
     marginBottom: 4,
   },
 
   categoryBadge: {
     fontSize: 10,
-    color: '#c9060a',
     fontWeight: '500',
     alignSelf: 'flex-start',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    backgroundColor: 'rgba(201, 6, 10, 0.1)',
   },
 });

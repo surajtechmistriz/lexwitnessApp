@@ -17,17 +17,17 @@ import Animated, {
   Extrapolate,
 } from 'react-native-reanimated';
 import Carousel from 'react-native-reanimated-carousel';
+import { useTheme } from '../../../redux/useTheme';
 
 const { width } = Dimensions.get('window');
 // Modern magazine ratio is usually 3:4 or 1:1.41
 const ITEM_WIDTH = width * 0.42;
 const ITEM_HEIGHT = ITEM_WIDTH * 1.4;
-const BRAND_RED = '#c9060a';
-const BRAND_DARK = '#333';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 
 const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
+  const { colors, isDark } = useTheme();
   const [editions, setEditions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const progressValue = useSharedValue<number>(0);
@@ -47,22 +47,26 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
   }, [skipId]);
 
   if (loading)
-    return <ActivityIndicator style={styles.loader} color={BRAND_RED} />;
+    return <ActivityIndicator style={styles.loader} color={colors.primary} />;
   if (!editions.length) return null;
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { backgroundColor: colors.card }]}>
       {/* HEADER SECTION */}
       <View style={styles.headerRow}>
         <View>
-          <Text style={styles.heading}>Latest Editions</Text>
-          <View style={styles.accentBar} />
+          <Text style={[styles.heading, { color: colors.text }]}>
+            Latest Editions
+          </Text>
+          <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
         </View>
         <TouchableOpacity 
           onPress={onPressViewAll}
           activeOpacity={0.7}
         >
-          <Text style={styles.viewAllText}>View All</Text>
+          <Text style={[styles.viewAllText, { color: colors.primary }]}>
+            View All
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -87,6 +91,8 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
             index={index}
             progressValue={progressValue}
             onPress={() => onPressItem?.(item)}
+            colors={colors}
+            isDark={isDark}
           />
         )}
       />
@@ -99,6 +105,7 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
               key={index}
               index={index}
               progressValue={progressValue}
+              colors={colors}
             />
           );
         })}
@@ -108,7 +115,7 @@ const LatestEditions = ({ skipId, onPressItem, onPressViewAll }: any) => {
 };
 
 // Internal component for the animated card
-const EditionCard = ({ item, index, progressValue, onPress }: any) => {
+const EditionCard = ({ item, index, progressValue, onPress, colors, isDark }: any) => {
   const animatedStyle = useAnimatedStyle(() => {
     const scale = interpolate(
       progressValue.value,
@@ -124,7 +131,10 @@ const EditionCard = ({ item, index, progressValue, onPress }: any) => {
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={onPress}
-        style={styles.card}
+        style={[styles.card, {
+          backgroundColor: isDark ? colors.border : '#eee',
+          shadowColor: isDark ? '#000' : '#000',
+        }]}
       >
         <Image
           source={{
@@ -134,14 +144,16 @@ const EditionCard = ({ item, index, progressValue, onPress }: any) => {
           }}
           style={styles.image}
         />
-        <View style={styles.imageOverlay} />
+        <View style={[styles.imageOverlay, {
+          borderColor: isDark ? colors.border : 'rgba(0,0,0,0.05)',
+        }]} />
       </TouchableOpacity>
     </Animated.View>
   );
 };
 
 // Internal component for the dynamic dots
-const PaginationDot = ({ index, progressValue }: any) => {
+const PaginationDot = ({ index, progressValue, colors }: any) => {
   const dotStyle = useAnimatedStyle(() => {
     const width = interpolate(
       progressValue.value,
@@ -158,14 +170,13 @@ const PaginationDot = ({ index, progressValue }: any) => {
     return { width, opacity };
   });
 
-  return <Animated.View style={[styles.dot, dotStyle]} />;
+  return <Animated.View style={[styles.dot, dotStyle, { backgroundColor: colors.primary }]} />;
 };
 
 const styles = StyleSheet.create({
   wrapper: {
     paddingVertical: 20,
     paddingHorizontal: 20,
-    backgroundColor: '#fff',
     borderRadius: 4,
     marginHorizontal: -12,
   },
@@ -180,17 +191,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
-    marginLeft:-22,
-    color: '#111',
+    marginLeft: -22,
   },
   accentBar: {
     width: 30,
     height: 3,
-    backgroundColor: BRAND_RED,
-    marginLeft:-22,
+    marginLeft: -22,
   },
   viewAllText: {
-    color: BRAND_RED,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -206,8 +214,6 @@ const styles = StyleSheet.create({
     width: ITEM_WIDTH,
     height: ITEM_HEIGHT,
     borderRadius: 12,
-    backgroundColor: '#eee',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -222,7 +228,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -234,7 +239,6 @@ const styles = StyleSheet.create({
   dot: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: BRAND_RED,
     marginHorizontal: 4,
   },
   loader: {

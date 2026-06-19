@@ -1,5 +1,3 @@
-// components/common/SplashScreen.tsx
-
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet, Image } from 'react-native';
 

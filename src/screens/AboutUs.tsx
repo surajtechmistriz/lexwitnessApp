@@ -2,50 +2,62 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
+import { useTheme } from '../redux/useTheme';
 
 const AboutUs = ({ navigation }: any) => {
+  const { colors, isDark } = useTheme();
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
 
         {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={styles.backBtn}
+            style={[styles.backBtn, { backgroundColor: colors.background }]}
           >
-            <Icon name="arrow-left" size={20} color="#333" />
+            <Icon name="arrow-left" size={20} color={colors.text} />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>About Us</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>About Us</Text>
         </View>
 
         {/* HERO SECTION */}
         <View style={styles.hero}>
-          <Text style={styles.title}>Lex Witness</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: colors.primary }]}>Lex Witness</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Modern Legal-Tech Platform for Trusted Insights
           </Text>
         </View>
 
         {/* CONTENT CARDS */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Who We Are</Text>
-          <Text style={styles.text}>
+        <View style={[styles.card, { 
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Who We Are</Text>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>
             Lex Witness is a digital legal-tech platform designed to simplify complex legal information and make it accessible to everyone — from students to professionals.
           </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Our Mission</Text>
-          <Text style={styles.text}>
+        <View style={[styles.card, { 
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Our Mission</Text>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>
             We aim to bridge the gap between law and people by delivering clear, reliable, and easy-to-understand legal news, updates, and insights.
           </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>What We Offer</Text>
-          <Text style={styles.text}>
+        <View style={[styles.card, { 
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>What We Offer</Text>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>
             • Legal news & updates{"\n"}
             • Case analysis & insights{"\n"}
             • Expert opinions{"\n"}
@@ -54,15 +66,18 @@ const AboutUs = ({ navigation }: any) => {
           </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Our Vision</Text>
-          <Text style={styles.text}>
+        <View style={[styles.card, { 
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+        }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Our Vision</Text>
+          <Text style={[styles.text, { color: colors.textSecondary }]}>
             To become India’s most trusted and user-friendly legal information platform, empowering people with knowledge of law.
           </Text>
         </View>
 
         {/* FOOTER NOTE */}
-        <Text style={styles.footer}>
+        <Text style={[styles.footer, { color: colors.textMuted }]}>
           Built with ❤️ for legal awareness
         </Text>
 
@@ -73,11 +88,9 @@ const AboutUs = ({ navigation }: any) => {
 
 export default AboutUs;
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
   },
 
   content: {
@@ -96,7 +109,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -105,7 +117,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
   },
 
   /* HERO */
@@ -116,36 +127,30 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#c9060a',
   },
 
   subtitle: {
     fontSize: 13,
-    color: '#6b7280',
     marginTop: 4,
     lineHeight: 18,
   },
 
   /* CARDS */
   card: {
-    backgroundColor: '#f9fafb',
     borderRadius: 14,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#f3f4f6',
   },
 
   cardTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#333',
     marginBottom: 6,
   },
 
   text: {
     fontSize: 13,
-    color: '#333',
     lineHeight: 20,
   },
 
@@ -154,6 +159,5 @@ const styles = StyleSheet.create({
     marginTop: 20,
     textAlign: 'center',
     fontSize: 12,
-    color: '#9ca3af',
   },
 });

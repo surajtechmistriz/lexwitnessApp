@@ -27,6 +27,7 @@ import { RootState } from '../../redux/store';
 
 import { Linking } from 'react-native';
 import { Animated } from 'react-native';
+import { useTheme } from '../../redux/useTheme';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -34,6 +35,7 @@ type Route = RouteProp<{ ArticleDetail: { slug: string } }, 'ArticleDetail'>;
 
 export default function ArticleDetailPage() {
   const { width } = useWindowDimensions();
+  const { colors, isDark } = useTheme();
 
   const route = useRoute<Route>();
   const navigation = useNavigation<any>();
@@ -150,12 +152,10 @@ export default function ArticleDetailPage() {
   //  FIXED NAVIGATION FUNCTIONS
   // ============================================================
 
-  // 1. Back Button
   const handleBack = () => {
     navigation.goBack();
   };
 
-  // 2. Open Category
   const handleCategoryPress = (category: any) => {
     if (category?.slug) {
       navigation.navigate('Category', {
@@ -164,7 +164,6 @@ export default function ArticleDetailPage() {
     }
   };
 
-  // 3. Open Author
   const handleAuthorPress = (author: any) => {
     if (author?.slug) {
       navigation.navigate('Author', {
@@ -173,7 +172,6 @@ export default function ArticleDetailPage() {
     }
   };
 
-  // 4. Open Tag
   const handleTagPress = (tag: any) => {
     if (tag?.id && tag?.slug) {
       navigation.navigate('Tag', {
@@ -183,29 +181,29 @@ export default function ArticleDetailPage() {
     }
   };
 
-  // 5. Open Related Article
   const handleRelatedPress = (post: any) => {
-    navigation.navigate('ArticleDetail', { slug: post.slug }); //  FIXED - navigate use karo
+    navigation.navigate('ArticleDetail', { slug: post.slug });
   };
 
-  // 6. Open Subscription
   const handleSubscribe = () => {
     navigation.navigate('Subscription');
   };
 
   if (loading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#c9060a" />
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (!article) {
     return (
-      <View style={styles.center}>
-        <Icon name="document-text-outline" size={48} color="#999" />
-        <Text style={styles.notFoundText}>Article not found</Text>
+      <View style={[styles.center, { backgroundColor: colors.background }]}>
+        <Icon name="document-text-outline" size={48} color={colors.textMuted} />
+        <Text style={[styles.notFoundText, { color: colors.textSecondary }]}>
+          Article not found
+        </Text>
       </View>
     );
   }
@@ -233,13 +231,13 @@ export default function ArticleDetailPage() {
   };
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollWrap}
         showsVerticalScrollIndicator={false}
       >
         {/* HERO SECTION */}
-        <View style={styles.heroContainer}>
+        <View style={[styles.heroContainer, { backgroundColor: colors.card }]}>
           {article.image && (
             <View style={styles.imageWrapper}>
               <Image
@@ -256,12 +254,11 @@ export default function ArticleDetailPage() {
                 style={styles.imageGradient}
               />
 
-              {/*  BACK BUTTON - FIXED */}
               <TouchableOpacity
                 onPress={handleBack}
-                style={styles.backBtn}
+                style={[styles.backBtn, { backgroundColor: colors.card }]}
               >
-                <IconBack name="arrow-left" size={22} color="#c9060a" />
+                <IconBack name="arrow-left" size={22} color={colors.primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -272,31 +269,36 @@ export default function ArticleDetailPage() {
               onPress={() => handleCategoryPress(article.category)}
               activeOpacity={0.8}
             >
-              <View style={styles.categoryPill}>
-                <Text style={styles.categoryText}>
+              <View style={[styles.categoryPill, { backgroundColor: colors.primaryBackground }]}>
+                <Text style={[styles.categoryText, { color: colors.primary }]}>
                   {article.category?.name || 'UNCATEGORIZED'}
                 </Text>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleShare} style={styles.shareButton}>
-              <Icon name="share-social" size={20} color="#c9060a" />
+            <TouchableOpacity 
+              onPress={handleShare} 
+              style={[styles.shareButton, { backgroundColor: colors.background }]}
+            >
+              <Icon name="share-social" size={20} color={colors.primary} />
             </TouchableOpacity>
           </View>
 
           {/* Title */}
-          <Text style={styles.title}>{article.title}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {article.title}
+          </Text>
 
           {/* Meta Info */}
           <View style={styles.metaRow}>
             <View style={styles.authorsList}>
-              <Icon name="person-outline" size={14} color="#c9060a" />
+              <Icon name="person-outline" size={14} color={colors.primary} />
               {article.authors?.map((author: any, index: number) => (
                 <TouchableOpacity
                   key={author.slug || index}
                   onPress={() => handleAuthorPress(author)}
                 >
-                  <Text style={styles.authorName}>
+                  <Text style={[styles.authorName, { color: colors.primary }]}>
                     {author?.name}
                     {index !== article.authors.length - 1 ? ', ' : ''}
                   </Text>
@@ -305,8 +307,8 @@ export default function ArticleDetailPage() {
             </View>
 
             <View style={styles.dateContainer}>
-              <Icon name="calendar-outline" size={14} color="#999" />
-              <Text style={styles.dateText}>
+              <Icon name="calendar-outline" size={14} color={colors.textMuted} />
+              <Text style={[styles.dateText, { color: colors.textMuted }]}>
                 {article.magazine?.month?.name} {article.magazine?.year}
               </Text>
             </View>
@@ -314,7 +316,11 @@ export default function ArticleDetailPage() {
         </View>
 
         {/* CONTENT SECTION */}
-        <View style={styles.contentCard}>
+        <View style={[styles.contentCard, { 
+          backgroundColor: colors.card,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+        }]}>
           {/* Article Body */}
           <View style={styles.articleBody}>
             {isSubscribed ? (
@@ -334,7 +340,7 @@ export default function ArticleDetailPage() {
                     source={{ html: cleanedHtml }}
                     tagsStyles={tagsStyles}
                     baseStyle={{
-                      color: '#222',
+                      color: colors.text,
                       fontSize: 14,
                       lineHeight: 24,
                     }}
@@ -350,23 +356,38 @@ export default function ArticleDetailPage() {
             ) : (
               <View>
                 {/* Preview Text */}
-                <View style={styles.previewContainer}>
-                  <Text style={styles.previewText}>{previewText}...</Text>
+                <View style={[styles.previewContainer, { 
+                  backgroundColor: colors.background,
+                }]}>
+                  <Text style={[styles.previewText, { color: colors.textSecondary }]}>
+                    {previewText}...
+                  </Text>
                 </View>
 
                 {/* Premium Lock Box */}
-                <View style={styles.lockBox}>
-                  <View style={styles.lockIconContainer}>
-                    <Icon name="lock-closed" size={32} color="#c9060a" />
+                <View style={[styles.lockBox, { 
+                  backgroundColor: colors.primaryBackground,
+                  borderColor: colors.border,
+                }]}>
+                  <View style={[styles.lockIconContainer, { 
+                    backgroundColor: colors.card,
+                    shadowColor: colors.primary,
+                  }]}>
+                    <Icon name="lock-closed" size={32} color={colors.primary} />
                   </View>
-                  <Text style={styles.lockTitle}>Premium Content</Text>
-                  <Text style={styles.lockSubtext}>
+                  <Text style={[styles.lockTitle, { color: colors.text }]}>
+                    Premium Content
+                  </Text>
+                  <Text style={[styles.lockSubtext, { color: colors.textSecondary }]}>
                     Subscribe to unlock full access to this article and
                     thousands more
                   </Text>
 
                   <TouchableOpacity
-                    style={styles.subscribeBtn}
+                    style={[styles.subscribeBtn, { 
+                      backgroundColor: colors.primary,
+                      shadowColor: colors.primary,
+                    }]}
                     onPress={handleSubscribe}
                     activeOpacity={0.9}
                   >
@@ -374,7 +395,7 @@ export default function ArticleDetailPage() {
                     <Icon name="arrow-forward" size={18} color="#fff" />
                   </TouchableOpacity>
 
-                  <Text style={styles.lockFooter}>
+                  <Text style={[styles.lockFooter, { color: colors.textMuted }]}>
                     Already have an account? Sign in
                   </Text>
                 </View>
@@ -387,8 +408,10 @@ export default function ArticleDetailPage() {
             .length > 0 && (
             <View style={styles.sectionBlock}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Reader Feedback</Text>
-                <View style={styles.sectionLine} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  Reader Feedback
+                </Text>
+                <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
               </View>
               {article.reader_feedbacks
                 ?.filter((i: any) => i.reader_feedback)
@@ -413,18 +436,25 @@ export default function ArticleDetailPage() {
           {article.tags?.length > 0 && (
             <View style={styles.tagsSection}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Topics</Text>
-                <View style={styles.sectionLine} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  Topics
+                </Text>
+                <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
               </View>
               <View style={styles.tagsWrap}>
                 {article.tags.map((tag: any, index: number) => (
                   <TouchableOpacity
                     key={tag.id || index}
-                    style={styles.tagPill}
+                    style={[styles.tagPill, { 
+                      backgroundColor: colors.background,
+                      borderColor: colors.border,
+                    }]}
                     onPress={() => handleTagPress(tag)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.tagText}>#{tag.name}</Text>
+                    <Text style={[styles.tagText, { color: colors.primary }]}>
+                      #{tag.name}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -435,10 +465,10 @@ export default function ArticleDetailPage() {
           {article.authors?.length > 0 && (
             <View style={styles.authorSection}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   About {article.authors.length > 1 ? 'Authors' : 'Author'}
                 </Text>
-                <View style={styles.sectionLine} />
+                <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
               </View>
 
               {article.authors.map((author: any, index: number) => {
@@ -449,7 +479,10 @@ export default function ArticleDetailPage() {
                 }
 
                 return (
-                  <View key={authorKey} style={styles.authorCard}>
+                  <View key={authorKey} style={[styles.authorCard, {
+                    backgroundColor: colors.card,
+                    shadowColor: isDark ? '#000' : '#000',
+                  }]}>
                     {/* Top Row */}
                     <View style={styles.authorTopRow}>
                       <Image
@@ -464,8 +497,10 @@ export default function ArticleDetailPage() {
                       />
 
                       <View style={styles.authorMeta}>
-                        <Text style={styles.authorTitle}>{author.name}</Text>
-                        <Text style={styles.authorRole}>
+                        <Text style={[styles.authorTitle, { color: colors.text }]}>
+                          {author.name}
+                        </Text>
+                        <Text style={[styles.authorRole, { color: colors.primary }]}>
                           {author.email || 'Contributor'}
                         </Text>
 
@@ -487,7 +522,7 @@ export default function ArticleDetailPage() {
                     </View>
 
                     <Text
-                      style={styles.bio}
+                      style={[styles.bio, { color: colors.textSecondary }]}
                       numberOfLines={expandedAuthors[authorKey] ? undefined : 2}
                       ellipsizeMode="tail"
                     >
@@ -500,7 +535,7 @@ export default function ArticleDetailPage() {
                       style={styles.readMoreBtn}
                       onPress={() => toggleAuthor(authorKey)}
                     >
-                      <Text style={styles.readMoreText}>
+                      <Text style={[styles.readMoreText, { color: colors.primary }]}>
                         {expandedAuthors[authorKey] ? 'Show less' : 'View more'}
                       </Text>
 
@@ -519,7 +554,7 @@ export default function ArticleDetailPage() {
                           ],
                         }}
                       >
-                        <Icon name="chevron-down" size={16} color="#6b7280" />
+                        <Icon name="chevron-down" size={16} color={colors.textMuted} />
                       </Animated.View>
                     </TouchableOpacity>
                   </View>
@@ -532,15 +567,20 @@ export default function ArticleDetailPage() {
           {related.length > 0 && (
             <View style={styles.relatedSection}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Related Stories</Text>
-                <View style={styles.sectionLine} />
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  Related Stories
+                </Text>
+                <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
               </View>
 
               {related.map((post: any) => (
                 <TouchableOpacity
                   key={post.id}
-                  style={styles.relatedCard}
-                  onPress={() => handleRelatedPress(post)} //  FIXED
+                  style={[styles.relatedCard, {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  }]}
+                  onPress={() => handleRelatedPress(post)}
                   activeOpacity={0.8}
                 >
                   <Image
@@ -562,12 +602,12 @@ export default function ArticleDetailPage() {
                     }}
                   />
                   <View style={styles.relatedText}>
-                    <Text numberOfLines={2} style={styles.relatedTitle}>
+                    <Text numberOfLines={2} style={[styles.relatedTitle, { color: colors.text }]}>
                       {post.title}
                     </Text>
                     <View style={styles.relatedMeta}>
-                      <Icon name="person-outline" size={12} color="#c9060a" />
-                      <Text style={styles.relatedAuthor}>
+                      <Icon name="person-outline" size={12} color={colors.primary} />
+                      <Text style={[styles.relatedAuthor, { color: colors.primary }]}>
                         {typeof post.author === 'string'
                           ? post.author
                           : post.author?.name || 'Lex Witness Bureau'}
@@ -577,7 +617,7 @@ export default function ArticleDetailPage() {
                   <Icon
                     name="chevron-forward"
                     size={20}
-                    color="#ccc"
+                    color={colors.textMuted}
                     style={styles.relatedArrow}
                   />
                 </TouchableOpacity>
@@ -594,178 +634,130 @@ export default function ArticleDetailPage() {
 
 const tagsStyles = {
   body: {
-    color: '#222',
     fontSize: 15,
     lineHeight: 24,
   },
-
   p: {
     fontSize: 15,
     lineHeight: 24,
-    color: '#2d2d2d',
     marginBottom: 18,
     textAlign: 'justify',
   },
-
   h1: {
     fontSize: 25,
     lineHeight: 35,
     fontWeight: '800',
-    color: '#111',
     marginTop: 26,
     marginBottom: 18,
   },
-
   h2: {
     fontSize: 26,
     lineHeight: 36,
     fontWeight: '700',
-    color: '#111',
     marginTop: 24,
     marginBottom: 16,
   },
-
   h3: {
     fontSize: 22,
     lineHeight: 32,
     fontWeight: '700',
-    color: '#111',
     marginTop: 20,
     marginBottom: 14,
   },
-
   h4: {
     fontSize: 20,
     lineHeight: 28,
     fontWeight: '700',
-    color: '#111',
     marginTop: 18,
     marginBottom: 12,
   },
-
   h5: {
     fontSize: 18,
     lineHeight: 26,
     fontWeight: '700',
-    color: '#111',
     marginTop: 16,
     marginBottom: 10,
   },
-
   h6: {
     fontSize: 16,
     lineHeight: 24,
     fontWeight: '700',
-    color: '#111',
     marginTop: 14,
     marginBottom: 8,
   },
-
   strong: {
     fontWeight: '700',
-    color: '#111',
   },
-
   b: {
     fontWeight: '700',
-    color: '#111',
   },
-
   em: {
     fontStyle: 'italic',
   },
-
   i: {
     fontStyle: 'italic',
   },
-
   u: {
     textDecorationLine: 'underline',
   },
-
   a: {
-    color: '#c9060a',
     textDecorationLine: 'underline',
   },
-
   ul: {
     marginVertical: 12,
     paddingLeft: 20,
   },
-
   ol: {
     marginVertical: 12,
     paddingLeft: 20,
   },
-
   li: {
     fontSize: 16,
     lineHeight: 28,
-    color: '#2d2d2d',
     marginBottom: 8,
   },
-
   blockquote: {
     borderLeftWidth: 4,
-    borderLeftColor: '#c9060a',
-    backgroundColor: '#fafafa',
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginVertical: 20,
     borderRadius: 12,
   },
-
   img: {
     width: '100%',
     height: 'auto',
     borderRadius: 18,
     marginVertical: 20,
   },
-
   table: {
     borderWidth: 1,
-    borderColor: '#e5e5e5',
     marginVertical: 20,
   },
-
   th: {
-    backgroundColor: '#f5f5f5',
     padding: 10,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
     fontWeight: '700',
   },
-
   td: {
     padding: 10,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
   },
-
   tr: {
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
-
   code: {
-    backgroundColor: '#f4f4f4',
-    color: '#c9060a',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
     fontSize: 14,
   },
-
   pre: {
-    backgroundColor: '#111',
     padding: 16,
     borderRadius: 14,
     marginVertical: 20,
   },
-
   hr: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
     marginVertical: 24,
   },
 };
@@ -773,7 +765,6 @@ const tagsStyles = {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollWrap: {
     paddingBottom: 40,
@@ -782,15 +773,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
   },
   notFoundText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#999',
   },
   heroContainer: {
-    backgroundColor: '#fff',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     overflow: 'hidden',
@@ -805,7 +793,6 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'cover',
   },
-
   imageGradient: {
     position: 'absolute',
     bottom: 0,
@@ -822,13 +809,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   categoryPill: {
-    backgroundColor: '#fff0f0',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
   },
   categoryText: {
-    color: '#c9060a',
     fontWeight: '700',
     fontSize: 12,
     textTransform: 'uppercase',
@@ -838,14 +823,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#333',
     paddingHorizontal: 20,
     lineHeight: 30,
     marginBottom: 12,
@@ -868,7 +851,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   authorName: {
-    color: '#c9060a',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -878,14 +860,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   dateText: {
-    color: '#999',
     fontSize: 13,
   },
   contentCard: {
-    backgroundColor: '#fff',
     marginTop: 16,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
     paddingTop: 20,
   },
   articleBody: {
@@ -893,7 +871,6 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   previewContainer: {
-    backgroundColor: '#fafafa',
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -901,26 +878,21 @@ const styles = StyleSheet.create({
   previewText: {
     fontSize: 16,
     lineHeight: 28,
-    color: '#666',
   },
   lockBox: {
     marginTop: 8,
     padding: 28,
-    backgroundColor: '#fff5f5',
     borderRadius: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ffe0e0',
   },
   lockIconContainer: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#c9060a',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -929,26 +901,22 @@ const styles = StyleSheet.create({
   lockTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#333',
     marginBottom: 8,
   },
   lockSubtext: {
     fontSize: 14,
-    color: '#666',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 22,
     paddingHorizontal: 12,
   },
   subscribeBtn: {
-    backgroundColor: '#c9060a',
     flexDirection: 'row',
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 40,
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#c9060a',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -963,7 +931,6 @@ const styles = StyleSheet.create({
   lockFooter: {
     marginTop: 20,
     fontSize: 13,
-    color: '#999',
   },
   sectionBlock: {
     marginTop: 32,
@@ -977,13 +944,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#333',
     letterSpacing: -0.3,
   },
   sectionLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e0e0e0',
     marginLeft: 12,
   },
   tagsSection: {
@@ -996,96 +961,71 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   tagPill: {
-    backgroundColor: '#f5f5f5',
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#e5e5e5',
   },
   tagText: {
-    color: '#c9060a',
     fontSize: 13,
     fontWeight: '600',
   },
-
   authorSection: {
     marginTop: 30,
     paddingHorizontal: 16,
   },
-
   authorCard: {
-    backgroundColor: '#fff',
     borderRadius: 18,
     padding: 16,
     marginBottom: 18,
-
-    shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 10,
     shadowOffset: {
       width: 0,
       height: 4,
     },
-
     elevation: 3,
   },
-
   authorTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   avatar: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#f1f1f1',
+    backgroundColor: '#DA2127',
   },
-
   authorMeta: {
     flex: 1,
     marginLeft: 14,
     justifyContent: 'center',
   },
-
   linkedinRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
   },
-
   linkedinText: {
     marginLeft: 6,
-    color: '#0A66C2',
     fontSize: 13,
     fontWeight: '600',
+    color:"#b0b0b0"
   },
-
   authorTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111',
   },
-
   authorRole: {
     fontSize: 13,
-    color: '#c9060a',
     marginTop: 5,
     fontWeight: '600',
   },
-
   bio: {
     fontSize: 14,
     lineHeight: 24,
-    color: '#555',
     marginTop: 16,
   },
-
-  authorContent: {
-    flex: 1,
-  },
-
   relatedSection: {
     marginTop: 32,
     paddingHorizontal: 20,
@@ -1093,11 +1033,9 @@ const styles = StyleSheet.create({
   },
   relatedCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     marginBottom: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#f0f0f0',
     overflow: 'hidden',
     alignItems: 'center',
   },
@@ -1112,7 +1050,6 @@ const styles = StyleSheet.create({
   relatedTitle: {
     fontWeight: '600',
     fontSize: 14,
-    color: '#333',
     marginBottom: 6,
     lineHeight: 20,
   },
@@ -1122,14 +1059,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   relatedAuthor: {
-    color: '#c9060a',
     fontSize: 11,
     fontWeight: '500',
   },
   relatedArrow: {
     marginRight: 12,
   },
-
   readMoreBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1137,14 +1072,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     marginTop: 6,
   },
-
   readMoreText: {
     fontSize: 13,
-    color: '#c9060a',
     fontWeight: '500',
     letterSpacing: 0.2,
   },
-
   backBtn: {
     position: 'absolute',
     top: 10,
@@ -1154,7 +1086,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.95)',
     zIndex: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

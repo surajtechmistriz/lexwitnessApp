@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { useTheme } from '../../redux/useTheme';
 
 interface PaginationProps {
   currentPage: number;
@@ -14,6 +15,7 @@ export default function Pagination({
   loading = false,
   onPageChange,
 }: PaginationProps) {
+  const { colors, isDark } = useTheme();
   
   if (lastPage <= 1) return null;
 
@@ -43,9 +45,18 @@ export default function Pagination({
       <TouchableOpacity
         disabled={loading || currentPage === 1}
         onPress={() => onPageChange(currentPage - 1)}
-        style={[styles.arrowBox, currentPage === 1 && styles.disabledArrow]}
+        style={[
+          styles.arrowBox,
+          { backgroundColor: colors.card },
+          currentPage === 1 && styles.disabledArrow
+        ]}
       >
-        <View style={[styles.chevron, styles.chevronLeft, currentPage === 1 && styles.disabledChevron]} />
+        <View style={[
+          styles.chevron, 
+          styles.chevronLeft, 
+          { borderColor: currentPage === 1 ? colors.textMuted : colors.text },
+          currentPage === 1 && styles.disabledChevron
+        ]} />
       </TouchableOpacity>
 
       {/* Page Numbers */}
@@ -53,18 +64,23 @@ export default function Pagination({
         {pages.map((page, index) => (
           <View key={index}>
             {page === "..." ? (
-              <Text style={styles.ellipsis}>...</Text>
+              <Text style={[styles.ellipsis, { color: colors.textMuted }]}>...</Text>
             ) : (
               <TouchableOpacity
                 disabled={loading}
                 onPress={() => onPageChange(page as number)}
                 style={[
                   styles.pageBtn,
+                  { 
+                    backgroundColor: currentPage === page ? colors.primary : colors.card,
+                    borderColor: currentPage === page ? colors.primary : colors.border,
+                  },
                   currentPage === page && styles.activePageBtn
                 ]}
               >
                 <Text style={[
                   styles.pageText,
+                  { color: currentPage === page ? '#fff' : colors.textSecondary },
                   currentPage === page && styles.activePageText
                 ]}>
                   {page}
@@ -79,9 +95,18 @@ export default function Pagination({
       <TouchableOpacity
         disabled={loading || currentPage === lastPage}
         onPress={() => onPageChange(currentPage + 1)}
-        style={[styles.arrowBox, currentPage === lastPage && styles.disabledArrow]}
+        style={[
+          styles.arrowBox,
+          { backgroundColor: colors.card },
+          currentPage === lastPage && styles.disabledArrow
+        ]}
       >
-        <View style={[styles.chevron, styles.chevronRight, currentPage === lastPage && styles.disabledChevron]} />
+        <View style={[
+          styles.chevron, 
+          styles.chevronRight, 
+          { borderColor: currentPage === lastPage ? colors.textMuted : colors.text },
+          currentPage === lastPage && styles.disabledChevron
+        ]} />
       </TouchableOpacity>
     </View>
   );
@@ -106,13 +131,9 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#eee',
   },
   activePageBtn: {
-    backgroundColor: '#c9060a',
-    borderColor: '#c9060a',
     ...Platform.select({
       ios: {
         shadowColor: '#c9060a',
@@ -128,26 +149,22 @@ const styles = StyleSheet.create({
   pageText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#444',
   },
   activePageText: {
     color: '#fff',
   },
   ellipsis: {
     paddingHorizontal: 4,
-    color: '#aaa',
     fontSize: 16,
   },
   arrowBox: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
   },
   disabledArrow: {
-    backgroundColor: '#f9f9f9',
     opacity: 0.5,
   },
   chevron: {
@@ -155,7 +172,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderTopWidth: 2,
     borderRightWidth: 2,
-    borderColor: '#333',
   },
   chevronLeft: {
     transform: [{ rotate: '-135deg' }],
@@ -166,6 +182,6 @@ const styles = StyleSheet.create({
     marginRight: 3,
   },
   disabledChevron: {
-    borderColor: '#ccc',
+    opacity: 0.3,
   }
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import HeroCard from '../components/HeroCard';
 import { Article } from '../types/types';
+import { useTheme } from '../../../redux/useTheme';
 
 type HeroSectionProps = {
   firstCard: Article | null;
@@ -16,6 +17,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   formatDate,
   getImage,
 }) => {
+  const { colors, isDark } = useTheme();
+
   if (!firstCard) return null;
 
   return (
@@ -43,6 +46,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                 transform: [{ scale: 0.96 + index * 0.02 }], // slight depth scale
                 marginTop: index === 0 ? -20 : -10, // overlap effect
                 zIndex: 10 - index,
+                shadowColor: isDark ? '#000' : '#000',
               },
             ]}
           >
@@ -79,11 +83,8 @@ const styles = StyleSheet.create({
   secondaryCardWrapper: {
     borderRadius: 16,
     overflow: 'hidden',
-
-    //  Shadow for depth
     elevation: 6,
-    shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 10,
   },
-}); 
+});

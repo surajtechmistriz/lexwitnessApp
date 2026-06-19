@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { getEditorial } from '../api/home.api';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '../../../theme/colors';
+import { useTheme } from '../../../redux/useTheme';
 
 interface EditorialData {
   image: string;
@@ -32,6 +32,7 @@ const fallbackImage =
 const EditorialCard: React.FC = () => {
   const [data, setData] = useState<EditorialData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const { colors, isDark } = useTheme();
 
   const navigation = useNavigation<any>();
 
@@ -65,7 +66,7 @@ const EditorialCard: React.FC = () => {
       <View style={styles.loader}>
         <ActivityIndicator
           size="small"
-          color={COLORS.primary}
+          color={colors.primary}
         />
       </View>
     );
@@ -77,14 +78,17 @@ const EditorialCard: React.FC = () => {
     <View style={styles.wrapper}>
       {/* HEADER */}
       <View style={styles.headerRow}>
-        <Text style={styles.heading}>Editorial</Text>
-        <View style={styles.redLine} />
+        <Text style={[styles.heading, { color: colors.text }]}>Editorial</Text>
+        <View style={[styles.redLine, { backgroundColor: colors.primary }]} />
       </View>
 
       {/* SMALL COMPACT CARD */}
       <TouchableOpacity
         activeOpacity={0.92}
-        style={styles.card}
+        style={[styles.card, { 
+          backgroundColor: colors.card,
+          shadowColor: isDark ? '#000' : '#000',
+        }]}
         onPress={() =>
           navigation.navigate('EditorialDetail', {
             editorialData: data,
@@ -95,7 +99,7 @@ const EditorialCard: React.FC = () => {
         <View style={styles.imageWrapper}>
           <Image
             source={{ uri: imageSource }}
-            style={styles.coverImage}
+            style={[styles.coverImage, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]}
             resizeMode="cover"
           />
 
@@ -108,7 +112,7 @@ const EditorialCard: React.FC = () => {
             style={styles.overlay}
           />
 
-          <View style={styles.badge}>
+          <View style={[styles.badge, { backgroundColor: colors.primary }]}>
             <Text style={styles.badgeText}>
               FEATURED
             </Text>
@@ -117,34 +121,34 @@ const EditorialCard: React.FC = () => {
 
         {/* CONTENT */}
         <View style={styles.content}>
-          <Text numberOfLines={1} style={styles.name}>
+          <Text numberOfLines={1} style={[styles.name, { color: colors.text }]}>
             {data.name}
           </Text>
 
-          <Text numberOfLines={1} style={styles.company}>
+          <Text numberOfLines={1} style={[styles.company, { color: colors.textSecondary }]}>
             {data.company_name}
           </Text>
 
           {/* META */}
           <View style={styles.metaRow}>
-            <View style={styles.metaItem}>
+            <View style={[styles.metaItem, { backgroundColor: colors.background }]}>
               <Icon
                 name="briefcase-outline"
                 size={13}
-                color={COLORS.primary}
+                color={colors.primary}
               />
-              <Text numberOfLines={1} style={styles.metaText}>
+              <Text numberOfLines={1} style={[styles.metaText, { color: colors.textSecondary }]}>
                 {data.designation}
               </Text>
             </View>
 
-            <View style={styles.metaItem}>
+            <View style={[styles.metaItem, { backgroundColor: colors.background }]}>
               <Icon
                 name="location-outline"
                 size={13}
-                color={COLORS.primary}
+                color={colors.primary}
               />
-              <Text numberOfLines={1} style={styles.metaText}>
+              <Text numberOfLines={1} style={[styles.metaText, { color: colors.textSecondary }]}>
                 {data.place}
               </Text>
             </View>
@@ -153,21 +157,21 @@ const EditorialCard: React.FC = () => {
           {/* DESCRIPTION */}
           <Text
             numberOfLines={2}
-            style={styles.description}
+            style={[styles.description, { color: colors.textSecondary }]}
           >
             {stripHtml(data.description)}
           </Text>
 
           {/* FOOTER */}
           <View style={styles.footer}>
-            <Text style={styles.readMore}>
+            <Text style={[styles.readMore, { color: colors.primary }]}>
               Read Editorial
             </Text>
 
             <Icon
               name="arrow-forward"
               size={16}
-              color={COLORS.primary}
+              color={colors.primary}
             />
           </View>
         </View>
@@ -197,31 +201,25 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111',
   },
 
   redLine: {
     width: 42,
     height: 4,
     borderRadius: 20,
-    backgroundColor: COLORS.primary,
     marginTop: 5,
   },
 
   /* CARD */
   card: {
-    backgroundColor: '#fff',
     borderRadius: 18,
     overflow: 'hidden',
-
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 3,
     },
     shadowOpacity: 0.06,
     shadowRadius: 8,
-
     elevation: 4,
   },
 
@@ -234,7 +232,6 @@ const styles = StyleSheet.create({
   coverImage: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f2f2f2',
   },
 
   overlay: {
@@ -245,7 +242,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: COLORS.primary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
@@ -266,12 +262,10 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111',
   },
 
   company: {
     fontSize: 13,
-    color: '#666',
     marginTop: 2,
     marginBottom: 10,
   },
@@ -286,7 +280,6 @@ const styles = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fafafa',
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 8,
@@ -296,7 +289,6 @@ const styles = StyleSheet.create({
   metaText: {
     marginLeft: 5,
     fontSize: 11,
-    color: '#444',
     fontWeight: '600',
     flexShrink: 1,
   },
@@ -304,7 +296,6 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 13,
     lineHeight: 20,
-    color: '#555',
   },
 
   footer: {
@@ -315,7 +306,6 @@ const styles = StyleSheet.create({
   },
 
   readMore: {
-    color: COLORS.primary,
     fontWeight: '700',
     fontSize: 13,
   },

@@ -1,14 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Animated, ScrollView } from 'react-native';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Modal,
-} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useTheme } from '../../redux/useTheme';
 
 interface YearFilterProps {
   years: number[];
@@ -23,6 +17,7 @@ const YearFilter: React.FC<YearFilterProps> = ({
   onSelect,
   onApply,
 }) => {
+  const { colors, isDark } = useTheme();
   const [open, setOpen] = useState(false);
 
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -49,23 +44,34 @@ const YearFilter: React.FC<YearFilterProps> = ({
       {/* row layout */}
       <View style={styles.row}>
         {/* dropdown button */}
-        <TouchableOpacity style={styles.dropdownBtn} onPress={toggleDropdown}>
-          <Text>{selectedYear ?? 'Select Year'}</Text>
+        <TouchableOpacity
+          style={[
+            styles.dropdownBtn,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.card,
+            },
+          ]}
+          onPress={toggleDropdown}
+        >
+          <Text style={{ color: colors.text }}>
+            {selectedYear ?? 'Select Year'}
+          </Text>
           <Animated.View
             style={{
               transform: [{ rotate }],
             }}
           >
-            <Ionicons name="chevron-down" size={20} />
+            <Ionicons name="chevron-down" size={20} color={colors.text} />
           </Animated.View>
         </TouchableOpacity>
 
         {/* filter button */}
         <TouchableOpacity
-          style={styles.filterBtn}
+          style={[styles.filterBtn, { backgroundColor: colors.primary }]}
           onPress={() => {
-            onApply(); // apply filter
-            setOpen(false); //  close dropdown
+            onApply();
+            setOpen(false);
           }}
         >
           <Text style={styles.filterText}>Apply</Text>
@@ -76,7 +82,7 @@ const YearFilter: React.FC<YearFilterProps> = ({
       <Modal visible={open} transparent animationType="fade">
         {/* overlay close */}
         <TouchableOpacity
-          style={styles.overlay}
+          style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}
           activeOpacity={1}
           onPress={() => {
             Animated.timing(rotateAnim, {
@@ -89,7 +95,15 @@ const YearFilter: React.FC<YearFilterProps> = ({
           }}
         >
           {/* dropdown box */}
-          <View style={styles.dropdownBox}>
+          <View
+            style={[
+              styles.dropdownBox,
+              {
+                backgroundColor: colors.card,
+                shadowColor: isDark ? '#000' : '#000',
+              },
+            ]}
+          >
             <ScrollView
               showsVerticalScrollIndicator={false}
               nestedScrollEnabled
@@ -97,7 +111,7 @@ const YearFilter: React.FC<YearFilterProps> = ({
               {[null, ...years].map((item, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={styles.item}
+                  style={[styles.item, { borderBottomColor: colors.border }]}
                   onPress={() => {
                     onSelect(item);
 
@@ -110,7 +124,9 @@ const YearFilter: React.FC<YearFilterProps> = ({
                     setOpen(false);
                   }}
                 >
-                  <Text>{item === null ? 'All Years' : item}</Text>
+                  <Text style={{ color: colors.text }}>
+                    {item === null ? 'All Years' : item}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -138,19 +154,15 @@ const styles = StyleSheet.create({
   dropdownBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
     padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderRadius: 50,
-    borderBlockColor: 'red',
   },
 
   // filter button
   filterBtn: {
-    backgroundColor: '#c9060a',
     paddingVertical: 12,
     paddingHorizontal: 16,
     justifyContent: 'center',
@@ -167,7 +179,6 @@ const styles = StyleSheet.create({
   // modal overlay
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.2)',
     justifyContent: 'center',
     paddingLeft: 15,
     paddingRight: 91,
@@ -177,18 +188,19 @@ const styles = StyleSheet.create({
 
   // dropdown box
   dropdownBox: {
-    backgroundColor: '#fff',
-    // borderRadius: 6,
     maxHeight: 300,
     maxWidth: 240,
     marginTop: 350,
     borderRadius: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
   },
 
   // item
   item: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
   },
 });

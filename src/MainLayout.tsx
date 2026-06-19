@@ -7,6 +7,8 @@ import Banner from './components/common/DynamicBanner';
 import TopMenu from './components/common/Menubar';
 import Header from './components/common/Header';
 import SearchOverlay from './components/common/SearchOverlay';
+import { useTheme } from './redux/useTheme';
+// import { useTheme } from '../hooks/useTheme';
 
 type Props = {
   children: React.ReactNode;
@@ -37,6 +39,7 @@ const MainLayout = ({
 }: Props) => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { colors, isDark } = useTheme();
 
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
 
@@ -49,8 +52,6 @@ const MainLayout = ({
     'Archive',
     'ArticleDetail',
     'MagazineDetail',
-    // 'Category',  // REMOVED - Show TopMenu on Category
-    // 'Author',    // REMOVED - Show TopMenu on Author
     'Tag',
     'EditorialDetail',
     'InvoiceScreen',
@@ -62,8 +63,6 @@ const MainLayout = ({
     'SignIn',
     'ArticleDetail',
     'MagazineDetail',
-    // 'Category',  // REMOVED - Show Banner on Category
-    // 'Author',    // REMOVED - Show Banner on Author
     'Tag',
     'EditorialDetail',
     'InvoiceScreen',
@@ -73,10 +72,11 @@ const MainLayout = ({
   const hiddenHeader = [
     'Register',
     'SignIn',
-    'Author',      // Hide Header on Author
-    'Category',    // Hide Header on Category
-    'Magazines',   // Hide Header on Magazines
-    'Archive',   // Hide Header on Archive
+    'Subscription',
+    'Author',
+    'Category',
+    'Magazines',
+    'Archive',
     'Tag',
     'ArticleDetail',
     'MagazineDetail',
@@ -107,8 +107,11 @@ const MainLayout = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f5f7" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+      <StatusBar 
+        barStyle={isDark ? 'light-content' : 'dark-content'} 
+        backgroundColor={isDark ? '#121212' : '#f5f5f7'} 
+      />
 
       {/* HEADER - Hide on Author, Category, Magazines, etc. */}
       {!hiddenHeader.includes(routeName || '') && showHeader && (
@@ -134,9 +137,8 @@ const MainLayout = ({
         <TopMenu activeSlug={activeSlug} />
       )}
 
-
       {/* CONTENT */}
-      <View style={styles.content}>
+      <View style={[styles.content, { backgroundColor: colors.background }]}>
         {children}
       </View>
 
@@ -154,11 +156,8 @@ export default MainLayout;
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
-
   content: {
     flex: 1,
-    backgroundColor: '#f5f5f7',
   },
 });

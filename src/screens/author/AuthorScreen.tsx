@@ -28,6 +28,7 @@ import { getAuthorBySlug } from './api/authorarticle';
 
 // Import MainLayout instead of individual components
 import MainLayout from '../../MainLayout';
+import { useTheme } from '../../redux/useTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -35,6 +36,7 @@ export default function Author() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
+  const { colors, isDark } = useTheme();
 
   // SAFE PARAMS
   const slug = route.params?.slug || '';
@@ -171,15 +173,18 @@ export default function Author() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#c9060a']}
-            tintColor="#c9060a"
+            colors={[colors.primary]}
+            tintColor={colors.primary}
           />
         }
       >
-        <View style={styles.content}>
+        <View style={[styles.content, { backgroundColor: colors.background }]}>
           {appliedYear && (
-            <View style={styles.activeFilterContainer}>
-              <Text style={styles.activeFilterText}>
+            <View style={[styles.activeFilterContainer, { 
+              backgroundColor: colors.primaryBackground,
+              borderLeftColor: colors.primary,
+            }]}>
+              <Text style={[styles.activeFilterText, { color: colors.text }]}>
                 Showing posts from {appliedYear}
               </Text>
               <TouchableOpacity 
@@ -188,7 +193,7 @@ export default function Author() {
                   setAppliedYear(null);
                 }}
               >
-                <Icon name="close-circle" size={20} color="#c9060a" />
+                <Icon name="close-circle" size={20} color={colors.primary} />
               </TouchableOpacity>
             </View>
           )}
@@ -230,7 +235,10 @@ export default function Author() {
             <HomeBanner />
           </View>
 
-          <View style={styles.adContainer}>
+          <View style={[styles.adContainer, { 
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          }]}>
             <HomeAdvertisement />
           </View>
         </View>
@@ -248,7 +256,6 @@ const styles = StyleSheet.create({
   content: {
     paddingTop: 10,
     minHeight: SCREEN_HEIGHT * 0.6,
-    backgroundColor: '#fff',
   },
 
   skeletonWrapper: {
@@ -266,10 +273,8 @@ const styles = StyleSheet.create({
 
   adContainer: {
     height: 300,
-    backgroundColor: '#fff',
     marginVertical: 20,
     borderWidth: 1,
-    borderColor: '#dddbdb',
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 15,
@@ -284,17 +289,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fef0f0',
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginHorizontal: 16,
     marginBottom: 10,
     borderRadius: 8,
     borderLeftWidth: 3,
-    borderLeftColor: '#c9060a',
   },
   activeFilterText: {
-    color: '#333',
     fontSize: 14,
   },
 });

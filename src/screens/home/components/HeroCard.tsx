@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { useTheme } from '../../../redux/useTheme';
 
 type HeroCardProps = {
   category: any;
@@ -26,9 +27,10 @@ const HeroCard = ({
   date,
   image,
   height = 260,
-  onLoadEnd, //  use prop directly
+  onLoadEnd,
 }: HeroCardProps) => {
   const navigation = useNavigation<any>();
+  const { colors } = useTheme();
 
   const categoryName =
     typeof category === 'string' ? category : category?.name;
@@ -38,7 +40,9 @@ const HeroCard = ({
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      style={styles.container}
+      style={[styles.container, {
+        shadowColor: colors.shadow || '#000',
+      }]}
       onPress={() =>
         navigation.navigate('ArticleDetail', {
           slug,
@@ -49,7 +53,7 @@ const HeroCard = ({
       <ImageBackground
         source={{ uri: image }}
         style={styles.image}
-        onLoadEnd={onLoadEnd} //  correct
+        onLoadEnd={onLoadEnd}
       >
         <LinearGradient
           colors={[
@@ -68,7 +72,7 @@ const HeroCard = ({
                 })
               }
               activeOpacity={0.8}
-              style={styles.badge}
+              style={[styles.badge, { backgroundColor: colors.primary + 'E6' }]}
             >
               <Text style={styles.badgeText}>
                 {categoryName.toUpperCase()}
@@ -92,11 +96,9 @@ const HeroCard = ({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    // borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 14,
     elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
@@ -115,13 +117,12 @@ const styles = StyleSheet.create({
   },
 
   badge: {
-    backgroundColor: 'rgba(201, 6, 10, 0.9)',
     alignSelf: 'flex-start',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
-    marginTop:-8,
-    marginLeft:-6
+    marginTop: -8,
+    marginLeft: -6,
   },
 
   badgeText: {
