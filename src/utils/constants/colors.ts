@@ -1,10 +1,10 @@
-// constants/colors.ts
-export const LightColors = {
+import { ThemeColors } from '../../types/theme';
+
+export const LightColors: ThemeColors = {
   primary: '#c9060a',
   primaryDark: '#a80508',
   primaryLight: '#e63b3e',
   primaryBackground: '#fef0f0',
-  
   background: '#f5f5f7',
   card: '#ffffff',
   text: '#1a1a1b',
@@ -12,22 +12,19 @@ export const LightColors = {
   textMuted: '#9ca3af',
   border: '#e5e7eb',
   borderLight: '#f0f0f0',
-  
   success: '#10b981',
   warning: '#f59e0b',
   error: '#ef4444',
   info: '#3b82f6',
-  
   shadow: 'rgba(0, 0, 0, 0.1)',
   overlay: 'rgba(0, 0, 0, 0.5)',
 };
 
-export const DarkColors = {
+export const DarkColors: ThemeColors = {
   primary: '#c9060a',
   primaryDark: '#9e0508',
   primaryLight: '#e63b3e',
   primaryBackground: '#2d1a1a',
-  
   background: '#121212',
   card: '#1e1e1e',
   text: '#ffffff',
@@ -35,12 +32,10 @@ export const DarkColors = {
   textMuted: '#6b7280',
   border: '#2d2d2d',
   borderLight: '#3d3d3d',
-  
   success: '#10b981',
   warning: '#f59e0b',
   error: '#ef4444',
   info: '#3b82f6',
-  
   shadow: 'rgba(0, 0, 0, 0.3)',
   overlay: 'rgba(0, 0, 0, 0.7)',
 };

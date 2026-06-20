@@ -17,7 +17,7 @@ import Animated, {
   Extrapolate,
 } from 'react-native-reanimated';
 import Carousel from 'react-native-reanimated-carousel';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 // Modern magazine ratio is usually 3:4 or 1:1.41

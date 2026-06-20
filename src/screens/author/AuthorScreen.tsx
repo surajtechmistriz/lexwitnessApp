@@ -28,7 +28,7 @@ import { getAuthorBySlug } from './api/authorarticle';
 
 // Import MainLayout instead of individual components
 import MainLayout from '../../MainLayout';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 // Narrower card (can tweak 0.5 to 0.6 based on your layout)

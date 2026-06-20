@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import EditorPicks from '../components/EditorPicks';
 import { EditorPicksSectionProps } from '../types/types';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
   data,

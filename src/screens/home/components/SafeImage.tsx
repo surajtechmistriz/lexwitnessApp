@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Image, ImageProps } from "react-native";
-import { useTheme } from "../../../redux/useTheme";
+import { useTheme } from "../../../redux/hooks/useTheme";
 
 const localFallback = require("../../../assets/fallback.png");
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 interface PaginationProps {
   currentPage: number;

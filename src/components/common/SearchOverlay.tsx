@@ -17,7 +17,7 @@ import { getAuthor } from '../../services/api/author';
 import { getMenu } from '../../services/api/category';
 import { getYears } from '../../services/api/years';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 //  DEFINE TYPE LOCALLY
 type RootStackParamList = {

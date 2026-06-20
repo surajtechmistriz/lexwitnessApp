@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;

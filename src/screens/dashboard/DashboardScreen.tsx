@@ -22,7 +22,7 @@ import { logoutApi } from '../../screens/auth/api/auth';
 import { logout } from '../../redux/slices/authSlice';
 import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
 import { refreshProfile } from '../../utils/helper/refreshProfile';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 // ------ TYPES ------
 
@@ -146,17 +146,22 @@ const DashboardScreen = () => {
   const handleLogout = async () => {
     if (isLoggingOut) return;
 
-    const clearUserData = async () => {
-      await AsyncStorage.multiRemove([
-        'token',
-        'user',
-        'subscription',
-        'nextSubscriptions',
-        'persist:root',
-      ]);
+ const clearUserData = async () => {
+  console.log('AsyncStorage:', AsyncStorage);
+  console.log('multiRemove:', AsyncStorage?.multiRemove);
+  console.log('dispatch:', dispatch);
+  console.log('logout:', logout);
 
-      dispatch(logout());
-    };
+ await Promise.all([
+  AsyncStorage.removeItem('token'),
+  AsyncStorage.removeItem('user'),
+  AsyncStorage.removeItem('subscription'),
+  AsyncStorage.removeItem('nextSubscriptions'),
+  AsyncStorage.removeItem('persist:root'),
+]);
+
+  dispatch(logout());
+};
 
     const navigateToSignIn = () => {
       navigation.reset({

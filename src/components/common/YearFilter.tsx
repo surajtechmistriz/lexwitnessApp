@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Animated, ScrollView } from 'react-native';
 import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 interface YearFilterProps {
   years: number[];

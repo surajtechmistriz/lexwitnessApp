@@ -1,19 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { DarkColors, LightColors } from '../../utils/constants/colors';
-
-export type ThemeMode = 'light' | 'dark';
-
-interface ThemeState {
-  mode: ThemeMode;
-  colors: typeof LightColors;
-}
-
-// Load initial theme from storage
-const loadTheme = (): ThemeMode => {
-  // For React Native, we'll use the persisted state from redux-persist
-  // This is just a fallback
-  return 'light';
-};
+import { ThemeMode, ThemeState } from '../../types/theme';
 
 const initialState: ThemeState = {
   mode: 'light',

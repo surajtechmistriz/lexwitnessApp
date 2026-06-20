@@ -11,7 +11,7 @@ import CategoryList from '../components/common/CategoryList';
 import MagazinesScreen from '../screens/magazines/MagazinesScreen';
 import DashboardScreen from '../screens/dashboard/DashboardScreen';
 import SignIn from '../screens/auth/screens/SignIn';
-import { useTheme } from '../redux/useTheme';
+import { useTheme } from '../redux/hooks/useTheme';
 
 const Tab = createBottomTabNavigator();
 

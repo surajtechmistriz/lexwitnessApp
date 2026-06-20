@@ -20,7 +20,7 @@ import { RootState } from '../../redux/store';
 import { logout } from '../../redux/slices/authSlice';
 import { toggleTheme } from '../../redux/slices/themeSlice';
 import { LightColors, DarkColors } from '../../constants/colors';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();

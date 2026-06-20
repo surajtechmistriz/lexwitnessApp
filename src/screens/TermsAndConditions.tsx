@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
-import { useTheme } from '../redux/useTheme';
+import { useTheme } from '../redux/hooks/useTheme';
 
 const TermsAndConditions = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();

@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getUserInvoices, Invoice } from "./invoice";
 import InvoiceCard from "../home/components/InvoiceCard";
-import { useTheme } from "../../redux/useTheme";
+import { useTheme } from "../../redux/hooks/useTheme";
 
 export default function InvoiceScreen() {
   const navigation = useNavigation<any>();

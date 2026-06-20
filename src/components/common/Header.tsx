@@ -8,7 +8,7 @@ import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { RootState } from '../../redux/store';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 type HeaderProps = {
   onSearchPress: () => void;

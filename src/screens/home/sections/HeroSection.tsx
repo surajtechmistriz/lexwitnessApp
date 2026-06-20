@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import HeroCard from '../components/HeroCard';
 import { Article } from '../types/types';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 type HeroSectionProps = {
   firstCard: Article | null;

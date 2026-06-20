@@ -12,7 +12,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { getMenu } from '../../services/api/category';
 import { getCache, setCache } from '../../utils/cache';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 type MenuItem = {
   id: number;

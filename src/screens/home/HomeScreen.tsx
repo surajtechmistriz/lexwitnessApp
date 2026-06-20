@@ -31,7 +31,7 @@ import { useRefresh } from '../../hooks/useRefresh';
 import HeroSkeleton from '../../skeleton/HeroSkeleton';
 import ListSkeleton from '../../skeleton/ListSkeleton';
 import MainLayout from '../../MainLayout';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;

@@ -24,7 +24,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { setProfile } from '../../../redux/slices/authSlice';
 import { loginApi } from '../api/auth';
 import { getProfile } from '../../dashboard/api';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 const { height, width } = Dimensions.get('window');
 
@@ -342,14 +342,14 @@ const SignInScreen = () => {
             {/* Sign Up Link */}
             <View style={styles.footerLinks}>
               <Text style={[styles.noAccountText, { color: colors.textSecondary }]}>
-                Don't have an account? 
+                Don't have an account ? 
               </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate('Register')}
                 activeOpacity={0.7}
               >
                 <Text style={[styles.registerLink, { color: colors.primary }]}>
-                  Sign Up
+                 {" "} Sign Up
                 </Text>
               </TouchableOpacity>
             </View>
@@ -386,9 +386,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // shadowOpacity: 0.1,
+    // shadowRadius: 4,
+    // elevation: 3,
   },
 
   gradientHeader: {

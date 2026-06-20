@@ -27,7 +27,7 @@ import { RootState } from '../../redux/store';
 
 import { Linking } from 'react-native';
 import { Animated } from 'react-native';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 

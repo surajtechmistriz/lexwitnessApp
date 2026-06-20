@@ -1,22 +1,21 @@
-// constants/globalStyles.ts
 import { StyleSheet } from 'react-native';
-import Colors from './colors';
+import { ThemeColors } from '../../types/theme';
 
-export const GlobalStyles = StyleSheet.create({
+/**
+ * Creates global styles based on the current theme
+ * This is a function that returns styles instead of a static object
+ */
+export const getGlobalStyles = (colors: ThemeColors) => StyleSheet.create({
   // Container Styles
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
-  },
-  containerWhite: {
-    flex: 1,
-    backgroundColor: Colors.white,
+    backgroundColor: colors.background,
   },
   containerCard: {
-    backgroundColor: Colors.cardBackground,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
-    shadowColor: Colors.shadow.medium,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -27,60 +26,46 @@ export const GlobalStyles = StyleSheet.create({
   heading: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.text.primary,
+    color: colors.text,
   },
   subHeading: {
     fontSize: 18,
     fontWeight: '600',
-    color: Colors.text.primary,
+    color: colors.text,
   },
   body: {
     fontSize: 14,
-    color: Colors.text.secondary,
+    color: colors.textSecondary,
   },
   caption: {
     fontSize: 12,
-    color: Colors.text.tertiary,
+    color: colors.textMuted,
   },
   
   // Button Styles
   buttonPrimary: {
-    backgroundColor: Colors.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
   },
   buttonPrimaryText: {
-    color: Colors.text.inverse,
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
   },
   buttonSecondary: {
-    backgroundColor: Colors.white,
+    backgroundColor: colors.card,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: colors.primary,
   },
   buttonSecondaryText: {
-    color: Colors.primary,
+    color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
-  },
-  
-  // Spacing
-  padding: {
-    small: 8,
-    medium: 16,
-    large: 24,
-    xlarge: 32,
-  },
-  margin: {
-    small: 8,
-    medium: 16,
-    large: 24,
-    xlarge: 32,
   },
   
   // Layout
@@ -99,4 +84,5 @@ export const GlobalStyles = StyleSheet.create({
   },
 });
 
-export default GlobalStyles;
+// Export default for backward compatibility
+export default getGlobalStyles;

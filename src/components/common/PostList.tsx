@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { formatMonthYear } from '../../utils/helper/dateHelper';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 interface PostListProps {
   posts: any[];

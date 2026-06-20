@@ -1,5 +1,5 @@
 import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
-import { useTheme } from '../redux/useTheme';
+import { useTheme } from '../redux/hooks/useTheme';
 
 // You'll need to pass theme colors from your app
 export const getToastConfig = (colors: any, isDark: boolean) => ({

@@ -20,7 +20,8 @@ import PricingCard from '../../../components/common/PricingCard';
 import { latesteEdition } from '../../../services/api/latestedition';
 import MainLayout from '../../../MainLayout';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
+import { useSelector } from 'react-redux';
 
 type Magazine = {
   id: number;
@@ -40,6 +41,8 @@ export default function SubscriptionPage() {
 
   const scrollRef = useRef<ScrollView>(null);
   const pricingY = useRef(0);
+
+  const user = useSelector((state: any) => state.auth.user);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -82,7 +85,10 @@ export default function SubscriptionPage() {
     >
       <StatusBar barStyle="light-content" />
 
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.background }]}
+        edges={['left', 'right', 'bottom']}
+      >
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
@@ -105,7 +111,9 @@ export default function SubscriptionPage() {
 
               {/* IMAGE */}
               <View style={styles.imageWrapper}>
-                <View style={[styles.imageContainer, { backgroundColor: '#222' }]}>
+                <View
+                  style={[styles.imageContainer, { backgroundColor: '#222' }]}
+                >
                   {loading ? (
                     <ActivityIndicator color="#fff" size="large" />
                   ) : (
@@ -120,22 +128,29 @@ export default function SubscriptionPage() {
 
               {/* BUTTONS */}
               <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.primaryBtn, { backgroundColor: '#fff' }]}
-                  activeOpacity={0.9}
-                  onPress={() =>
-                    navigation.navigate('Register', {
-                      selectedPlanId: 1,
-                    })
-                  }
-                >
-                  <Text style={[styles.primaryBtnText, { color: colors.primary }]}>
-                    Your First Year is on Us
-                  </Text>
-                </TouchableOpacity>
+                {!user && (
+                  <TouchableOpacity
+                    style={[styles.primaryBtn, { backgroundColor: '#fff' }]}
+                    activeOpacity={0.9}
+                    onPress={() =>
+                      navigation.navigate('Register', {
+                        selectedPlanId: 1,
+                      })
+                    }
+                  >
+                    <Text
+                      style={[styles.primaryBtnText, { color: colors.primary }]}
+                    >
+                      Your First Year is on Us
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
-                  style={[styles.secondaryBtn, { borderColor: 'rgba(255,255,255,0.5)' }]}
+                  style={[
+                    styles.secondaryBtn,
+                    { borderColor: 'rgba(255,255,255,0.5)' },
+                  ]}
                   activeOpacity={0.7}
                   onPress={scrollToPricing}
                 >
@@ -148,10 +163,15 @@ export default function SubscriptionPage() {
           </LinearGradient>
 
           {/* --- TRUST BAR --- */}
-          <View style={[styles.trustBar, { 
-            backgroundColor: isDark ? colors.card : '#f8f9fa',
-            borderColor: isDark ? colors.border : '#eee',
-          }]}>
+          <View
+            style={[
+              styles.trustBar,
+              {
+                backgroundColor: isDark ? colors.card : '#f8f9fa',
+                borderColor: isDark ? colors.border : '#eee',
+              },
+            ]}
+          >
             <Text style={[styles.trustText, { color: colors.textSecondary }]}>
               Join 100,000+ Premium Readers
             </Text>
@@ -163,7 +183,12 @@ export default function SubscriptionPage() {
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
                 Subscription Benefits
               </Text>
-              <View style={[styles.titleUnderline, { backgroundColor: colors.primary }]} />
+              <View
+                style={[
+                  styles.titleUnderline,
+                  { backgroundColor: colors.primary },
+                ]}
+              />
             </View>
 
             <View style={styles.benefitsGrid}>
@@ -222,18 +247,27 @@ const BenefitItem = ({
   colors: any;
   isDark: boolean;
 }) => (
-  <View style={[
-    styles.benefitCard, 
-    { 
-      backgroundColor: colors.card,
-      borderColor: colors.border,
-    }
-  ]}>
-    <Icon name={icon} size={28} color={colors.primary} style={styles.benefitIcon} />
+  <View
+    style={[
+      styles.benefitCard,
+      {
+        backgroundColor: colors.card,
+        borderColor: colors.border,
+      },
+    ]}
+  >
+    <Icon
+      name={icon}
+      size={28}
+      color={colors.primary}
+      style={styles.benefitIcon}
+    />
 
     <View style={styles.benefitContent}>
       <Text style={[styles.benefitTitle, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.benefitText, { color: colors.textSecondary }]}>{text}</Text>
+      <Text style={[styles.benefitText, { color: colors.textSecondary }]}>
+        {text}
+      </Text>
     </View>
   </View>
 );

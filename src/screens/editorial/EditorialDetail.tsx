@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const EditorialDetail = () => {
   const route = useRoute();

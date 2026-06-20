@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { useTheme } from '../redux/useTheme';
+import { useTheme } from '../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 

@@ -13,7 +13,7 @@ import {
 import { latesteEdition } from '../../../services/api/latestedition';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 /* ---------- TYPES ---------- */
 

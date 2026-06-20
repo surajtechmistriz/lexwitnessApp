@@ -7,7 +7,7 @@ import Banner from './components/common/DynamicBanner';
 import TopMenu from './components/common/Menubar';
 import Header from './components/common/Header';
 import SearchOverlay from './components/common/SearchOverlay';
-import { useTheme } from './redux/useTheme';
+import { useTheme } from './redux/hooks/useTheme';
 // import { useTheme } from '../hooks/useTheme';
 
 type Props = {

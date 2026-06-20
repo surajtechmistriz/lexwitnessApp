@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
 import LatestEditions from '../home/components/Latest5Edition';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;

@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { downloadInvoicePdf } from "../../Invoice/invoiceDownload";
-import { useTheme } from "../../../redux/useTheme";
+import { useTheme } from "../../../redux/hooks/useTheme";
 
 export default function InvoiceCard({ item }) {
   const { colors, isDark } = useTheme();

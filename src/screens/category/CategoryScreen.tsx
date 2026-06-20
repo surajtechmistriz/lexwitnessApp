@@ -25,7 +25,7 @@ import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 
 import TopMenu from '../../components/common/Menubar';
 import Banner from '../../components/common/DynamicBanner';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import Icon from 'react-native-vector-icons/Feather';
-import { useTheme } from '../redux/useTheme';
+import { useTheme } from '../redux/hooks/useTheme';
 
 const { width, height } = Dimensions.get('window');
 

@@ -22,7 +22,7 @@ import Pagination from '../../components/common/Pagination';
 
 import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 type RootStackParamList = {
   MagazineDetail: { slug: string };

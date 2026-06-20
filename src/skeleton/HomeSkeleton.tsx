@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions, ScrollView } from 'react-native';
-import { useTheme } from '../redux/useTheme';
+import { useTheme } from '../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const GRID_CARD_WIDTH = (width - 36) / 2; // Matches your 2x2 grid logic

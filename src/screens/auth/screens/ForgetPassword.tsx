@@ -17,7 +17,8 @@ import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
+import { forgotPassword } from '../api/auth';
 
 const { height } = Dimensions.get('window');
 
@@ -49,27 +50,37 @@ const ForgetPasswordScreen = () => {
   };
 
   const handleSendResetLink = async () => {
-    if (!email || !email.includes('@')) {
-      setError('Please enter a valid email address');
+    if (!email.trim()) {
+      setError('Email is required');
       return;
     }
 
-    setLoading(true);
-    setError('');
-
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setEmailSent(true);
+      setLoading(true);
+      setError('');
+
+      const response = await forgotPassword(email);
+
+      if (response?.status) {
+        setEmailSent(true);
+
+        Toast.show({
+          type: 'success',
+          text1: 'Reset Link Sent',
+          text2: response?.message || 'Please check your email',
+        });
+      }
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message || 'Failed to send reset link';
+
+      setError(message);
 
       Toast.show({
-        type: 'success',
-        text1: 'Reset Link Sent',
-        text2: `Password reset link sent to ${email}`,
-        position: 'top',
-        visibilityTime: 3000,
+        type: 'error',
+        text1: 'Error',
+        text2: message,
       });
-    } catch (err: any) {
-      setError(err?.message || 'Failed to send reset link');
     } finally {
       setLoading(false);
     }
@@ -83,7 +94,10 @@ const ForgetPasswordScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['left', 'right', 'bottom']}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
@@ -93,8 +107,11 @@ const ForgetPasswordScreen = () => {
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          <TouchableOpacity 
-            style={[styles.backButton, { backgroundColor: 'rgba(255,255,255,0.2)' }]} 
+          <TouchableOpacity
+            style={[
+              styles.backButton,
+              { backgroundColor: 'rgba(255,255,255,0.2)' },
+            ]}
             onPress={handleBack}
             activeOpacity={0.7}
           >
@@ -107,7 +124,9 @@ const ForgetPasswordScreen = () => {
             end={{ x: 1, y: 1 }}
             style={styles.gradientHeader}
           >
-            <View style={[styles.iconContainer, { backgroundColor: BRAND.white }]}>
+            <View
+              style={[styles.iconContainer, { backgroundColor: BRAND.white }]}
+            >
               <Ionicons name="key-outline" size={40} color={BRAND.primary} />
             </View>
             <Text style={styles.header}>Forgot Password</Text>
@@ -116,26 +135,47 @@ const ForgetPasswordScreen = () => {
             </Text>
           </LinearGradient>
 
-          <View style={[styles.formContainer, { 
-            backgroundColor: colors.card,
-            shadowColor: isDark ? '#000' : '#000',
-          }]}>
+          <View
+            style={[
+              styles.formContainer,
+              {
+                backgroundColor: colors.card,
+                shadowColor: isDark ? '#000' : '#000',
+              },
+            ]}
+          >
             {error ? (
-              <View style={[styles.errorContainer, { 
-                backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
-                borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
-              }]}>
+              <View
+                style={[
+                  styles.errorContainer,
+                  {
+                    backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
+                    borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
+                  },
+                ]}
+              >
                 <Ionicons name="alert-circle" size={18} color={BRAND.error} />
-                <Text style={[styles.errorText, { color: BRAND.error }]}>{error}</Text>
+                <Text style={[styles.errorText, { color: BRAND.error }]}>
+                  {error}
+                </Text>
               </View>
             ) : null}
 
             {emailSent ? (
-              <View style={[styles.successContainer, { 
-                backgroundColor: isDark ? '#1a2d1a' : '#ECFDF5',
-                borderColor: isDark ? '#1a4a1a' : '#A7F3D0',
-              }]}>
-                <Ionicons name="checkmark-circle" size={18} color={BRAND.success} />
+              <View
+                style={[
+                  styles.successContainer,
+                  {
+                    backgroundColor: isDark ? '#1a2d1a' : '#ECFDF5',
+                    borderColor: isDark ? '#1a4a1a' : '#A7F3D0',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={18}
+                  color={BRAND.success}
+                />
                 <Text style={[styles.successText, { color: BRAND.success }]}>
                   Reset link sent! Please check your email.
                 </Text>
@@ -143,15 +183,25 @@ const ForgetPasswordScreen = () => {
             ) : null}
 
             <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.text }]}>Email Address</Text>
-              <View style={[
-                styles.inputWrapper,
-                { 
-                  backgroundColor: isDark ? colors.background : BRAND.lightGray,
-                  borderColor: email ? BRAND.primary : (isDark ? colors.border : BRAND.border),
-                },
-                email && styles.inputWrapperFilled,
-              ]}>
+              <Text style={[styles.label, { color: colors.text }]}>
+                Email Address
+              </Text>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  {
+                    backgroundColor: isDark
+                      ? colors.background
+                      : BRAND.lightGray,
+                    borderColor: email
+                      ? BRAND.primary
+                      : isDark
+                      ? colors.border
+                      : BRAND.border,
+                  },
+                  email && styles.inputWrapperFilled,
+                ]}
+              >
                 <Ionicons
                   name="mail-outline"
                   size={20}
@@ -170,7 +220,11 @@ const ForgetPasswordScreen = () => {
                 />
                 {email !== '' && !loading && !emailSent && (
                   <TouchableOpacity onPress={() => setEmail('')}>
-                    <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+                    <Ionicons
+                      name="close-circle"
+                      size={18}
+                      color={colors.textMuted}
+                    />
                   </TouchableOpacity>
                 )}
               </View>
@@ -178,7 +232,11 @@ const ForgetPasswordScreen = () => {
 
             {!emailSent ? (
               <TouchableOpacity
-                style={[styles.sendBtn, loading && styles.disabledBtn, { shadowColor: BRAND.primary }]}
+                style={[
+                  styles.sendBtn,
+                  loading && styles.disabledBtn,
+                  { shadowColor: BRAND.primary },
+                ]}
                 onPress={handleSendResetLink}
                 disabled={loading}
                 activeOpacity={0.85}
@@ -199,7 +257,11 @@ const ForgetPasswordScreen = () => {
             ) : (
               <View>
                 <TouchableOpacity
-                  style={[styles.sendBtn, styles.resendBtn, { shadowColor: BRAND.primary }]}
+                  style={[
+                    styles.sendBtn,
+                    styles.resendBtn,
+                    { shadowColor: BRAND.primary },
+                  ]}
                   onPress={handleSendResetLink}
                   disabled={loading}
                   activeOpacity={0.85}
@@ -222,20 +284,31 @@ const ForgetPasswordScreen = () => {
                   style={styles.signInLink}
                   onPress={goToSignIn}
                 >
-                  <Text style={[styles.signInText, { color: colors.textSecondary }]}>
-                    Remember your password? <Text style={[styles.signInLinkText, { color: colors.primary }]}>Sign In</Text>
+                  <Text
+                    style={[styles.signInText, { color: colors.textSecondary }]}
+                  >
+                    Remember your password?{' '}
+                    <Text
+                      style={[styles.signInLinkText, { color: colors.primary }]}
+                    >
+                      Sign In
+                    </Text>
                   </Text>
                 </TouchableOpacity>
               </View>
             )}
 
             {!emailSent && (
-              <TouchableOpacity
-                style={styles.signInLink}
-                onPress={goToSignIn}
-              >
-                <Text style={[styles.signInText, { color: colors.textSecondary }]}>
-                  Remember your password? <Text style={[styles.signInLinkText, { color: colors.primary }]}>Sign In</Text>
+              <TouchableOpacity style={styles.signInLink} onPress={goToSignIn}>
+                <Text
+                  style={[styles.signInText, { color: colors.textSecondary }]}
+                >
+                  Remember your password?{' '}
+                  <Text
+                    style={[styles.signInLinkText, { color: colors.primary }]}
+                  >
+                    Sign In
+                  </Text>
                 </Text>
               </TouchableOpacity>
             )}
@@ -271,9 +344,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    // shadowOpacity: 0.1,
+    // shadowRadius: 4,
+    // elevation: 3,
   },
   gradientHeader: {
     paddingTop: height * 0.05,

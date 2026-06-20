@@ -33,7 +33,7 @@ export const getMembershipPlans = async () => {
 
 export const registerApi = async (data: any) => {
   try {
-    const response = await api.post("auth/register", data);
+    const response = await api.post("/auth/register", data);
 
     return response.data;
   } catch (error: any) {

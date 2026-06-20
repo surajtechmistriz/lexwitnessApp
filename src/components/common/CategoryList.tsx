@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { getMenu } from '../../services/api/category';
-import { useTheme } from '../../redux/useTheme';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 
@@ -185,7 +185,7 @@ const CategoryList = () => {
           onPress={handleBack}
           activeOpacity={0.7}
         >
-          <Icon name="arrow-back" size={24} color={colors.text} />
+          <Icon name="arrow-back" size={24} color="#c9060a" />
         </TouchableOpacity>
 
         <View style={styles.headerContent}>

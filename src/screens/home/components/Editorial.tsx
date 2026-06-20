@@ -13,7 +13,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { getEditorial } from '../api/home.api';
 import Config from 'react-native-config';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 interface EditorialData {
   image: string;

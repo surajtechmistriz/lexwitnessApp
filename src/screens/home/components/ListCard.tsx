@@ -3,7 +3,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 import Config from 'react-native-config';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 /* ---------- TYPES ---------- */
 type HeroCardProps = {

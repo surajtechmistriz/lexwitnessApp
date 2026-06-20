@@ -17,7 +17,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
+import { resetPassword } from '../api/auth';
 
 const { height } = Dimensions.get('window');
 
@@ -38,7 +39,8 @@ const ResetPasswordScreen = () => {
   const route = useRoute<any>();
   const { colors, isDark } = useTheme();
 
-  const token = route.params?.token || '';
+  const token = route.params?.token;
+const email = route.params?.email;
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,50 +53,61 @@ const ResetPasswordScreen = () => {
     navigation.goBack();
   };
 
-  const handleResetPassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+const handleResetPassword = async () => {
+  if (!newPassword) {
+    setError('Password is required');
+    return;
+  }
 
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+  if (newPassword.length < 6) {
+    setError('Password must be at least 6 characters');
+    return;
+  }
 
+  if (newPassword !== confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  try {
     setLoading(true);
     setError('');
 
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    const response = await resetPassword({
+      token,
+      email,
+      password: newPassword,
+      password_confirmation: confirmPassword,
+    });
 
+    if (response?.status) {
       Toast.show({
         type: 'success',
-        text1: 'Password Reset',
-        text2: 'Your password has been reset successfully',
-        position: 'top',
-        visibilityTime: 3000,
+        text1: 'Success',
+        text2: 'Password reset successfully',
       });
 
-      setTimeout(() => {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'SignIn' }],
-        });
-      }, 500);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to reset password');
-      Toast.show({
-        type: 'error',
-        text1: 'Failed',
-        text2: 'Unable to reset password. Please try again.',
-        position: 'top',
-        visibilityTime: 3000,
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'SignIn' }],
       });
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      'Failed to reset password';
+
+    setError(message);
+
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: message,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
