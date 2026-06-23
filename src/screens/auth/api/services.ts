@@ -44,7 +44,7 @@ export const registerApi = async (data: any) => {
 export const verifyPaymentApi = async (data: any) => {
   try {
     const response = await api.post(
-      "auth/verify-payment",
+      "/auth/verify-payment",
       data
     );
 

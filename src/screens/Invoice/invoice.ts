@@ -24,7 +24,7 @@ export const getUserInvoices = async () => {
   const res = await api.get<InvoiceResponse>(
     "/subscription/plan-history"
   );
-console.log("Invoice responses",res)
+// console.log("Invoice responses",res)
   return res.data;
 };
 

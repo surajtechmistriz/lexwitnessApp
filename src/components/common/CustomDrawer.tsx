@@ -21,6 +21,9 @@ import { logout } from '../../redux/slices/authSlice';
 import { toggleTheme } from '../../redux/slices/themeSlice';
 import { LightColors, DarkColors } from '../../constants/colors';
 import { useTheme } from '../../redux/hooks/useTheme';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Linking } from 'react-native';
+import Feather from 'react-native-vector-icons/Feather';
 
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -406,6 +409,58 @@ const CustomDrawer = ({ navigation }: any) => {
           </>
         )}
 
+{/* 
+<View style={styles.socialSection}>
+  <Text style={[styles.socialTitle, { color: colors.textSecondary }]}>
+    Connect With Us
+  </Text>
+
+  <View style={styles.socialIcons}>
+    <TouchableOpacity
+      onPress={() => Linking.openURL('https://wa.me/+919876543210')}
+    >
+      <Ionicons
+        name="logo-whatsapp"
+        size={24}
+        color={colors.primary}
+      />
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      onPress={() => Linking.openURL('tel:+919876543210')}
+    >
+      <Feather
+        name="phone-call"
+        size={22}
+        color={colors.primary}
+      />
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      onPress={() => Linking.openURL('mailto:info@lexwitness.com')}
+    >
+      <Feather
+        name="mail"
+        size={22}
+        color={colors.primary}
+      />
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      onPress={() =>
+        Linking.openURL('https://www.linkedin.com/company/lexwitness')
+      }
+    >
+      <Ionicons
+        name="logo-linkedin"
+        size={24}
+        color={colors.primary}
+      />
+    </TouchableOpacity>
+  </View>
+</View> */}
+
+
         {/* Footer */}
         <View style={styles.footerSection}>
           <Text style={[styles.copyright, { color: colors.textMuted }]}>
@@ -541,7 +596,7 @@ const createStyles = (colors: any) =>
     // Settings
     settingsBox: {
       marginHorizontal: 20,
-      marginBottom: -20,
+      marginBottom: 20,
       borderRadius: 14,
       padding: 12,
       borderWidth: 1,
@@ -605,6 +660,27 @@ const createStyles = (colors: any) =>
       borderWidth: 1,
     },
     logoutLabel: { fontSize: 15, fontWeight: '600' },
+
+    //socail icons
+
+    // socialSection: {
+    //   alignItems: 'center',
+    //   marginBottom: 2,
+    //   marginTop: 30,
+    // },
+
+    // socialTitle: {
+    //   fontSize: 12,
+    //   fontWeight: '600',
+    //   marginBottom: 12,
+    // },
+
+    // socialIcons: {
+    //   flexDirection: 'row',
+    //   alignItems: 'center',
+    //   justifyContent: 'center',
+    //   gap: 24,
+    // },
 
     // Footer
     footerSection: {

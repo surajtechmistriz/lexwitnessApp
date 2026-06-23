@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTheme } from '../../../redux/hooks/useTheme';
+import Toast from 'react-native-toast-message';
 
 const HomeBanner = () => {
   const { colors, isDark } = useTheme();
@@ -19,15 +20,17 @@ const HomeBanner = () => {
 
   const handleSubmit = () => {
     if (!name || !email) {
-      console.log('Name and email are required');
+      Toast.show({
+             type: 'error',
+             text1: 'Name and email are required',})
       return;
     }
 
-    console.log('Subscribed:', {
-      name,
-      email,
-      contact,
-    });
+    // console.log('Subscribed:', {
+    //   name,
+    //   email,
+    //   contact,
+    // });
 
     // reset form (optional)
     setName('');
@@ -65,7 +68,7 @@ const HomeBanner = () => {
               style={[
                 styles.input,
                 {
-                  backgroundColor: isDark ? colors.border : '#222',
+                  backgroundColor: isDark ? colors.border : '#ffffff',
                   color: colors.text,
                 },
               ]}
@@ -80,7 +83,7 @@ const HomeBanner = () => {
               style={[
                 styles.input,
                 {
-                  backgroundColor: isDark ? colors.border : '#222',
+                  backgroundColor: isDark ? colors.border : '#ffffff',
                   color: colors.text,
                 },
               ]}
@@ -96,7 +99,7 @@ const HomeBanner = () => {
               style={[
                 styles.input,
                 {
-                  backgroundColor: isDark ? colors.border : '#222',
+                  backgroundColor: isDark ? colors.border : '#ffffff',
                   color: colors.text,
                 },
               ]}

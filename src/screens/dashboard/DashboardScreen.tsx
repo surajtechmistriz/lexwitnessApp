@@ -147,10 +147,10 @@ const DashboardScreen = () => {
     if (isLoggingOut) return;
 
  const clearUserData = async () => {
-  console.log('AsyncStorage:', AsyncStorage);
-  console.log('multiRemove:', AsyncStorage?.multiRemove);
-  console.log('dispatch:', dispatch);
-  console.log('logout:', logout);
+  // console.log('AsyncStorage:', AsyncStorage);
+  // console.log('multiRemove:', AsyncStorage?.multiRemove);
+  // console.log('dispatch:', dispatch);
+  // console.log('logout:', logout);
 
  await Promise.all([
   AsyncStorage.removeItem('token'),

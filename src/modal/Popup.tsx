@@ -97,17 +97,18 @@ const Popup = ({
       onRequestClose={handleClose}
     >
       <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.75)' }]}>
-        <View style={[
-          styles.card, 
-          { 
-            backgroundColor: colors.card,
-            shadowColor: isDark ? '#000' : '#000',
-          }
-        ]}>
-
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              shadowColor: isDark ? '#000' : '#000',
+            },
+          ]}
+        >
           {/* CLOSE BUTTON */}
-          <Pressable 
-            onPress={handleClose} 
+          <Pressable
+            onPress={handleClose}
             style={[styles.closeBtn, { backgroundColor: colors.background }]}
           >
             <Text style={[styles.closeBtnTxt, { color: colors.text }]}>✕</Text>
@@ -143,19 +144,38 @@ const Popup = ({
                 </Text>
 
                 <Text style={[styles.promoText, { color: colors.text }]}>
-                  Start Your <Text style={[styles.redText, { color: colors.primary }]}>Free Month Now</Text>
-                </Text>  
-                <Text style={[styles.credit, { color: colors.textSecondary }]}>
-                  No credit card required
+                  Your{' '}
+                  <Text style={[styles.redText, { color: colors.primary }]}>
+                    1st Month
+                  </Text>
+                  {''} is on us.
                 </Text>
+                <View style={styles.creditContainer}>
+                  <Text
+                    style={[styles.credit, { color: colors.textSecondary }]}
+                  >
+                    ✓ Full access to Lex Witness portal
+                  </Text>
+                  <Text
+                    style={[styles.credit, { color: colors.textSecondary }]}
+                  >
+                    ✓ No card details required
+                  </Text>
+                  <Text
+                    style={[styles.credit, { color: colors.textSecondary }]}
+                  >
+                    ✓ Upgrade or Cancel anytime
+                  </Text>
+                </View>
 
                 <TouchableOpacity
-                  style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
+                  style={[
+                    styles.subscribeBtn,
+                    { backgroundColor: colors.primary },
+                  ]}
                   onPress={goToSubscription}
                 >
-                  <Text style={styles.subscribeBtnTxt}>
-                    Subscribe Now
-                  </Text>
+                  <Text style={styles.subscribeBtnTxt}>Subscribe Now</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -226,12 +246,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-  }, 
+  },
+  creditContainer: {
+    alignSelf: 'stretch',
+    marginBottom: 15,
+  },
+
   credit: {
     fontSize: 12,
     fontWeight: '500',
     fontStyle: 'italic',
-    marginBottom: 15,
+    marginBottom: 4,
+    textAlign: 'left',
   },
   redText: {
     // Color applied dynamically

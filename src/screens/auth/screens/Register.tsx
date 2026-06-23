@@ -36,7 +36,7 @@ import {
 } from '../api/services';
 import { loginSuccess } from '../../../redux/slices/authSlice';
 import MainLayout from '../../../MainLayout';
-import { useTheme } from '../../../redux/useTheme';
+import { useTheme } from '../../../redux/hooks/useTheme';
 
 interface MembershipPlan {
   id: number;
@@ -90,8 +90,8 @@ const RegisterScreen = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [receivedOtp, setReceivedOtp] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  
-  const [dobDate, setDobDate] = useState<Date | null>(null);
+
+  // const [dobDate, setDobDate] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchPlans();
@@ -229,7 +229,7 @@ const RegisterScreen = () => {
         password_confirmation: form.password_confirmation,
         address: form.address,
         membership_plan_id: form.plan_id,
-        dob: form.dob,
+        dob: formatDisplayDate(form.dob).replace(/\//g, '-'),
         organisation: form.organisation_name,
         city: form.city,
         state: form.state,
@@ -289,6 +289,8 @@ const RegisterScreen = () => {
         theme: { color: '#c9060a' },
       };
 
+      // console.log('REGISTER RESPONSE', res);
+
       try {
         const paymentResponse: any = await RazorpayCheckout.open(options);
         const verifyPayload = {
@@ -300,6 +302,7 @@ const RegisterScreen = () => {
         };
 
         const verifyRes = await verifyPaymentApi(verifyPayload);
+
         if (verifyRes?.status) {
           const token = verifyRes?.data?.token || res?.data?.token;
           const user = verifyRes?.data?.user || res?.data?.user;
@@ -425,11 +428,7 @@ const RegisterScreen = () => {
   };
 
   return (
-    <MainLayout
-      title="Register"
-      routeName="Register"
-      showFilter={false}
-    >
+    <MainLayout title="Register" routeName="Register" showFilter={false}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={[styles.flex, { backgroundColor: colors.background }]}
@@ -448,10 +447,21 @@ const RegisterScreen = () => {
 
           {/* Header Section */}
           <View style={styles.headerSection}>
-            <View style={[styles.iconContainer, { backgroundColor: colors.primaryBackground }]}>
-              <Ionicons name="person-add-outline" size={40} color={colors.primary} />
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: colors.primaryBackground },
+              ]}
+            >
+              <Ionicons
+                name="person-add-outline"
+                size={40}
+                color={colors.primary}
+              />
             </View>
-            <Text style={[styles.heading, { color: colors.text }]}>Create Account</Text>
+            <Text style={[styles.heading, { color: colors.text }]}>
+              Create Account
+            </Text>
             <Text style={[styles.subHeading, { color: colors.textSecondary }]}>
               Join Lex Witness Membership
             </Text>
@@ -509,13 +519,21 @@ const RegisterScreen = () => {
             {/* Phone with OTP */}
             <View style={styles.phoneContainer}>
               <Text style={[styles.label, { color: colors.text }]}>
-                Contact Number <Text style={[styles.requiredStar, { color: colors.primary }]}>*</Text>
+                Contact Number{' '}
+                <Text style={[styles.requiredStar, { color: colors.primary }]}>
+                  *
+                </Text>
               </Text>
               <View style={styles.row}>
-                <View style={[styles.phoneInputWrapper, { 
-                  borderColor: isDark ? colors.border : '#e0e0e0',
-                  backgroundColor: isDark ? colors.background : '#fafafa',
-                }]}>
+                <View
+                  style={[
+                    styles.phoneInputWrapper,
+                    {
+                      borderColor: isDark ? colors.border : '#e0e0e0',
+                      backgroundColor: isDark ? colors.background : '#fafafa',
+                    },
+                  ]}
+                >
                   <Ionicons
                     name="call-outline"
                     size={20}
@@ -536,7 +554,7 @@ const RegisterScreen = () => {
                   style={[
                     styles.otpBtn,
                     (loading || resendTimer > 0) && styles.otpBtnDisabled,
-                    { backgroundColor: colors.primary }
+                    { backgroundColor: colors.primary },
                   ]}
                   onPress={handleSendOtp}
                   disabled={loading || resendTimer > 0}
@@ -575,19 +593,33 @@ const RegisterScreen = () => {
             {/* DOB PICKER */}
             <View style={styles.dobContainer}>
               <Text style={[styles.label, { color: colors.text }]}>
-                Date of Birth <Text style={[styles.requiredStar, { color: colors.primary }]}>*</Text>
+                Date of Birth{' '}
+                <Text style={[styles.requiredStar, { color: colors.primary }]}>
+                  *
+                </Text>
               </Text>
               <TouchableOpacity
-                style={[styles.dateButton, { 
-                  borderColor: isDark ? colors.border : '#e0e0e0',
-                  backgroundColor: isDark ? colors.background : '#fafafa',
-                }]}
+                style={[
+                  styles.dateButton,
+                  {
+                    borderColor: isDark ? colors.border : '#e0e0e0',
+                    backgroundColor: isDark ? colors.background : '#fafafa',
+                  },
+                ]}
                 onPress={() => setShowDatePicker(true)}
                 activeOpacity={0.7}
               >
-                <Ionicons name="calendar-outline" size={20} color={colors.textMuted} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                  color={colors.textMuted}
+                />
                 <Text
-                  style={form.dob ? [styles.dateText, { color: colors.text }] : [styles.datePlaceholder, { color: colors.textMuted }]}
+                  style={
+                    form.dob
+                      ? [styles.dateText, { color: colors.text }]
+                      : [styles.datePlaceholder, { color: colors.textMuted }]
+                  }
                 >
                   {form.dob
                     ? formatDisplayDate(form.dob)
@@ -604,7 +636,11 @@ const RegisterScreen = () => {
             {/* Date Picker */}
             {showDatePicker && (
               <DateTimePicker
-                value={dobDate || new Date()}
+                value={
+                  form.dob
+                    ? new Date(form.dob + 'T00:00:00')
+                    : new Date(2000, 0, 1) // default DOB year
+                }
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 maximumDate={new Date()}
@@ -615,16 +651,12 @@ const RegisterScreen = () => {
                   }
 
                   if (event.type === 'set' && selectedDate) {
-                    setDobDate(selectedDate);
-
                     const year = selectedDate.getFullYear();
-                    const month = String(
-                      selectedDate.getMonth() + 1,
-                    ).padStart(2, '0');
-                    const day = String(selectedDate.getDate()).padStart(
+                    const month = String(selectedDate.getMonth() + 1).padStart(
                       2,
                       '0',
                     );
+                    const day = String(selectedDate.getDate()).padStart(2, '0');
 
                     handleChange('dob', `${year}-${month}-${day}`);
                   }
@@ -769,27 +801,44 @@ const RegisterScreen = () => {
             {loadingPlans ? (
               <ActivityIndicator size="large" color={colors.primary} />
             ) : plans.length === 0 ? (
-              <Text style={[styles.noPlansText, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.noPlansText, { color: colors.textSecondary }]}
+              >
                 No plans available
               </Text>
             ) : (
               <>
                 {selectedPlan && (
                   <LinearGradient
-                    colors={isDark ? ['#1a1a1a', '#9d9595'] : ['#fff', '#fff9f9']}
-                    style={[styles.selectedPlan, { borderColor: colors.primary }]}
+                    colors={
+                      isDark ? ['#1a1a1a', '#9d9595'] : ['#fff', '#fff9f9']
+                    }
+                    style={[
+                      styles.selectedPlan,
+                      { borderColor: colors.primary },
+                    ]}
                   >
                     <View style={styles.planHeader}>
                       <Text style={[styles.planName, { color: colors.text }]}>
                         {selectedPlan.name}
                       </Text>
                       {selectedPlan.tag && (
-                        <View style={[styles.tagBadge, { backgroundColor: colors.primary }]}>
+                        <View
+                          style={[
+                            styles.tagBadge,
+                            { backgroundColor: colors.primary },
+                          ]}
+                        >
                           <Text style={styles.tagText}>{selectedPlan.tag}</Text>
                         </View>
                       )}
                     </View>
-                    <Text style={[styles.planDuration, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.planDuration,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       {getDurationText(selectedPlan)}
                     </Text>
                     <Text style={[styles.planPrice, { color: colors.primary }]}>
@@ -798,7 +847,12 @@ const RegisterScreen = () => {
                         : `₹${selectedPlan.price}`}
                     </Text>
                     {selectedPlan.print_editions > 0 && (
-                      <Text style={[styles.printEditions, { color: colors.success }]}>
+                      <Text
+                        style={[
+                          styles.printEditions,
+                          { color: colors.success },
+                        ]}
+                      >
                         📄 {selectedPlan.print_editions} Print Editions
                       </Text>
                     )}
@@ -807,11 +861,19 @@ const RegisterScreen = () => {
                         <RenderHTML
                           contentWidth={width}
                           source={{ html: selectedPlan.feature }}
-                          baseStyle={[styles.featureText, { color: colors.textSecondary }]}
+                          baseStyle={{
+                            ...styles.featureText,
+                            color: colors.textSecondary,
+                          }}
                         />
                       </View>
                     )}
-                    <View style={[styles.selectedBadge, { backgroundColor: colors.primary }]}>
+                    <View
+                      style={[
+                        styles.selectedBadge,
+                        { backgroundColor: colors.primary },
+                      ]}
+                    >
                       <Text style={styles.selectedBadgeText}>Selected</Text>
                     </View>
                   </LinearGradient>
@@ -819,16 +881,24 @@ const RegisterScreen = () => {
 
                 {otherPlans.length > 0 && (
                   <>
-                    <Text style={[styles.otherPlansTitle, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.otherPlansTitle,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Other Plans
                     </Text>
                     {otherPlans.map(plan => (
                       <TouchableOpacity
                         key={plan.id}
-                        style={[styles.planOption, { 
-                          borderColor: isDark ? colors.border : '#e0e0e0',
-                          backgroundColor: colors.card,
-                        }]}
+                        style={[
+                          styles.planOption,
+                          {
+                            borderColor: isDark ? colors.border : '#e0e0e0',
+                            backgroundColor: colors.card,
+                          },
+                        ]}
                         onPress={() => {
                           handleChange('plan_id', plan.id.toString());
                           showToast(
@@ -839,25 +909,52 @@ const RegisterScreen = () => {
                         }}
                       >
                         <View style={styles.planOptionHeader}>
-                          <Text style={[styles.planOptionName, { color: colors.text }]}>
+                          <Text
+                            style={[
+                              styles.planOptionName,
+                              { color: colors.text },
+                            ]}
+                          >
                             {plan.name}
                           </Text>
                           {plan.tag && (
-                            <View style={[styles.optionTagBadge, { backgroundColor: colors.primary }]}>
-                              <Text style={styles.optionTagText}>{plan.tag}</Text>
+                            <View
+                              style={[
+                                styles.optionTagBadge,
+                                { backgroundColor: colors.primary },
+                              ]}
+                            >
+                              <Text style={styles.optionTagText}>
+                                {plan.tag}
+                              </Text>
                             </View>
                           )}
                         </View>
-                        <Text style={[styles.planOptionDuration, { color: colors.textSecondary }]}>
+                        <Text
+                          style={[
+                            styles.planOptionDuration,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
                           {getDurationText(plan)}
                         </Text>
-                        <Text style={[styles.planOptionPrice, { color: colors.primary }]}>
+                        <Text
+                          style={[
+                            styles.planOptionPrice,
+                            { color: colors.primary },
+                          ]}
+                        >
                           {parseFloat(plan.price || '0') === 0
                             ? 'FREE'
                             : `₹${plan.price}`}
                         </Text>
                         {plan.print_editions > 0 && (
-                          <Text style={[styles.printEditionsSmall, { color: colors.success }]}>
+                          <Text
+                            style={[
+                              styles.printEditionsSmall,
+                              { color: colors.success },
+                            ]}
+                          >
                             📄 {plan.print_editions} Print Editions
                           </Text>
                         )}
@@ -870,14 +967,21 @@ const RegisterScreen = () => {
           </View>
 
           {price > 0 && (
-            <View style={[styles.summaryCard, { 
-              backgroundColor: isDark ? colors.background : '#f8f9fa',
-            }]}>
+            <View
+              style={[
+                styles.summaryCard,
+                {
+                  backgroundColor: isDark ? colors.background : '#f8f9fa',
+                },
+              ]}
+            >
               <Text style={[styles.summaryTitle, { color: colors.text }]}>
                 Payment Summary
               </Text>
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.summaryLabel, { color: colors.textSecondary }]}
+                >
                   Plan Amount
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>
@@ -885,14 +989,22 @@ const RegisterScreen = () => {
                 </Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.summaryLabel, { color: colors.textSecondary }]}
+                >
                   GST (18%)
                 </Text>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>
                   ₹{gst.toFixed(2)}
                 </Text>
               </View>
-              <View style={[styles.summaryRow, styles.totalRow, { borderTopColor: colors.border }]}>
+              <View
+                style={[
+                  styles.summaryRow,
+                  styles.totalRow,
+                  { borderTopColor: colors.border },
+                ]}
+              >
                 <Text style={[styles.totalLabel, { color: colors.text }]}>
                   Total Amount
                 </Text>
@@ -907,7 +1019,7 @@ const RegisterScreen = () => {
             style={[
               styles.submitButton,
               (!isOtpSent || !form.otp) && styles.submitButtonDisabled,
-              { backgroundColor: colors.primary }
+              { backgroundColor: colors.primary },
             ]}
             onPress={handleSubmit}
             disabled={loading || !isOtpSent || !form.otp}
@@ -922,6 +1034,23 @@ const RegisterScreen = () => {
               </Text>
             )}
           </TouchableOpacity>
+
+          {(!isOtpSent || !form.otp) && (
+            <Text
+              style={{
+                textAlign: 'center',
+                marginTop: 1,
+                marginBottom: 40,
+                fontSize: 13,
+                color: colors.textSecondary,
+                paddingHorizontal: 20,
+                fontStyle: 'italic'
+              }}
+            >
+              Please verify your mobile number using the OTP before completing
+              registration.
+            </Text>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -932,16 +1061,26 @@ const RegisterScreen = () => {
         visible={showOtpModal}
         onRequestClose={() => setShowOtpModal(false)}
       >
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
-          <View style={[styles.modalContainer, { backgroundColor: colors.card }]}>
-            <View style={[styles.modalHeader, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.modalTitle, { color: '#fff' }]}>OTP Received</Text>
+        <View
+          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+        >
+          <View
+            style={[styles.modalContainer, { backgroundColor: colors.card }]}
+          >
+            <View
+              style={[styles.modalHeader, { backgroundColor: colors.primary }]}
+            >
+              <Text style={[styles.modalTitle, { color: '#fff' }]}>
+                OTP Received
+              </Text>
               <TouchableOpacity onPress={() => setShowOtpModal(false)}>
                 <Ionicons name="close" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
             <View style={[styles.modalBody, { backgroundColor: colors.card }]}>
-              <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.modalSubtitle, { color: colors.textSecondary }]}
+              >
                 Your One-Time Password is:
               </Text>
               <Text style={[styles.otpDisplay, { color: colors.primary }]}>
@@ -953,18 +1092,31 @@ const RegisterScreen = () => {
               </Text>
               <View style={styles.modalButtons}>
                 <TouchableOpacity
-                  style={[styles.modalButton, styles.copyButton, { 
-                    backgroundColor: isDark ? colors.background : '#f5f5f5',
-                    borderColor: colors.border,
-                  }]}
+                  style={[
+                    styles.modalButton,
+                    styles.copyButton,
+                    {
+                      backgroundColor: isDark ? colors.background : '#f5f5f5',
+                      borderColor: colors.border,
+                    },
+                  ]}
                   onPress={() => setShowOtpModal(false)}
                 >
-                  <Text style={[styles.copyButtonText, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[
+                      styles.copyButtonText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Enter Manually
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.modalButton, styles.autoFillButton, { backgroundColor: colors.primary }]}
+                  style={[
+                    styles.modalButton,
+                    styles.autoFillButton,
+                    { backgroundColor: colors.primary },
+                  ]}
                   onPress={autoFillOtp}
                 >
                   <Text style={[styles.autoFillButtonText, { color: '#fff' }]}>
@@ -1005,14 +1157,27 @@ const Input = ({
     <View style={styles.inputContainer}>
       <Text style={[styles.label, { color: colors.text }]}>
         {label}
-        {required && <Text style={[styles.requiredStar, { color: colors.primary }]}> *</Text>}
+        {required && (
+          <Text style={[styles.requiredStar, { color: colors.primary }]}>
+            {' '}
+            *
+          </Text>
+        )}
       </Text>
       <View
         style={[
           styles.inputWrapper,
-          { 
-            borderColor: focused ? colors.primary : (isDark ? colors.border : '#e0e0e0'),
-            backgroundColor: focused ? colors.card : (isDark ? colors.background : '#fafafa'),
+          {
+            borderColor: focused
+              ? colors.primary
+              : isDark
+              ? colors.border
+              : '#e0e0e0',
+            backgroundColor: focused
+              ? colors.card
+              : isDark
+              ? colors.background
+              : '#fafafa',
           },
           focused && styles.inputWrapperFocused,
         ]}
@@ -1029,7 +1194,11 @@ const Input = ({
           value={value}
           onChangeText={onChange}
           secureTextEntry={secure && !showPassword}
-          style={[styles.input, { color: colors.text }, multiline && styles.textArea]}
+          style={[
+            styles.input,
+            { color: colors.text },
+            multiline && styles.textArea,
+          ]}
           keyboardType={keyboardType}
           placeholder={placeholder}
           placeholderTextColor={colors.textMuted}
@@ -1231,7 +1400,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
