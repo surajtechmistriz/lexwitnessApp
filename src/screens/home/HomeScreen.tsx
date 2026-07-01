@@ -48,6 +48,7 @@ const Home = () => {
   const [restLoading, setRestLoading] = useState(true);
   const [heroReady, setHeroReady] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // ------ useMemo HOOKS ------
   const sliderData = articles.slice(0, 3);
@@ -212,6 +213,8 @@ const Home = () => {
                 width={width - 24}
                 height={HERO_HEIGHT}
                 data={sliderData}
+                autoPlayInterval={1000}
+                scrollAnimationDuration={1200}
                 renderItem={({ item, index }) => (
                   <HeroCard
                     category={item.category}
