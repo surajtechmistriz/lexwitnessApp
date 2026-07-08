@@ -39,8 +39,8 @@ api.interceptors.request.use(
 /* RESPONSE INTERCEPTOR */
 api.interceptors.response.use(
   response => {
-    console.log('SUCCESS URL =>', response.config.url);
-    console.log('SUCCESS STATUS =>', response.status);
+    // console.log('SUCCESS URL =>', response.config.url);
+    // console.log('SUCCESS STATUS =>', response.status);
 
     return response;
   },

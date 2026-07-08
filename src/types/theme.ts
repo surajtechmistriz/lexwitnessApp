@@ -7,6 +7,7 @@ export interface ThemeColors {
   primaryBackground: string;
   background: string;
   card: string;
+  glass: string;
   text: string;
   textSecondary: string;
   textMuted: string;
