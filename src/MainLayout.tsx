@@ -1,6 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View, StatusBar, Platform, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 import Banner from './components/common/DynamicBanner';
@@ -8,7 +8,7 @@ import TopMenu from './components/common/Menubar';
 import Header from './components/common/Header';
 import SearchOverlay from './components/common/SearchOverlay';
 import { useTheme } from './redux/hooks/useTheme';
-// import { useTheme } from '../hooks/useTheme';
+import { useResponsive } from './hooks/useResponsive';
 
 type Props = {
   children: React.ReactNode;
@@ -22,6 +22,10 @@ type Props = {
   showBanner?: boolean;
   showBackButton?: boolean;
   onBackPress?: () => void;
+  statusBarColor?: string;
+    statusBarStyle?: 'light-content' | 'dark-content';
+  scrollable?: boolean; // New prop for scrollable content
+  contentPadding?: boolean; // New prop for content padding
 };
 
 const MainLayout = ({
@@ -36,10 +40,22 @@ const MainLayout = ({
   showBanner = true,
   showBackButton = false,
   onBackPress,
+  statusBarColor,
+   statusBarStyle,
+  scrollable = false,
+  contentPadding = true,
 }: Props) => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  
+  // Use your responsive hook
+  const { 
+    wp, hp, spacing, font, sizes, 
+    isTablet, isSmallDevice, isLandscape,
+    moderateScale 
+  } = useResponsive();
 
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
 
@@ -85,7 +101,6 @@ const MainLayout = ({
 
   // Screens where back button should be shown
   const backButtonScreens = [
-    'Magazines',
     'Category',
     'Author',
     'Tag',
@@ -94,10 +109,8 @@ const MainLayout = ({
     'EditorialDetail',
   ];
 
-  // Determine if back button should be shown based on route or prop
   const shouldShowBackButton = showBackButton || backButtonScreens.includes(routeName || '');
 
-  // Handle back press - use provided handler or default navigation.goBack()
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
@@ -106,58 +119,139 @@ const MainLayout = ({
     }
   };
 
-  return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
-      <StatusBar 
-        barStyle={isDark ? 'light-content' : 'dark-content'} 
-        backgroundColor={isDark ? '#121212' : '#f5f5f7'} 
-      />
+  // Dynamic status bar color
+ const resolvedStatusBg =
+  statusBarColor || (isDark ? '#f80101' : colors.primary);
 
-      {/* HEADER - Hide on Author, Category, Magazines, etc. */}
-      {!hiddenHeader.includes(routeName || '') && showHeader && (
-        <Header 
-          navigation={navigation} 
-          onSearchPress={() => setIsSearchVisible(true)}
-        />
-      )}
+const resolvedBarStyle =
+  statusBarStyle || (isDark ? 'light-content' : 'dark-content');
 
-      {/* BANNER - Show on Author and Category (not hidden) */}
-      {!hiddenBanner.includes(routeName || '') && showBanner && (
-        <Banner
-          title={title}
-          renderFilter={renderFilter}
-          showFilter={showFilter}
-          showBackButton={shouldShowBackButton}
-          onBackPress={handleBackPress}
-        />
-      )}
+  // Render content with optional ScrollView
+  const renderContent = () => {
+    const contentStyles = [
+      styles.content,
+      { 
+        // backgroundColor: colors.background,
+        // paddingHorizontal: contentPadding ? spacing.md : 0,
+        // paddingVertical: contentPadding ? spacing.sm : 0,
+      },
+      // Adjust padding for different devices
+      // isTablet && { paddingHorizontal: spacing.lg },
+      // isSmallDevice && { paddingHorizontal: spacing.sm },
+    ];
 
-      {/* TOP MENU - Show on Author and Category (not hidden) */}
-      {!hiddenTopMenu.includes(routeName || '') && showTopMenu && (
-        <TopMenu activeSlug={activeSlug} />
-      )}
+    const ContentWrapper = scrollable ? ScrollView : View;
+    const contentProps = scrollable ? {
+      showsVerticalScrollIndicator: false,
+      contentContainerStyle: {
+        paddingBottom: spacing.xs,
+        paddingHorizontal: contentPadding ? spacing.md : 0,
+        ...(isTablet && { paddingHorizontal: spacing.lg }),
+        ...(isSmallDevice && { paddingHorizontal: spacing.sm }),
+      }
+    } : {};
 
-      {/* CONTENT */}
-      <View style={[styles.content, { backgroundColor: colors.background }]}>
+    return (
+      <ContentWrapper style={contentStyles} {...contentProps}>
         {children}
-      </View>
+      </ContentWrapper>
+    );
+  };
 
-      {/* SEARCH OVERLAY */}
-      <SearchOverlay
-        visible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
+  return (
+    <View style={[styles.wrapper, { backgroundColor: colors.background }]}>
+      {/* iOS Status Bar Solid Color Block */}
+      {Platform.OS === 'ios' && (
+        <View 
+          style={[
+            styles.iosStatusBarPlaceholder, 
+            { 
+              height: insets.top, 
+              backgroundColor: resolvedStatusBg 
+            }
+          ]} 
+        />
+      )}
+
+      <StatusBar 
+        barStyle={resolvedBarStyle} 
+        backgroundColor={resolvedStatusBg}
+        translucent={Platform.OS === 'ios'}
       />
-    </SafeAreaView>
+
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.background }]}
+        edges={['top']}
+      >
+        {/* HEADER with responsive styling */}
+        {!hiddenHeader.includes(routeName || '') && showHeader && (
+          <View >
+            <Header 
+              navigation={navigation} 
+              onSearchPress={() => setIsSearchVisible(true)}
+            />
+          </View>
+        )}
+
+        {/* BANNER with responsive sizing */}
+        {!hiddenBanner.includes(routeName || '') && showBanner && (
+          <View >
+            <Banner
+              title={title}
+              renderFilter={renderFilter}
+              showFilter={showFilter}
+              showBackButton={shouldShowBackButton}
+              onBackPress={handleBackPress}
+            />
+          </View>
+        )}
+
+        {/* TOP MENU with responsive styling */}
+        {!hiddenTopMenu.includes(routeName || '') && showTopMenu && (
+          <View style={{ 
+            paddingHorizontal: isTablet ? spacing.lg : spacing.md,
+            marginBottom: spacing.xs,
+          }}>
+            <TopMenu activeSlug={activeSlug} />
+          </View>
+        )}
+
+        {/* CONTENT */}
+        {renderContent()}
+
+        {/* SEARCH OVERLAY */}
+        <SearchOverlay
+          visible={isSearchVisible}
+          onClose={() => setIsSearchVisible(false)}
+        />
+      </SafeAreaView>
+    </View>
   );
 };
 
 export default MainLayout;
 
+// Responsive styles
+// In MainLayout.tsx, make sure there are no negative margins
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    // No negative margins here
+  },
   safeArea: {
     flex: 1,
+    // No negative margins here
   },
   content: {
     flex: 1,
+    // No negative margins here
+  },
+  iosStatusBarPlaceholder: {
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 99,
   },
 });

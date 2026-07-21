@@ -20,7 +20,28 @@ import Toast from 'react-native-toast-message';
 import { useTheme } from '../../../redux/hooks/useTheme';
 import { forgotPassword } from '../api/auth';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
+
+// Responsive utility functions
+const scale = (size: number) => {
+  const baseWidth = 375;
+  const scaleFactor = width / baseWidth;
+  return Math.round(size * Math.min(scaleFactor, 1.5));
+};
+
+const verticalScale = (size: number) => {
+  const baseHeight = 667;
+  const scaleFactor = height / baseHeight;
+  return Math.round(size * Math.min(scaleFactor, 1.5));
+};
+
+const moderateScale = (size: number, factor = 0.5) => {
+  return size + (scale(size) - size) * factor;
+};
+
+const isSmallDevice = width < 375;
+const isTablet = width >= 768;
+const isLargeTablet = width >= 1024;
 
 const BRAND = {
   primary: '#c9060a',
@@ -93,6 +114,15 @@ const ForgetPasswordScreen = () => {
     });
   };
 
+  // Responsive values
+  const headerPaddingTop = verticalScale(isSmallDevice ? 30 : isTablet ? 60 : 40);
+  const headerPaddingBottom = verticalScale(isSmallDevice ? 30 : isTablet ? 60 : 40);
+  const formMarginTop = verticalScale(isTablet ? -30 : -20);
+  const formPaddingHorizontal = scale(isTablet ? 32 : 24);
+  const formPaddingVertical = verticalScale(isTablet ? 32 : 28);
+  const iconSize = isTablet ? 100 : 80;
+  const iconInnerSize = isTablet ? 50 : 40;
+
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -101,36 +131,90 @@ const ForgetPasswordScreen = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.flex}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: verticalScale(isTablet ? 30 : 20) }
+          ]}
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
           <TouchableOpacity
             style={[
               styles.backButton,
-              { backgroundColor: 'rgba(255,255,255,0.2)' },
+              { 
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                top: verticalScale(isSmallDevice ? 16 : 30),
+                left: scale(isSmallDevice ? 12 : 16),
+                width: scale(isTablet ? 52 : 44),
+                height: scale(isTablet ? 52 : 44),
+                borderRadius: scale(isTablet ? 35 : 30),
+              }
             ]}
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons name="arrow-back" size={24} color={BRAND.white} />
+            <Ionicons 
+              name="arrow-back" 
+              size={moderateScale(isTablet ? 28 : 24)} 
+              color={BRAND.white} 
+            />
           </TouchableOpacity>
 
           <LinearGradient
             colors={BRAND.primaryGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.gradientHeader}
+            style={[
+              styles.gradientHeader,
+              {
+                paddingTop: headerPaddingTop,
+                paddingBottom: headerPaddingBottom,
+                paddingHorizontal: scale(isTablet ? 40 : 24),
+                borderBottomLeftRadius: scale(isTablet ? 40 : 30),
+                borderBottomRightRadius: scale(isTablet ? 40 : 30),
+              }
+            ]}
           >
             <View
-              style={[styles.iconContainer, { backgroundColor: BRAND.white }]}
+              style={[
+                styles.iconContainer, 
+                { 
+                  backgroundColor: BRAND.white,
+                  width: scale(iconSize),
+                  height: scale(iconSize),
+                  borderRadius: scale(iconSize / 2),
+                  marginBottom: verticalScale(isTablet ? 24 : 16),
+                  shadowOffset: { width: 0, height: verticalScale(isTablet ? 6 : 4) },
+                  shadowRadius: scale(isTablet ? 16 : 12),
+                  elevation: isTablet ? 8 : 5,
+                }
+              ]}
             >
-              <Ionicons name="key-outline" size={40} color={BRAND.primary} />
+              <Ionicons 
+                name="key-outline" 
+                size={scale(iconInnerSize)} 
+                color={BRAND.primary} 
+              />
             </View>
-            <Text style={styles.header}>Forgot Password</Text>
-            <Text style={[styles.subText, { color: 'rgba(255,255,255,0.85)' }]}>
+            <Text style={[
+              styles.header,
+              {
+                fontSize: moderateScale(isTablet ? 36 : 28),
+                marginBottom: verticalScale(isTablet ? 8 : 6),
+              }
+            ]}>
+              Forgot Password
+            </Text>
+            <Text style={[
+              styles.subText, 
+              { 
+                color: 'rgba(255,255,255,0.85)',
+                fontSize: moderateScale(isTablet ? 17 : 15),
+              }
+            ]}>
               Enter your email to receive a reset link
             </Text>
           </LinearGradient>
@@ -141,7 +225,19 @@ const ForgetPasswordScreen = () => {
               {
                 backgroundColor: colors.card,
                 shadowColor: isDark ? '#000' : '#000',
-              },
+                marginTop: formMarginTop,
+                marginHorizontal: scale(isTablet ? 40 : 20),
+                borderRadius: scale(isTablet ? 35 : 30),
+                paddingHorizontal: formPaddingHorizontal,
+                paddingTop: formPaddingVertical,
+                paddingBottom: formPaddingVertical,
+                maxWidth: isTablet ? 600 : undefined,
+                alignSelf: isTablet ? 'center' : 'stretch',
+                width: isTablet ? '90%' : undefined,
+                shadowOffset: { width: 0, height: verticalScale(isTablet ? 12 : 8) },
+                shadowRadius: scale(isTablet ? 32 : 24),
+                elevation: isTablet ? 8 : 5,
+              }
             ]}
           >
             {error ? (
@@ -151,11 +247,25 @@ const ForgetPasswordScreen = () => {
                   {
                     backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
                     borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
-                  },
+                    padding: verticalScale(isTablet ? 16 : 14),
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    marginBottom: verticalScale(isTablet ? 24 : 20),
+                  }
                 ]}
               >
-                <Ionicons name="alert-circle" size={18} color={BRAND.error} />
-                <Text style={[styles.errorText, { color: BRAND.error }]}>
+                <Ionicons 
+                  name="alert-circle" 
+                  size={moderateScale(isTablet ? 20 : 18)} 
+                  color={BRAND.error} 
+                />
+                <Text style={[
+                  styles.errorText, 
+                  { 
+                    color: BRAND.error,
+                    fontSize: moderateScale(isTablet ? 15 : 14),
+                    marginLeft: scale(isTablet ? 12 : 10),
+                  }
+                ]}>
                   {error}
                 </Text>
               </View>
@@ -168,45 +278,64 @@ const ForgetPasswordScreen = () => {
                   {
                     backgroundColor: isDark ? '#1a2d1a' : '#ECFDF5',
                     borderColor: isDark ? '#1a4a1a' : '#A7F3D0',
-                  },
+                    padding: verticalScale(isTablet ? 16 : 14),
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    marginBottom: verticalScale(isTablet ? 24 : 20),
+                  }
                 ]}
               >
                 <Ionicons
                   name="checkmark-circle"
-                  size={18}
+                  size={moderateScale(isTablet ? 20 : 18)}
                   color={BRAND.success}
                 />
-                <Text style={[styles.successText, { color: BRAND.success }]}>
+                <Text style={[
+                  styles.successText, 
+                  { 
+                    color: BRAND.success,
+                    fontSize: moderateScale(isTablet ? 15 : 14),
+                    marginLeft: scale(isTablet ? 12 : 10),
+                  }
+                ]}>
                   Reset link sent! Please check your email.
                 </Text>
               </View>
             ) : null}
 
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.text }]}>
+            <View style={[
+              styles.inputGroup,
+              { marginBottom: verticalScale(isTablet ? 28 : 24) }
+            ]}>
+              <Text style={[
+                styles.label, 
+                { 
+                  color: colors.text,
+                  fontSize: moderateScale(isTablet ? 15 : 14),
+                  marginBottom: verticalScale(isTablet ? 8 : 6),
+                  marginLeft: scale(isTablet ? 6 : 4),
+                }
+              ]}>
                 Email Address
               </Text>
               <View
                 style={[
                   styles.inputWrapper,
                   {
-                    backgroundColor: isDark
-                      ? colors.background
-                      : BRAND.lightGray,
-                    borderColor: email
-                      ? BRAND.primary
-                      : isDark
-                      ? colors.border
-                      : BRAND.border,
+                    backgroundColor: isDark ? colors.background : BRAND.lightGray,
+                    borderColor: email ? BRAND.primary : (isDark ? colors.border : BRAND.border),
+                    borderWidth: 1.5,
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    paddingHorizontal: scale(isTablet ? 18 : 16),
+                    paddingVertical: isTablet ? 4 : 0,
                   },
                   email && styles.inputWrapperFilled,
                 ]}
               >
                 <Ionicons
                   name="mail-outline"
-                  size={20}
+                  size={moderateScale(isTablet ? 22 : 20)}
                   color={email ? BRAND.primary : colors.textMuted}
-                  style={styles.inputIcon}
+                  style={[styles.inputIcon, { marginRight: scale(isTablet ? 14 : 12) }]}
                 />
                 <TextInput
                   value={email}
@@ -214,7 +343,14 @@ const ForgetPasswordScreen = () => {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   editable={!loading && !emailSent}
-                  style={[styles.input, { color: colors.text }]}
+                  style={[
+                    styles.input, 
+                    { 
+                      color: colors.text,
+                      paddingVertical: verticalScale(isTablet ? 16 : 14),
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                    }
+                  ]}
                   placeholder="Enter your email"
                   placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
                 />
@@ -222,7 +358,7 @@ const ForgetPasswordScreen = () => {
                   <TouchableOpacity onPress={() => setEmail('')}>
                     <Ionicons
                       name="close-circle"
-                      size={18}
+                      size={moderateScale(isTablet ? 20 : 18)}
                       color={colors.textMuted}
                     />
                   </TouchableOpacity>
@@ -235,7 +371,14 @@ const ForgetPasswordScreen = () => {
                 style={[
                   styles.sendBtn,
                   loading && styles.disabledBtn,
-                  { shadowColor: BRAND.primary },
+                  { 
+                    shadowColor: BRAND.primary,
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    shadowOffset: { width: 0, height: verticalScale(isTablet ? 6 : 4) },
+                    shadowOpacity: 0.3,
+                    shadowRadius: scale(isTablet ? 12 : 8),
+                    elevation: isTablet ? 6 : 4,
+                  }
                 ]}
                 onPress={handleSendResetLink}
                 disabled={loading}
@@ -245,22 +388,43 @@ const ForgetPasswordScreen = () => {
                   colors={BRAND.primaryGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={styles.sendGradient}
+                  style={[
+                    styles.sendGradient,
+                    { 
+                      paddingVertical: verticalScale(isTablet ? 18 : 16),
+                      borderRadius: scale(isTablet ? 16 : 14),
+                    }
+                  ]}
                 >
                   {loading ? (
-                    <ActivityIndicator color={BRAND.white} />
+                    <ActivityIndicator color={BRAND.white} size={isSmallDevice ? 'small' : 'large'} />
                   ) : (
-                    <Text style={styles.sendBtnText}>Send Reset Link</Text>
+                    <Text style={[
+                      styles.sendBtnText,
+                      {
+                        fontSize: moderateScale(isTablet ? 18 : 16),
+                        letterSpacing: 0.5,
+                      }
+                    ]}>
+                      Send Reset Link
+                    </Text>
                   )}
                 </LinearGradient>
               </TouchableOpacity>
             ) : (
-              <View>
+              <View style={{ width: '100%' }}>
                 <TouchableOpacity
                   style={[
                     styles.sendBtn,
                     styles.resendBtn,
-                    { shadowColor: BRAND.primary },
+                    { 
+                      shadowColor: BRAND.primary,
+                      borderRadius: scale(isTablet ? 16 : 14),
+                      shadowOffset: { width: 0, height: verticalScale(isTablet ? 6 : 4) },
+                      shadowOpacity: 0.3,
+                      shadowRadius: scale(isTablet ? 12 : 8),
+                      elevation: isTablet ? 6 : 4,
+                    }
                   ]}
                   onPress={handleSendResetLink}
                   disabled={loading}
@@ -270,26 +434,55 @@ const ForgetPasswordScreen = () => {
                     colors={BRAND.primaryGradient}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={styles.sendGradient}
+                    style={[
+                      styles.sendGradient,
+                      { 
+                        paddingVertical: verticalScale(isTablet ? 18 : 16),
+                        borderRadius: scale(isTablet ? 16 : 14),
+                      }
+                    ]}
                   >
                     {loading ? (
-                      <ActivityIndicator color={BRAND.white} />
+                      <ActivityIndicator color={BRAND.white} size={isSmallDevice ? 'small' : 'large'} />
                     ) : (
-                      <Text style={styles.sendBtnText}>Resend Link</Text>
+                      <Text style={[
+                        styles.sendBtnText,
+                        {
+                          fontSize: moderateScale(isTablet ? 18 : 16),
+                          letterSpacing: 0.5,
+                        }
+                      ]}>
+                        Resend Link
+                      </Text>
                     )}
                   </LinearGradient>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.signInLink}
+                  style={[
+                    styles.signInLink,
+                    { marginTop: verticalScale(isTablet ? 24 : 20) }
+                  ]}
                   onPress={goToSignIn}
                 >
                   <Text
-                    style={[styles.signInText, { color: colors.textSecondary }]}
+                    style={[
+                      styles.signInText, 
+                      { 
+                        color: colors.textSecondary,
+                        fontSize: moderateScale(isTablet ? 16 : 15),
+                      }
+                    ]}
                   >
                     Remember your password?{' '}
                     <Text
-                      style={[styles.signInLinkText, { color: colors.primary }]}
+                      style={[
+                        styles.signInLinkText, 
+                        { 
+                          color: colors.primary,
+                          fontSize: moderateScale(isTablet ? 16 : 15),
+                        }
+                      ]}
                     >
                       Sign In
                     </Text>
@@ -299,13 +492,31 @@ const ForgetPasswordScreen = () => {
             )}
 
             {!emailSent && (
-              <TouchableOpacity style={styles.signInLink} onPress={goToSignIn}>
+              <TouchableOpacity 
+                style={[
+                  styles.signInLink,
+                  { marginTop: verticalScale(isTablet ? 24 : 20) }
+                ]} 
+                onPress={goToSignIn}
+              >
                 <Text
-                  style={[styles.signInText, { color: colors.textSecondary }]}
+                  style={[
+                    styles.signInText, 
+                    { 
+                      color: colors.textSecondary,
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                    }
+                  ]}
                 >
                   Remember your password?{' '}
                   <Text
-                    style={[styles.signInLinkText, { color: colors.primary }]}
+                    style={[
+                      styles.signInLinkText, 
+                      { 
+                        color: colors.primary,
+                        fontSize: moderateScale(isTablet ? 16 : 15),
+                      }
+                    ]}
                   >
                     Sign In
                   </Text>
@@ -330,16 +541,10 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 30,
   },
   backButton: {
     position: 'absolute',
-    top: 20,
-    left: 16,
     zIndex: 10,
-    borderRadius: 30,
-    width: 44,
-    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -349,117 +554,72 @@ const styles = StyleSheet.create({
     // elevation: 3,
   },
   gradientHeader: {
-    paddingTop: height * 0.05,
-    paddingBottom: height * 0.05,
-    paddingHorizontal: 24,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
     alignItems: 'center',
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 12,
     elevation: 5,
   },
   header: {
-    fontSize: 28,
     fontWeight: '800',
     color: '#FFFFFF',
     letterSpacing: -0.5,
-    marginBottom: 6,
     textAlign: 'center',
   },
   subText: {
-    fontSize: 15,
     textAlign: 'center',
+    fontWeight: '500',
   },
   formContainer: {
-    flex: 1,
-    marginTop: -20,
-    marginHorizontal: 20,
-    borderRadius: 30,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 28,
-    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
-    shadowRadius: 24,
     elevation: 5,
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 20,
     borderWidth: 1,
   },
   errorText: {
-    fontSize: 14,
-    marginLeft: 10,
     fontWeight: '500',
     flex: 1,
   },
   successContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 20,
     borderWidth: 1,
   },
   successText: {
-    fontSize: 14,
-    marginLeft: 10,
     fontWeight: '500',
     flex: 1,
   },
   inputGroup: {
-    marginBottom: 24,
+    width: '100%',
   },
   label: {
-    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 6,
-    marginLeft: 4,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: 14,
-    paddingHorizontal: 16,
   },
   inputWrapperFilled: {
     borderWidth: 2,
   },
   inputIcon: {
-    marginRight: 12,
+    flexShrink: 0,
   },
   input: {
     flex: 1,
-    paddingVertical: 14,
-    fontSize: 15,
     fontWeight: '500',
   },
   sendBtn: {
-    borderRadius: 14,
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    width: '100%',
   },
   sendGradient: {
-    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -472,15 +632,13 @@ const styles = StyleSheet.create({
   sendBtnText: {
     color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 16,
-    letterSpacing: 0.5,
   },
   signInLink: {
-    marginTop: 20,
     alignItems: 'center',
+    width: '100%',
   },
   signInText: {
-    fontSize: 15,
+    fontWeight: '500',
   },
   signInLinkText: {
     fontWeight: '700',

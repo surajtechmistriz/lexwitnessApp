@@ -15,7 +15,7 @@ import Config from 'react-native-config';
 import { Modal } from 'react-native';
 import { useTheme } from '../../redux/hooks/useTheme';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Type definitions
 interface FilterState {
@@ -70,6 +70,7 @@ export default function Banner({
 
   // Check if any filters are active
   const hasActiveFilters = Object.keys(appliedFilters).length > 0;
+
 
   //------ Animate the filter button with a spring effect------
   const animateButton = () => {
@@ -202,7 +203,13 @@ export default function Banner({
       styles.titleWrapper,
       showBackButton && styles.titleWrapperWithBack
     ]}>
-      <Text style={styles.mainTitle} numberOfLines={1}>
+      <Text
+        style={[
+          styles.mainTitle,
+          title === 'Magazines' && styles.magazineTitle,
+        ]}
+        numberOfLines={1}
+      >
         {capitalizeAll(title)}
       </Text>
       {hasActiveFilters && <View style={styles.activeIndicator} />}
@@ -218,7 +225,7 @@ export default function Banner({
     </View>
   );
 
-//-----  Render banner with either red background or image background ------
+  //-----  Render banner with either red background or image background ------
   const renderBannerContent = () => {
     if (useRedBackground) {
       return (
@@ -281,9 +288,9 @@ export default function Banner({
               </View>
 
               {/* Modal Header */}
-              <View style={[styles.filterHeader, { 
+              <View style={[styles.filterHeader, {
                 backgroundColor: colors.card,
-                borderBottomColor: colors.border 
+                borderBottomColor: colors.border
               }]}>
                 <Text style={[styles.filterHeaderTitle, { color: colors.text }]}>
                   Filter
@@ -321,15 +328,7 @@ export default function Banner({
                 )}
               </ScrollView>
 
-              {/* Filter Action Buttons - Currently disabled */}
-              {renderFilter && (
-                <View style={[styles.filterActions, { 
-                  backgroundColor: colors.card,
-                  borderTopColor: colors.border 
-                }]}>
-                  {/* Action buttons commented out for future implementation */}
-                </View>
-              )}
+             
             </SafeAreaView>
           </Animated.View>
         </View>
@@ -346,16 +345,17 @@ const styles = StyleSheet.create({
   },
   bannerContainer: {
     width: '100%',
-    height: 65,
+    height: Math.max(65, SCREEN_HEIGHT * 0.08),
   },
+
   redBackground: {
     backgroundColor: '#c9060a',
   },
-  
+
   // Overlay and content styles
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: '#c9060a',
     justifyContent: 'center',
   },
   content: {
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
-  
+
   // Back button styles
   backButton: {
     width: 36,
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
     // borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  
+
   // Title styles
   titleWrapper: {
     flex: 1,
@@ -388,9 +388,10 @@ const styles = StyleSheet.create({
     marginLeft: 0,
   },
   mainTitle: {
-    color: '#ffffff',
-    fontSize: 18,
+    color: '#fff',
+    fontSize: Math.min(20, SCREEN_WIDTH * 0.045),
     fontWeight: 'bold',
+
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
@@ -403,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4caf50',
     marginLeft: 8,
   },
-  
+
   // Filter button styles
   filterIconButton: {
     flexDirection: 'row',
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  
+
   // Active badge styles
   activeBadge: {
     position: 'absolute',
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-  
+
   // Modal styles
   modalContainer: {
     flex: 1,
@@ -486,9 +487,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 25,
-    maxHeight: SCREEN_HEIGHT * 0.9,
+    maxHeight: SCREEN_HEIGHT * 0.25,
   },
-  
+
   // Modal content styles
   safeArea: {
     flex: 1,
@@ -532,7 +533,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingBottom: 32,
   },
-  
+
   // Filter action buttons (currently disabled)
   filterActions: {
     flexDirection: 'row',
@@ -567,7 +568,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  
+
   // Default/fallback styles
   defaultFilter: {
     padding: 20,
@@ -575,5 +576,11 @@ const styles = StyleSheet.create({
   },
   defaultFilterText: {
     fontSize: 14,
+  },
+  magazineTitle: {
+    fontSize: 22, // or 30 if you want it even bigger
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginLeft: 10
   },
 });

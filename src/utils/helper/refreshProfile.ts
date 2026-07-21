@@ -13,10 +13,10 @@ export const refreshProfile = async (dispatch: any) => {
 
     const profile = profileRes?.data;
 
-    console.log(
-      'PROFILE DATA =>',
-      JSON.stringify(profile, null, 2),
-    );
+    // console.log(
+    //   'PROFILE DATA =>',
+    //   JSON.stringify(profile, null, 2),
+    // );
 
     if (!profile) return;
 
@@ -35,18 +35,18 @@ export const refreshProfile = async (dispatch: any) => {
       JSON.stringify(profile.next_subscriptions || []),
     );
 
-    console.log(
-      'SET PROFILE PAYLOAD =>',
-      JSON.stringify(
-        {
-          user: profile.user,
-          subscription: profile.subscription,
-          nextSubscriptions: profile.next_subscriptions || [],
-        },
-        null,
-        2,
-      ),
-    );
+    // console.log(
+    //   'SET PROFILE PAYLOAD =>',
+    //   JSON.stringify(
+    //     {
+    //       user: profile.user,
+    //       subscription: profile.subscription,
+    //       nextSubscriptions: profile.next_subscriptions || [],
+    //     },
+    //     null,
+    //     2,
+    //   ),
+    // );
 
     dispatch(
       setProfile({

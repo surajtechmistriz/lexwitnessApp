@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -19,6 +19,10 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+
+  const { width } = useWindowDimensions();
+  const logoWidth = Math.min(width * 0.35, 150);
+  const horizontalPadding = Math.max(12, width * 0.04);
 
   const { isLoggedIn, isHydrated } = useSelector(
     (state: RootState) => state.auth,
@@ -47,16 +51,18 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          paddingTop: insets.top,
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-        },
-      ]}
-    >
+   <View
+  style={[
+    styles.container,
+    {
+      paddingTop: 0,
+      paddingHorizontal: horizontalPadding,
+      minHeight: width >= 768 ? 82 : 70,
+      backgroundColor: colors.background,
+      borderColor: colors.border,
+    },
+  ]}
+>
       {/* LEFT - Menu Button */}
       <View style={styles.sideContainer}>
         <TouchableOpacity
@@ -72,12 +78,19 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
       <View style={styles.centerContainer}>
         <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Image
+
             source={
               isDark
                 ? require('../../assets/logo-dark.png')
                 : require('../../assets/main-logo-removebg-preview.png')
             }
-            style={styles.logo}
+            style={[
+        styles.logo,
+        {
+            width: logoWidth,
+            height: logoWidth * 0.42,
+        },
+    ]}
             resizeMode="contain"
           />
         </TouchableOpacity>
@@ -124,7 +137,6 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   );
 };
 
-export default Header;
 
 const styles = StyleSheet.create({
   container: {
@@ -132,29 +144,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    paddingHorizontal: 16,
     paddingBottom: 1,
-    minHeight: 70,
   },
 
-  sideContainer: {
-    width: 50,
+sideContainer: {
+    width: '15%',
+    minWidth: 50,
     alignItems: 'center',
     justifyContent: 'center',
-  },
+},
 
-  centerContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+centerContainer:{
+    flex:1,
+    alignItems:'center',
+    justifyContent:'center',
+    paddingHorizontal:8,
+},
 
-  rightContainer: {
+rightContainer: {
+    width: '22%',
+    minWidth: 80,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'flex-end',
-    width: 80,
-  },
+    alignItems: 'center',
+},
 
   searchButton: {
     padding: 4,
@@ -167,6 +180,8 @@ const styles = StyleSheet.create({
 
   logo: {
     width: 130,
-    height: 55,
+    aspectRatio:2.36
   },
 });
+
+  export default Header;

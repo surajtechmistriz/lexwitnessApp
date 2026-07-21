@@ -240,6 +240,7 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     marginHorizontal: 4,
+    marginBottom:20
   },
   loader: {
     marginVertical: 40,

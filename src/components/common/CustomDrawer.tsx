@@ -86,10 +86,17 @@ const CustomDrawer = ({ navigation }: any) => {
 
     setTimeout(() => {
       navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{ name: 'SignIn' }],
-        }),
+       CommonActions.reset({
+  index: 1,
+  routes: [
+    {
+      name: 'MainApp',
+    },
+    {
+      name: 'SignIn',
+    },
+  ],
+})
       );
     }, 300);
   };

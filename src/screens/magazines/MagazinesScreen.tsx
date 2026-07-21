@@ -23,34 +23,55 @@ import Pagination from '../../components/common/Pagination';
 import { getMagazines } from './api/magazine';
 import { getYears } from '../../services/api/years';
 import { useTheme } from '../../redux/hooks/useTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 type RootStackParamList = {
   MagazineDetail: { slug: string };
   // ... other screens
 };
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-const HORIZONTAL_PADDING = 12;
-const CARD_GAP = 12;
+// Responsive utility functions
+const scale = (size: number) => {
+  const baseWidth = 375;
+  const scaleFactor = width / baseWidth;
+  return Math.round(size * Math.min(scaleFactor, 1.5));
+};
 
-// Better responsive width
-const ITEM_WIDTH = (width - HORIZONTAL_PADDING * 2 - CARD_GAP) / 2;
+const verticalScale = (size: number) => {
+  const baseHeight = 667;
+  const scaleFactor = height / baseHeight;
+  return Math.round(size * Math.min(scaleFactor, 1.5));
+};
 
-const imgUrl = Config.MAGAZINES_BASE_URL;
+const moderateScale = (size: number, factor = 0.5) => {
+  return size + (scale(size) - size) * factor;
+};
+
+const isSmallDevice = width < 375;
+const isTablet = width >= 768;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const navigation = useNavigation<NavigationProp>();
   const { colors, isDark } = useTheme();
+  const { spacing, font, sizes } = useResponsive();
 
   const scrollOffset = useRef(0);
+
+  // Responsive values
+  const horizontalPadding = isTablet ? 24 : 12;
+  const cardGap = isTablet ? 16 : 12;
+  const numColumns = isTablet ? 3 : 2;
+  const itemWidth = (width - horizontalPadding * 2 - cardGap * (numColumns - 1)) / numColumns;
+  const headingSize = isTablet ? font.lg : font.sm;
+  const titleSize = isTablet ? font.md : font.sm;
 
   /* ---------------- SCROLL HANDLER ---------------- */
   const handleScroll = (event: any) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
-
     const diff = currentOffset - scrollOffset.current;
 
     if (currentOffset <= 0) {
@@ -67,15 +88,10 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   /* ---------------- STATES ---------------- */
   const [years, setYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
-
   const [tempSelectedYear, setTempSelectedYear] = useState<number | null>(null);
-
   const [magazines, setMagazines] = useState<any[]>([]);
-
   const [loading, setLoading] = useState(true);
-
   const [currentPage, setCurrentPage] = useState(1);
-
   const [lastPage, setLastPage] = useState(1);
 
   /* ---------------- FETCH YEARS ---------------- */
@@ -83,11 +99,8 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     const fetchYears = async () => {
       try {
         const res = await getYears();
-
         const fetchedYears =
-          res?.data?.map((y: any) => (typeof y === 'number' ? y : y.year)) ??
-          [];
-
+          res?.data?.map((y: any) => (typeof y === 'number' ? y : y.year)) ?? [];
         setYears(fetchedYears.sort((a, b) => b - a));
       } catch (err) {
         console.error('Error fetching years', err);
@@ -100,22 +113,17 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   /* ---------------- FETCH MAGAZINES ---------------- */
   const fetchMagazines = async (page = 1, year = selectedYear) => {
     setLoading(true);
-
     try {
       const res = await getMagazines({
         year: year ?? undefined,
         page,
         per_page: 10,
       });
-
       setMagazines(res?.data ?? []);
-
       setLastPage(res?.meta?.paging?.last_page ?? 1);
-
       setCurrentPage(page);
     } catch (err) {
       console.error('Error fetching magazines', err);
-
       setMagazines([]);
     } finally {
       setLoading(false);
@@ -131,10 +139,6 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     fetchMagazines(page, selectedYear);
   };
 
-  // ============================================================
-  //  FIXED NAVIGATION FUNCTION
-  // ============================================================
-
   const handleMagazinePress = (item: any) => {
     navigation.navigate('MagazineDetail', {
       slug: item?.slug,
@@ -148,27 +152,62 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
       style={[
         styles.card,
         {
+          width: itemWidth,
+          marginBottom: verticalScale(isTablet ? 24 : 18),
           shadowColor: isDark ? '#000' : '#000',
-        },
+          ...Platform.select({
+            ios: {
+              shadowOffset: { width: 0, height: verticalScale(3) },
+              shadowOpacity: 0.12,
+              shadowRadius: scale(6),
+            },
+            android: {
+              elevation: isTablet ? 6 : 4,
+            },
+          }),
+        }
       ]}
       onPress={() => handleMagazinePress(item)}
     >
-      <View style={[styles.imageWrapper, { backgroundColor: isDark ? colors.border : '#eee' }]}>
+      <View style={[
+        styles.imageWrapper,
+        {
+          backgroundColor: isDark ? colors.border : '#eee',
+          borderRadius: isTablet ? scale(12) : scale(8),
+        }
+      ]}>
         <Image
           source={{
             uri: item.image
-              ? `${imgUrl}/${item.image}`
+              ? `${Config.MAGAZINES_BASE_URL}/${item.image}`
               : 'https://via.placeholder.com/300x400',
           }}
           style={styles.image}
           resizeMode="cover"
         />
-
-        <View style={[styles.imageOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.02)' }]} />
+        <View style={[
+          styles.imageOverlay,
+          {
+            backgroundColor: isDark ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.02)',
+          }
+        ]} />
       </View>
 
-      <View style={styles.cardContent}>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+      <View style={[
+        styles.cardContent,
+        { paddingTop: verticalScale(isTablet ? 12 : 10) }
+      ]}>
+        <Text
+          style={[
+            styles.title,
+            {
+              color: colors.text,
+              fontSize: titleSize,
+              fontWeight: isTablet ? '700' : '700',
+            }
+          ]}
+          numberOfLines={1}
+        >
           {item.title || item.magazine_name}
         </Text>
       </View>
@@ -185,8 +224,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     <MainLayout
       title="Magazines"
       routeName="Magazines"
-      onBackPress={handleBackPress}
-      showBackButton={true}
+      statusBarColor="#c9060a"
       renderFilter={close => (
         <YearFilter
           years={years}
@@ -194,9 +232,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
           onSelect={setTempSelectedYear}
           onApply={() => {
             setSelectedYear(tempSelectedYear);
-
             setCurrentPage(1);
-
             close();
           }}
           disabled={loading}
@@ -213,27 +249,69 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
             data={magazines}
             renderItem={renderItem}
             keyExtractor={item => item.id.toString()}
-            numColumns={2}
+            numColumns={numColumns}
             showsVerticalScrollIndicator={false}
-            columnWrapperStyle={styles.columnWrapper}
-            contentContainerStyle={styles.flatListContent}
+            columnWrapperStyle={[
+              styles.columnWrapper,
+              {
+                paddingHorizontal: horizontalPadding,
+                gap: cardGap,
+              }
+            ]}
+            contentContainerStyle={[
+              styles.flatListContent,
+              {
+                paddingTop: isTablet ? verticalScale(16) : 0,
+                paddingBottom: verticalScale(isTablet ? 30 : 20),
+              }
+            ]}
             onScroll={handleScroll}
             scrollEventThrottle={16}
             removeClippedSubviews
-            initialNumToRender={6}
-            maxToRenderPerBatch={8}
+            initialNumToRender={isTablet ? 9 : 6}
+            maxToRenderPerBatch={isTablet ? 12 : 8}
             windowSize={10}
             ListHeaderComponent={
-              <View style={styles.headerArea}>
-                <Text style={[styles.heading, { color: colors.textMuted }]}>
-                  ALL EDITIONS MAGAZINE
+              <View style={[
+                styles.headerArea,
+                {
+                  paddingHorizontal: isTablet ? 24 : 16,
+                  paddingTop: isTablet ? verticalScale(16) : verticalScale(12),
+                  marginBottom: isTablet ? verticalScale(16) : verticalScale(12),
+                  marginVertical: isTablet ? verticalScale(12) : verticalScale(10),
+                }
+              ]}>
+                <Text style={[
+                  styles.heading,
+                  {
+                    color: colors.textMuted,
+                    fontSize: headingSize,
+                    fontWeight: isTablet ? '800' : '800',
+                    letterSpacing: isTablet ? 1.5 : 1.2,
+                  }
+                ]}>
+                  {isTablet ? 'ALL EDITIONS' : 'ALL EDITIONS MAGAZINE'}
                 </Text>
-
-                <View style={[styles.underline, { backgroundColor: colors.primary }]} />
+                <View style={[
+                  styles.underline,
+                  {
+                    backgroundColor: colors.primary,
+                    width: isTablet ? scale(40) : 30,
+                    height: isTablet ? scale(4) : 3,
+                    marginTop: isTablet ? verticalScale(8) : 6,
+                    borderRadius: isTablet ? scale(12) : 10,
+                  }
+                ]} />
               </View>
             }
             ListFooterComponent={
-              <View style={styles.footerWrapper}>
+              <View style={[
+                styles.footerWrapper,
+                {
+                  marginTop: isTablet ? verticalScale(16) : verticalScale(10),
+                  paddingBottom: isTablet ? verticalScale(20) : 20,
+                }
+              ]}>
                 {magazines.length > 0 && (
                   <Pagination
                     currentPage={currentPage}
@@ -265,61 +343,32 @@ const styles = StyleSheet.create({
   },
 
   headerArea: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    marginBottom: 12,
-    marginVertical: 10,
+    width: '100%',
   },
 
   heading: {
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
 
   underline: {
-    width: 30,
-    height: 3,
-    marginTop: 6,
     borderRadius: 10,
   },
 
   flatListContent: {
-    paddingTop: 0,
-    paddingBottom: 20,
+    flexGrow: 1,
   },
 
   columnWrapper: {
-    justifyContent: 'space-between',
-    paddingHorizontal: HORIZONTAL_PADDING,
-    marginBottom: 6,
+    justifyContent: 'flex-start',
   },
 
   card: {
-    width: ITEM_WIDTH,
-    marginBottom: 18,
-
-    ...Platform.select({
-      ios: {
-        shadowOffset: {
-          width: 0,
-          height: 3,
-        },
-        shadowOpacity: 0.12,
-        shadowRadius: 6,
-      },
-
-      android: {
-        elevation: 4,
-      },
-    }),
+    overflow: 'hidden',
   },
 
   imageWrapper: {
     width: '100%',
     aspectRatio: 3 / 4,
-    borderRadius: 8,
     overflow: 'hidden',
   },
 
@@ -333,18 +382,15 @@ const styles = StyleSheet.create({
   },
 
   cardContent: {
-    paddingTop: 10,
     paddingHorizontal: 2,
   },
 
   title: {
-    fontSize: 14,
-    fontWeight: '700',
     textAlign: 'center',
   },
 
   footerWrapper: {
-    marginTop: 10,
-    paddingBottom: 0,
+    width: '100%',
+    alignItems: 'center',
   },
 });

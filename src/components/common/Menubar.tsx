@@ -6,7 +6,7 @@ import {
   StyleSheet,
   View,
   LayoutChangeEvent,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
@@ -20,12 +20,14 @@ type MenuItem = {
   slug: string;
 };
 
-const screenWidth = Dimensions.get('window').width;
 const CACHE_KEY = 'TOP_MENU';
 
 const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+
+  const { width: screenWidth } = useWindowDimensions();
+  const menuHeight = screenWidth >= 768 ? 60 : 50;
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,6 +124,9 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
       style={[
         styles.wrapper,
         {
+          height: menuHeight,
+        },
+        {
           backgroundColor: colors.background,
           borderBottomColor: colors.border,
         },
@@ -147,6 +152,8 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
                 style={[
                   styles.menuItem,
                   {
+                    paddingHorizontal: screenWidth >= 768 ? 18 : 14,
+                    minWidth: screenWidth >= 768 ? 80 : 60,
                     backgroundColor: isActive ? colors.card : colors.card,
                     borderColor: isActive ? colors.primary : colors.border,
                   },
@@ -157,6 +164,9 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
                 <Text
                   style={[
                     styles.menuText,
+                    {
+                       fontSize: screenWidth >= 768 ? 15 : 13,
+                    },
                     { color: isActive ? colors.primary : colors.textSecondary },
                     isActive && styles.activeText,
                   ]}
@@ -177,7 +187,6 @@ export default TopMenu;
 // ---------------- STYLES ----------------
 const styles = StyleSheet.create({
   wrapper: {
-    height: 50,
     justifyContent: 'center',
     borderBottomWidth: 1,
   },
@@ -189,23 +198,20 @@ const styles = StyleSheet.create({
   },
 
   menuItem: {
-    paddingHorizontal: 14,
     paddingVertical: 7,
     marginRight: 10,
     borderRadius: 18,
     borderWidth: 1,
-    minWidth: 60,
     alignItems: 'center',
+  },
+  menuText: {
+    fontWeight: '500',
   },
 
   activeItem: {
     borderWidth: 1.5,
   },
 
-  menuText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
 
   activeText: {
     fontWeight: '600',

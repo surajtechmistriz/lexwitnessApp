@@ -1,14 +1,15 @@
+// src/screens/Home/index.tsx
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Dimensions,
-  StatusBar,
   RefreshControl,
+  useWindowDimensions,
+  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Carousel from 'react-native-reanimated-carousel';
 import Config from 'react-native-config';
 import NetInfo from '@react-native-community/netinfo';
@@ -32,15 +33,26 @@ import HeroSkeleton from '../../skeleton/HeroSkeleton';
 import ListSkeleton from '../../skeleton/ListSkeleton';
 import MainLayout from '../../MainLayout';
 import { useTheme } from '../../redux/hooks/useTheme';
+import { useResponsive } from '../../hooks/useResponsive';
+import { useTabBarHeight } from '../../hooks/useTabBarHeight';
 
-const { width } = Dimensions.get('window');
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
 
 const Home = () => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  
+  const { 
+    spacing, font, 
+    isTablet, isSmallDevice, 
+    moderateScale 
+  } = useResponsive();
 
-  // ------ ALL HOOKS AT TOP (SAME ORDER EVERY RENDER) ------
+  const tabBarHeight = useTabBarHeight();
+  const { width } = useWindowDimensions();
+
+  // ------ ALL HOOKS AT TOP ------
   const [articles, setArticles] = useState<any[]>([]);
   const [editorPicks, setEditorPicks] = useState<any[]>([]);
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
@@ -54,25 +66,28 @@ const Home = () => {
   const sliderData = articles.slice(0, 3);
   const remainingCards = articles.slice(3);
 
-  // ------ useCallback HOOKS (SAB SE PEHLE) ------
-
-  // ------ Hero card aspect ratio (16:9) ------
-  const HERO_HEIGHT = ((width - 24) * 9) / 16;
+  // ------ Responsive calculations ------
+  const horizontalPadding = isTablet ? spacing.lg : spacing.md;
+  const carouselWidth = width - (horizontalPadding * 2);
+  const HERO_HEIGHT = carouselWidth * (9 / 16);
+  
+  //  Calculate bottom padding for ScrollView
+  // Add extra spacing so content doesn't hide behind tab bar
+  const bottomPadding = tabBarHeight - spacing.lg;
 
   // Format magazine date
   const formatDate = (item: any) => {
     const month = item?.magazine?.month?.name || '';
     const year = item?.magazine?.year || '';
-
     return `${month} ${year}`;
   };
 
-  // ------ Generate image URL ------
+  // Generate image URL
   const getImage = (image: string) => {
     return `${IMAGE_BASE_URL}/${image}`;
   };
 
-  // ------ Open Article Detail ------
+  // ------ Navigation handlers ------
   const handleArticlePress = useCallback(
     (item: any) => {
       navigation.navigate('ArticleDetail', {
@@ -83,7 +98,6 @@ const Home = () => {
     [navigation],
   );
 
-  // ------ Open Magazine Detail ------
   const handleMagazinePress = useCallback(
     (item: any) => {
       navigation.navigate('MagazineDetail', {
@@ -93,13 +107,10 @@ const Home = () => {
     [navigation],
   );
 
-  // ------ View All Magazines - FIXED: Navigate to tab instead of screen ------
   const handleViewAllMagazines = useCallback(() => {
-    // Navigate to the Magazines tab (keeps bottom tabs visible)
     navigation.navigate('MagazinesTab');
   }, [navigation]);
 
-  // ------ Open Editorial ------
   const handleEditorialPress = useCallback(
     (item: any) => {
       navigation.navigate('EditorialDetail', {
@@ -170,7 +181,64 @@ const Home = () => {
   // ------ CUSTOM HOOK ------
   const { refreshing, onRefresh } = useRefresh(() => fetchHomeData(true));
 
-  // ------ RENDER ------
+  //  Render Latest Articles with Grid for Tablet
+  const renderLatestArticles = () => {
+    if (heroLoading) return <HeroSkeleton />;
+    
+    return (
+      <View style={{ marginTop: spacing.md }}>
+        <Text
+          style={[
+            styles.heading,
+            {
+              fontSize: isTablet ? font.xl : font.lg,
+              color: colors.text,
+              marginBottom: spacing.sm,
+            },
+          ]}
+        >
+          Latest Articles
+        </Text>
+        
+        {isTablet ? (
+          <View style={styles.gridContainer}>
+            {remainingCards.slice(0, 4).map((item, index) => (
+              <View 
+                key={item.id} 
+                style={[
+                  styles.gridItem,
+                  { 
+                    width: '50%',
+                    paddingRight: index % 2 === 0 ? spacing.sm : 0,
+                    paddingLeft: index % 2 !== 0 ? spacing.sm : 0,
+                    marginBottom: spacing.md,
+                  }
+                ]}
+              >
+                <ListCard
+                  {...item}
+                  date={formatDate(item)}
+                  onPress={() => handleArticlePress(item)}
+                />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <>
+            {remainingCards.slice(0, 4).map(item => (
+              <ListCard
+                key={item.id}
+                {...item}
+                date={formatDate(item)}
+                onPress={() => handleArticlePress(item)}
+              />
+            ))}
+          </>
+        )}
+      </View>
+    );
+  };
+
   return (
     <MainLayout
       title="Home"
@@ -178,126 +246,140 @@ const Home = () => {
       showHeader={true}
       showTopMenu={false}
       showBanner={false}
+      scrollable={false}
+      contentPadding={false}
+      statusBarColor='#f5f5f7'
+       statusBarStyle="dark-content"
     >
-      <SafeAreaView
-        style={[styles.container, { backgroundColor: colors.background }]}
-        edges={['bottom']}
+      {/*  Remove SafeAreaView wrapper - MainLayout already handles it */}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingHorizontal: horizontalPadding,
+            paddingTop: 0,
+            paddingBottom: bottomPadding,
+          },
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       >
-        <StatusBar
-          barStyle={isDark ? 'light-content' : 'dark-content'}
-          backgroundColor={colors.background}
-        />
+        <TopMenu />
 
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={[colors.primary]}
-              tintColor={colors.primary}
-            />
-          }
-        >
-          <TopMenu />
-
-          {/* HERO SECTION */}
-          {heroLoading ? (
-            <HeroSkeleton />
-          ) : (
-            <View style={styles.carouselWrapper}>
-              <Carousel
-                loop
-                autoPlay
-                width={width - 24}
-                height={HERO_HEIGHT}
-                data={sliderData}
-                autoPlayInterval={1000}
-                scrollAnimationDuration={1200}
-                renderItem={({ item, index }) => (
-                  <HeroCard
-                    category={item.category}
-                    title={item.title}
-                    slug={item.slug}
-                    date={formatDate(item)}
-                    image={getImage(item.image)}
-                    onLoadEnd={
-                      index === 0 ? () => setHeroReady(true) : undefined
-                    }
-                    onPress={() => handleArticlePress(item)}
-                  />
-                )}
-              />
-            </View>
-          )}
-
-          {/* LATEST ARTICLES */}
-          {!heroReady ? (
-            <ListSkeleton />
-          ) : (
-            <View>
-              <Text style={[styles.heading, { color: colors.text }]}>
-                Latest Articles
-              </Text>
-              {remainingCards.slice(0, 4).map(item => (
-                <ListCard
-                  key={item.id}
-                  {...item}
+        {/* HERO SECTION */}
+        {heroLoading ? (
+          <HeroSkeleton />
+        ) : (
+          <View style={[styles.carouselWrapper, { marginBottom: spacing.md }]}>
+            <Carousel
+              loop
+              autoPlay
+              width={carouselWidth}
+              height={HERO_HEIGHT}
+              data={sliderData}
+              autoPlayInterval={isTablet ? 3000 : 4000}
+              scrollAnimationDuration={1200}
+              renderItem={({ item, index }) => (
+                <HeroCard
+                  category={item.category}
+                  title={item.title}
+                  slug={item.slug}
                   date={formatDate(item)}
+                  image={getImage(item.image)}
+                  onLoadEnd={
+                    index === 0 ? () => setHeroReady(true) : undefined
+                  }
                   onPress={() => handleArticlePress(item)}
                 />
+              )}
+              onSnapToItem={(index) => setActiveIndex(index)}
+            />
+            {/* <View style={[styles.paginationContainer, { marginTop: spacing.sm }]}>
+              {sliderData.map((_, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.paginationDot,
+                    {
+                      width: activeIndex === index ? moderateScale(20) : moderateScale(8),
+                      height: moderateScale(8),
+                      backgroundColor: activeIndex === index 
+                        ? colors.primary 
+                        : isDark ? colors.border : '#ddd',
+                    }
+                  ]}
+                />
               ))}
-            </View>
-          )}
+            </View> */}
+          </View>
+        )}
 
-          {/* ADVERTISEMENT */}
+        {/* LATEST ARTICLES */}
+        {!heroLoading && renderLatestArticles()}
+
+        {/* ADVERTISEMENT */}
+        <View
+          style={[
+            styles.graySectionWrapper,
+            {
+              paddingHorizontal: isTablet ? spacing.xl : spacing.lg,
+              paddingVertical: isTablet ? spacing.xl : spacing.lg,
+              marginHorizontal: -horizontalPadding,
+              marginVertical: spacing.md,
+              backgroundColor: isDark ? colors.border : '#f8f8f8',
+            },
+          ]}
+        >
+          <HomeAdvertisement />
+        </View>
+
+        {/* EDITOR PICKS */}
+        {restLoading ? (
           <View
             style={[
-              styles.graySectionWrapper,
-              {
-                backgroundColor: isDark ? colors.border : '#f8f8f8',
-              },
+              styles.loadingBlock,
+              { backgroundColor: colors.background },
             ]}
           >
-            <HomeAdvertisement />
+            <Text style={{ color: colors.textSecondary }}>Loading...</Text>
           </View>
+        ) : (
+          <EditorPicksSection
+            data={editorPicks}
+            getImage={getImage}
+            onPressItem={handleArticlePress}
+          />
+        )}
 
-          {/* EDITOR PICKS */}
-          {restLoading ? (
-            <View
-              style={[
-                styles.loadingBlock,
-                { backgroundColor: colors.background },
-              ]}
-            >
-              <Text style={{ color: colors.textSecondary }}>Loading...</Text>
-            </View>
-          ) : (
-            <EditorPicksSection
-              data={editorPicks}
-              getImage={getImage}
-              onPressItem={handleArticlePress}
-            />
-          )}
-
-          {/* HOME BANNER */}
+        {/* HOME BANNER */}
+        <View style={{ marginVertical: spacing.md }}>
           <HomeBanner />
+        </View>
 
-          {/* LATEST EDITION */}
-          <LatestEdition onData={setLatestEditionData} />
+        {/* LATEST EDITION */}
+        <LatestEdition onData={setLatestEditionData} />
 
-          {/* EDITORIAL */}
+        {/* EDITORIAL */}
+        <View style={{ marginVertical: spacing.sm }}>
           <EditorialCard onPressItem={handleEditorialPress} />
+        </View>
 
-          {/* MAGAZINES */}
+        {/* MAGAZINES */}
+        <View style={{ marginBottom: spacing.lg }}>
           <LatestEditions
             skipId={latestEditionData?.magazine?.id}
             onPressItem={handleMagazinePress}
             onPressViewAll={handleViewAllMagazines}
           />
-        </ScrollView>
-      </SafeAreaView>
+        </View>
+      </ScrollView>
     </MainLayout>
   );
 };
@@ -309,28 +391,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 12,
-    paddingBottom: 0,
+    flexGrow: 1,
   },
   carouselWrapper: {
     alignItems: 'center',
   },
   graySectionWrapper: {
-    paddingVertical: 30,
-    paddingHorizontal: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 10,
-    marginHorizontal: -12,
   },
   heading: {
-    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 10,
-    marginTop: 20,
   },
   loadingBlock: {
     padding: 20,
     alignItems: 'center',
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -4,
+  },
+  gridItem: {},
+  paginationContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paginationDot: {
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
 });

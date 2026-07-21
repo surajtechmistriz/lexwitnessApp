@@ -75,7 +75,7 @@ export default function RootStack() {
       <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} />
       
       {/* ===== 5. DASHBOARD & OTHERS ===== */}
-      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      {/* <Stack.Screen name="Dashboard" component={DashboardScreen} /> */}
       <Stack.Screen name="Subscription" component={Subscription} />
       <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
       <Stack.Screen name="EditorialDetail" component={EditorialDetail} />

@@ -16,7 +16,7 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import RazorpayCheckout from 'react-native-razorpay';
 
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { getPlans } from '../../services/api/plans';
@@ -51,8 +51,8 @@ const PricingCard = () => {
       const data = Array.isArray(res)
         ? res
         : Array.isArray(res?.data)
-        ? res.data
-        : [];
+          ? res.data
+          : [];
       setPlans(data);
     } catch (error) {
       console.log('PLANS ERROR =>', error);
@@ -80,14 +80,34 @@ const PricingCard = () => {
     });
   };
 
-  const handlePaymentSuccess = async () => {
-    await refreshProfile(dispatch);
+  // const handlePaymentSuccess = async () => {
+  //   try {
+  //     await refreshProfile(dispatch);
+  //   } catch (e) {
+  //     console.log(e);
+  //   } finally {
+  //     setProcessingPayment(false);
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Dashboard' }],
-    });
-  };
+  //     navigation.dispatch(
+  //       CommonActions.reset({
+  //         index: 0,
+  //         routes: [
+  //           {
+  //             name: 'MainApp',
+  //             state: {
+  //               routes: [
+  //                 {
+  //                   name: 'Dashboard',
+  //                 },
+  //               ],
+  //               index: 0,
+  //             },
+  //           },
+  //         ],
+  //       }),
+  //     );
+  //   }
+  // };
 
   const handleSubscribe = useCallback(async () => {
     if (!selectedPlan) return;
@@ -127,7 +147,7 @@ const PricingCard = () => {
 
       // Show full screen loader after payment success
       setProcessingPayment(true);
-
+      console.log("1 Payment Success");
       const verifyPayload = {
         razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
         razorpay_order_id: razorpayResponse?.razorpay_order_id,
@@ -136,14 +156,47 @@ const PricingCard = () => {
         purchase_type: 'UPGRADE',
       };
 
+      // setProcessingPayment(true);
+
       try {
+
+
         await verifySubscriptionPayment(verifyPayload);
-      } catch (verifyError) {
-        console.log('VERIFY ERROR =>', verifyError);
-        // Ignore because backend already updates subscription
+
+        // Hide loader
+        setProcessingPayment(false);
+
+        // Go to Dashboard immediately
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'MainApp',
+                state: {
+                  index: 0,
+                  routes: [{ name: 'Dashboard' }],
+                },
+              },
+            ],
+          }),
+        );
+
+        // Refresh profile in background
+        refreshProfile(dispatch).catch(console.log);
+
+      } catch (e: any) {
+        setProcessingPayment(false);
+
+        Alert.alert(
+          "Error",
+          e?.response?.data?.message || "Payment verification failed"
+        );
+      } finally {
+        setLoading(false);
       }
 
-      await handlePaymentSuccess();
+      // await handlePaymentSuccess();
     } catch (error: any) {
       setProcessingPayment(false);
 
@@ -155,8 +208,8 @@ const PricingCard = () => {
       Alert.alert(
         'Error',
         error?.response?.data?.message ||
-          error?.message ||
-          'Something went wrong',
+        error?.message ||
+        'Something went wrong',
       );
     } finally {
       setLoading(false);
@@ -347,23 +400,23 @@ const PricingCard = () => {
         </View>
       </ScrollView>
 
-    <Modal
-  visible={processingPayment}
-  transparent
-  animationType="fade"
->
-  <View style={styles.paymentOverlay}>
-    <ActivityIndicator size="large" color="#fff" />
+      <Modal
+        visible={processingPayment}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.paymentOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
 
-    <Text style={styles.paymentText}>
-      Processing Payment...
-    </Text>
+          <Text style={styles.paymentText}>
+            Processing Payment...
+          </Text>
 
-    <Text style={styles.paymentSubText}>
-      Please wait while we update your subscription
-    </Text>
-  </View>
-</Modal>
+          <Text style={styles.paymentSubText}>
+            Please wait while we update your subscription
+          </Text>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -605,16 +658,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-paymentOverlay: {
-  position: 'absolute',
-  width: '100%',
-  height: '100%',
-  backgroundColor: 'rgba(0,0,0,0.75)',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 9999,
-  elevation: 9999,
-},
+  paymentOverlay: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+    elevation: 9999,
+  },
 
   paymentText: {
     color: '#fff',

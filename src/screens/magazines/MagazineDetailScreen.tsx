@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,18 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  useWindowDimensions,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import IconBack from 'react-native-vector-icons/Feather';
+import LinearGradient from 'react-native-linear-gradient';
 import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
-import LatestEditions from '../home/components/Latest5Edition';
 import { useTheme } from '../../redux/hooks/useTheme';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -21,12 +26,18 @@ const imgUrl2 = Config.POSTS_BASE_URL;
 export default function MagazineDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   
   const { slug } = route.params || {};
-
   const [magazine, setMagazine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Breakpoints / Responsive Adjustments
+  const isTablet = width >= 768;
+  const contentWidthMax = isTablet ? 650 : width; // Caps text layout on large screens
+  const heroHeight = isTablet ? 400 : width * 0.75; // Caps crazy tall heights on tablets
 
   useEffect(() => {
     if (slug) fetchMagazine();
@@ -49,31 +60,6 @@ export default function MagazineDetailScreen() {
     return img.startsWith('http') ? img : `${base}/${img}`;
   };
 
-  //  NAVIGATION FUNCTIONS
-  const handleBack = () => {
-    navigation.goBack();
-  };
-
-  const handleSubscribe = () => {
-    navigation.navigate('Subscription');
-  };
-
-  const handleArticlePress = (post: any) => {
-    navigation.navigate('ArticleDetail', {
-      slug: post.slug,
-    });
-  };
-
-  const handleMagazinePress = (item: any) => {
-    navigation.navigate('MagazineDetail', {
-      slug: item.slug,
-    });
-  };
-
-  const handleViewAllMagazines = () => {
-    navigation.navigate('MagazinesTab');
-  };
-
   if (loading) {
     return (
       <View style={[styles.loader, { backgroundColor: colors.background }]}>
@@ -91,261 +77,334 @@ export default function MagazineDetailScreen() {
   }
 
   return (
-    <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      {/*  BACK BUTTON */}
-      <TouchableOpacity 
-        style={[styles.backButton, { 
-          backgroundColor: colors.card,
-          shadowColor: isDark ? '#000' : '#000',
-        }]} 
-        onPress={handleBack}
-        activeOpacity={0.7}
+
+  <SafeAreaView
+  style={styles.screen}
+  edges={['top', 'bottom']}
+>  
+   <StatusBar
+              barStyle="light-content"
+              backgroundColor="#c9060a"
+              translucent={false}
+            />
+            
+      <ScrollView
+        contentContainerStyle={styles.scrollWrap}
+        showsVerticalScrollIndicator={false}
       >
-        <Icon name="arrow-back" size={24} color={colors.primary} />
-      </TouchableOpacity>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* MAGAZINE HERO */}
-        <View style={styles.heroSection}>
-          <View style={[styles.heroCard, { backgroundColor: colors.card }]}>
-            <Image
-              source={{ uri: getImage(magazine.image, imgUrl) }}
-              style={[styles.heroImage, { backgroundColor: isDark ? colors.border : '#f9f9f9' }]}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* DETAILS */}
-          <View style={[styles.content, { backgroundColor: colors.card }]}>
-            <Text style={[styles.kicker, { color: colors.text }]}>
-              {magazine.magazine_name}
-            </Text>
-
-            <Text style={[styles.title, { color: colors.text }]}>
-              {magazine.title}
-            </Text>
-
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-            <Text style={[styles.sectionLabel, { color: colors.primary }]}>
-              Magazine Details
-            </Text>
-
-            <Text style={[styles.description, { color: colors.textSecondary }]}>
-              {magazine.description
-                ?.replace(/<[^>]+>/g, '')
-                .replace(/&amp;/g, '&')}
-            </Text>
-
-            <TouchableOpacity 
-              style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
-              onPress={handleSubscribe}
-            >
-              <Text style={styles.subscribeText}>Subscribe Now</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* ARTICLES */}
-        <View style={styles.articleSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Articles</Text>
-          <View style={[styles.redLine, { backgroundColor: colors.primary }]} />
-
-          <View style={styles.grid}>
-            {magazine.posts?.map((post: any) => (
+        {/* HERO SECTION */}
+        <View style={[styles.heroContainer, { backgroundColor: colors.card }]}>
+          {magazine.image && (
+            <View style={[styles.imageWrapper, { height: heroHeight }]}>
+              <Image
+                source={{ uri: getImage(magazine.image, imgUrl) }}
+                style={styles.heroImage}
+                resizeMode="contain"
+              />
+              <LinearGradient
+                colors={['transparent', 'rgba(51,51,51,0.4)']}
+                style={styles.imageGradient}
+              />
+              
+              {/* Back Button */}
               <TouchableOpacity
-                key={post.id}
-                style={[styles.card, { 
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  shadowColor: isDark ? '#000' : '#000',
-                }]}
-                activeOpacity={0.85}
-                onPress={() => handleArticlePress(post)}
+                onPress={() => navigation.goBack()}
+                style={[
+                  styles.backBtn,
+                  {
+                    backgroundColor: colors.card,
+                    top: insets.top + 5,
+                  },
+                ]}
               >
-                <Image
-                  source={{ uri: getImage(post.image, imgUrl2) }}
-                  style={[styles.cardImage, { backgroundColor: isDark ? colors.border : '#f9f9f9' }]}
-                />
-
-                <View style={styles.cardContent}>
-                  <Text numberOfLines={2} style={[styles.cardTitle, { color: colors.text }]}>
-                    {post.title}
-                  </Text>
-
-                  <Text style={[styles.cardCategory, { color: colors.primary }]}>
-                    {post.category?.name || 'General'}
-                  </Text>
-                </View>
+                <IconBack name="arrow-left" size={22} color={colors.primary} />
               </TouchableOpacity>
-            ))}
+            </View>
+          )}
+
+          {/* Centered container wrapper for tablet readability */}
+          <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
+            {/* Magazine Info Row */}
+            <View style={styles.topRow}>
+              <Text style={[styles.categoryText, { color: colors.text, fontSize: isTablet ? 24 : 20 }]}>
+                {magazine.magazine_name?.toUpperCase() || 'MAGAZINE'}
+              </Text>
+            </View>
+
+            {/* Title */}
+            <View style={styles.titleRow}>
+              <Icon name="calendar-outline" size={16} color={colors.textMuted} />
+              <Text style={[styles.magazineTitle, { color: colors.text, fontSize: isTablet ? 22 : 18 }]}>
+                {magazine.title}
+              </Text>
+            </View>
+
+            {/* Meta Info */}
+            <View style={styles.metaRow}>
+              <Text style={[styles.dateText, { color: colors.primary, fontSize: isTablet ? 18 : 16 }]}>
+                Magazine Details
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* MORE EDITIONS */}
-        <View style={styles.moreSection}>
-          {magazine?.id && (
-            <LatestEditions
-              skipId={magazine.id}
-              onPressItem={handleMagazinePress}
-              onPressViewAll={handleViewAllMagazines}
-            />
-          )}
+        {/* CONTENT SECTION */}
+        <View style={[styles.contentCard, { 
+          backgroundColor: colors.card,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+        }]}>
+          <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
+            {/* Description */}
+            <View style={styles.descriptionContainer}>
+              <Text style={[styles.description, { color: colors.textSecondary, fontSize: isTablet ? 17 : 15 }]}>
+                {magazine.description?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')}
+              </Text>
+            </View>
+
+            {/* Subscribe Button */}
+            <TouchableOpacity
+              style={[styles.subscribeBtn, { 
+                backgroundColor: colors.primary,
+                shadowColor: colors.primary,
+              }]}
+              onPress={() => navigation.navigate('Subscription')}
+              activeOpacity={0.9}
+            >
+              <Text style={styles.subscribeBtnText}>Subscribe Now</Text>
+              <Icon name="arrow-forward" size={18} color="#fff" />
+            </TouchableOpacity>
+
+            {/* Articles Section */}
+            {magazine.posts?.length > 0 && (
+              <View style={styles.articlesSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={[styles.sectionTitle, { color: colors.text, fontSize: isTablet ? 20 : 18 }]}>
+                    Articles
+                  </Text>
+                  <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
+                </View>
+
+                {/* Using grid behavior layout properties for tablets */}
+                <View style={isTablet ? styles.tabletGrid : null}>
+                  {magazine.posts.map((post: any) => (
+                    <TouchableOpacity
+                      key={post.id}
+                      style={[
+                        styles.articleCard, 
+                        { backgroundColor: colors.card, borderColor: colors.border },
+                        isTablet && styles.articleCardTablet
+                      ]}
+                      onPress={() => navigation.navigate('ArticleDetail', { slug: post.slug })}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: getImage(post.image, imgUrl2) }}
+                        style={styles.articleImage}
+                        resizeMode="cover"
+                      />
+                      <View style={styles.articleText}>
+                        <Text numberOfLines={2} style={[styles.articleTitle, { color: colors.text }]}>
+                          {post.title}
+                        </Text>
+                        <View style={styles.articleMeta}>
+                          <Icon name="pricetag-outline" size={12} color={colors.primary} />
+                          <Text style={[styles.articleCategory, { color: colors.primary }]}>
+                            {post.category?.name || 'General'}
+                          </Text>
+                        </View>
+                      </View>
+                      <Icon name="chevron-forward" size={20} color={colors.textMuted} style={styles.articleArrow} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+          </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
+  screen: { flex: 1 },
+  // scrollWrap: { paddingBottom: 40 },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  
+  // Responsive Wrapper to keep text reading bounds optimized on large layouts
+  responsiveContentBlock: {
+    width: '100%',
+    alignSelf: 'center',
+    paddingHorizontal: 20,
   },
 
-  //  BACK BUTTON STYLES
-  backButton: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    zIndex: 10,
-    borderRadius: 30,
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  heroSection: {
-    padding: 14,
-    paddingTop: 20,
-  },
-
-  heroCard: {
-    borderRadius: 14,
+  heroContainer: {
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
     overflow: 'hidden',
+    paddingBottom: 20,
   },
-
+  imageWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
   heroImage: {
     width: '100%',
-    height: undefined,
-    aspectRatio: 3 / 4,
+    height: '100%',
   },
-
-  content: {
-    marginTop: 14,
-    padding: 16,
-    borderRadius: 14,
+  imageGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 80,
   },
-
-  kicker: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-
-  title: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginTop: 6,
-    lineHeight: 30,
-  },
-
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
-
-  sectionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-
-  description: {
-    fontSize: 14,
-    lineHeight: 22,
-  },
-
-  subscribeBtn: {
-    marginTop: 16,
-    paddingVertical: 12,
-    borderRadius: 10,
+  backBtn: {
+    position: 'absolute',
+    left: 15,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: { elevation: 3 }
+    })
   },
-
-  subscribeText: {
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  categoryText: {
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  magazineTitle: {
+    flex: 1,
+    fontWeight: '500',
+    lineHeight: 28,
+    marginLeft: 8,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  dateText: {
+    fontWeight: '600',
+  },
+  contentCard: {
+    marginTop: -14,
+    paddingTop: 14,
+  },
+  descriptionContainer: {
+    marginBottom: 20,
+  },
+  description: {
+    lineHeight: 24,
+    opacity: 0.9,
+  },
+  subscribeBtn: {
+    flexDirection: 'row',
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 24,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+      },
+      android: { elevation: 4 }
+    })
+  },
+  subscribeBtnText: {
     color: '#fff',
     fontWeight: '700',
+    fontSize: 15,
+    letterSpacing: 0.8,
   },
-
-  articleSection: {
-    paddingHorizontal: 14,
-    marginTop: 20,
+  articlesSection: {
+    marginTop: 8,
   },
-
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
-
-  redLine: {
-    width: 50,
-    height: 4,
-    marginTop: 6,
-    marginBottom: 14,
-    borderRadius: 2,
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    marginLeft: 12,
   },
-
-  grid: {
+  
+  // Tablet optimization: Lists line up cleanly side-by-side on wide screens
+  tabletGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-
-  card: {
-    width: '48%',
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 14,
+  articleCard: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-  },
-
-  cardImage: {
+    overflow: 'hidden',
+    alignItems: 'center',
     width: '100%',
-    height: 110,
   },
-
-  cardContent: {
-    padding: 10,
+  articleCardTablet: {
+    width: '49%', // Splits into 2 items per row on tablets
   },
-
-  cardTitle: {
-    fontSize: 13,
+  articleImage: {
+    width: 80,
+    height: 80,
+  },
+  articleText: {
+    flex: 1,
+    padding: 12,
+  },
+  articleTitle: {
     fontWeight: '600',
+    fontSize: 14,
+    marginBottom: 6,
+    lineHeight: 20,
   },
-
-  cardCategory: {
+  articleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  articleCategory: {
     fontSize: 11,
-    marginTop: 6,
     fontWeight: '500',
   },
-
-  moreSection: {
-    marginTop: 20,
-    paddingBottom: 0,
-    paddingLeft: 10,
+  articleArrow: {
+    marginRight: 12,
   },
 });

@@ -7,7 +7,10 @@ import {
   Dimensions,
   TouchableOpacity,
   Text,
+  Platform,
+  StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
@@ -19,16 +22,13 @@ import { getYears } from '../../services/api/years';
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
-import Footer from '../../components/common/Footer';
-import HomeBanner from '../home/components/HomeBanner';
-import HomeAdvertisement from '../home/components/HomeAdvertisement';
-import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
+import Banner from '../../components/common/DynamicBanner';
+import TopMenu from '../../components/common/Menubar';
 import { getAuthorBySlug } from './api/authorarticle';
 
-// Import MainLayout instead of individual components
-import MainLayout from '../../MainLayout';
 import { useTheme } from '../../redux/hooks/useTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -37,12 +37,21 @@ export default function Author() {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
   const { colors, isDark } = useTheme();
+  const { 
+    isTablet, 
+    isSmallDevice, 
+    spacing, 
+    font, 
+    sizes, 
+    moderateScale,
+    wp,
+    hp,
+    pixelRatio 
+  } = useResponsive();
 
-  // SAFE PARAMS
   const slug = route.params?.slug || '';
   const postBaseUrl = Config.POSTS_BASE_URL;
 
-  // --- STATE ---
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [posts, setPosts] = useState<any[]>([]);
@@ -52,13 +61,14 @@ export default function Author() {
   const [appliedYear, setAppliedYear] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
-  // BACK BUTTON HANDLER
+  const isAndroid = Platform.OS === 'android';
+
   const handleBack = () => {
     navigation.goBack();
   };
 
-  // --- FETCH POSTS ---
   const fetchAuthorPosts = useCallback(
     async (authorId: number, year: number | null, page: number) => {
       setLoading(true);
@@ -83,7 +93,6 @@ export default function Author() {
     [],
   );
 
-  // --- INITIAL LOAD ---
   useEffect(() => {
     const init = async () => {
       if (!slug) {
@@ -116,7 +125,6 @@ export default function Author() {
     init();
   }, [slug, fetchAuthorPosts]);
 
-  // --- FILTER CHANGE ---
   useEffect(() => {
     if (author?.id) {
       fetchAuthorPosts(author.id, appliedYear, 1);
@@ -133,6 +141,7 @@ export default function Author() {
   const handleApplyFilter = () => {
     setAppliedYear(selectedYear);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
+    setIsFilterVisible(false);
   };
 
   const handlePageChange = (page: number) => {
@@ -147,61 +156,115 @@ export default function Author() {
     return slug?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
+  const contentPaddingTop = isAndroid ? (isSmallDevice ? 6 : isTablet ? 16 : 10) : (isTablet ? 16 : 10);
+  const minHeight = isAndroid ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.6;
+  const skeletonCount = isTablet ? 5 : isSmallDevice ? 3 : 4;
+
+  // Handle filter toggle
+  const toggleFilter = () => {
+    setIsFilterVisible(!isFilterVisible);
+  };
+
   return (
-    <MainLayout
-      title={getAuthorTitle()}
-      routeName="Author"
-      showBackButton={true}
-      onBackPress={handleBack}
-      renderFilter={close => (
-        <YearFilter
-          years={years}
-          selectedYear={selectedYear}
-          onSelect={setSelectedYear}
-          onApply={() => {
-            handleApplyFilter();
-            close();
-          }}
-        />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Status Bar */}
+      <StatusBar 
+        barStyle="light-content"
+        backgroundColor="#c9060a"
+        translucent={false}
+      />
+
+      {/* SafeAreaView for notch handling */}
+      <SafeAreaView 
+        style={[styles.safeArea, { backgroundColor: '#c9060a' }]}
+        edges={['top']}
+      />
+
+      {/* Banner with Back Button */}
+      <Banner
+        title={getAuthorTitle()}
+        showBackButton={true}
+        onBackPress={handleBack}
+        showFilter={true}
+        onFilterPress={toggleFilter}
+        renderFilter={close => (
+          <YearFilter
+            years={years}
+            selectedYear={selectedYear}
+            onSelect={setSelectedYear}
+            onApply={() => {
+              handleApplyFilter();
+              close();
+            }}
+          />
+        )}
+      />
+
+      {/* Filter Modal - Direct render when visible */}
+      {isFilterVisible && (
+        <View style={styles.filterModalOverlay}>
+          <View style={[styles.filterModalContent, { backgroundColor: colors.card }]}>
+            <View style={[styles.filterModalHeader, { borderBottomColor: colors.border }]}>
+              <Text style={[styles.filterModalTitle, { color: colors.text }]}>
+                Filter by Year
+              </Text>
+              <TouchableOpacity onPress={() => setIsFilterVisible(false)}>
+                <Icon name="close" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <YearFilter
+              years={years}
+              selectedYear={selectedYear}
+              onSelect={setSelectedYear}
+              onApply={() => {
+                handleApplyFilter();
+              }}
+              inModal={true}
+            />
+          </View>
+        </View>
       )}
-    >
+
+      {/* Top Menu */}
+      <TopMenu activeSlug={slug} />
+
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { 
+            paddingBottom: isAndroid ? spacing.lg : spacing.md,
+            paddingTop: isAndroid ? spacing.xs : 0,
+          }
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
             colors={[colors.primary]}
             tintColor={colors.primary}
+            progressBackgroundColor={isDark ? colors.card : colors.background}
           />
         }
       >
-        <View style={[styles.content, { backgroundColor: colors.background }]}>
-          {appliedYear && (
-            <View style={[styles.activeFilterContainer, { 
-              backgroundColor: colors.primaryBackground,
-              borderLeftColor: colors.primary,
-            }]}>
-              <Text style={[styles.activeFilterText, { color: colors.text }]}>
-                Showing posts from {appliedYear}
-              </Text>
-              <TouchableOpacity 
-                onPress={() => {
-                  setSelectedYear(null);
-                  setAppliedYear(null);
-                }}
-              >
-                <Icon name="close-circle" size={20} color={colors.primary} />
-              </TouchableOpacity>
-            </View>
-          )}
+        <View style={[
+          styles.content, 
+          { 
+            backgroundColor: colors.background,
+            paddingTop: contentPaddingTop,
+            minHeight: minHeight,
+          }
+        ]}>
+      
 
           {loading && !refreshing ? (
-            <View style={styles.skeletonWrapper}>
-              {[1, 2, 3, 4, 5].map(item => (
-                <ArticleSkeleton key={item} />
+            <View style={[
+              styles.skeletonWrapper,
+              { marginTop: isAndroid ? spacing.xs : spacing.sm }
+            ]}>
+              {[...Array(skeletonCount)].map((_, i) => (
+                <ArticleSkeleton key={i} />
               ))}
             </View>
           ) : (
@@ -220,83 +283,85 @@ export default function Author() {
           )}
 
           {!loading && posts.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              lastPage={lastPage}
-              onPageChange={handlePageChange}
-              loading={loading}
-            />
+            <View style={[
+              styles.paginationWrapper,
+              {
+                paddingVertical: isAndroid ? spacing.md : spacing.lg,
+                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                marginTop: isAndroid ? spacing.xs : 0,
+              }
+            ]}>
+              <Pagination
+                currentPage={currentPage}
+                lastPage={lastPage}
+                onPageChange={handlePageChange}
+                loading={loading}
+              />
+            </View>
           )}
         </View>
-
-        {/* FOOTER */}
-        <View style={styles.footerContainer}>
-          <View style={styles.BannerContainer}>
-            <HomeBanner />
-          </View>
-
-          <View style={[styles.adContainer, { 
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          }]}>
-            <HomeAdvertisement />
-          </View>
-        </View>
       </ScrollView>
-    </MainLayout>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 0,
+  },
   scrollContent: {
-    paddingBottom: 20,
     flexGrow: 1,
   },
-
   content: {
-    paddingTop: 10,
-    minHeight: SCREEN_HEIGHT * 0.6,
+    flex: 1,
   },
-
-  skeletonWrapper: {
-    marginTop: 10,
-  },
-
-  footerContainer: {
-    width: '100%',
-    paddingBottom: 20,
-  },
-
-  BannerContainer: {
-    marginHorizontal: 15,
-  },
-
-  adContainer: {
-    height: 300,
-    marginVertical: 20,
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 15,
-  },
-
-  magazine: {
-    marginBottom: 20,
-    marginHorizontal: 15,
-  },
-
+  skeletonWrapper: {},
   activeFilterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 8,
-    borderLeftWidth: 3,
   },
   activeFilterText: {
-    fontSize: 14,
+    fontWeight: '500',
+  },
+  paginationWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  filterModalContent: {
+    width: '85%',
+    maxHeight: '80%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+  },
+  filterModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

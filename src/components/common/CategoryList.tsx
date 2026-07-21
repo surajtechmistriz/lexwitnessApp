@@ -168,11 +168,11 @@ const CategoryList = () => {
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: colors.background }]}
-      edges={['top', 'left', 'right', 'bottom']}
+      edges={['top', 'left', 'right', ]} // Removed 'bottom' from edges
     >
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={isDark ? '#121212' : '#F9FAFB'}
+        backgroundColor={isDark ? '#121212' : '#c9060a'}
       />
 
       {/* Header with Back Button */}
@@ -207,7 +207,10 @@ const CategoryList = () => {
         numColumns={2}
         contentContainerStyle={[
           styles.listContent,
-          { backgroundColor: colors.background },
+          { 
+            backgroundColor: colors.background,
+            paddingBottom: 20, // Added explicit bottom padding
+          },
         ]}
         columnWrapperStyle={styles.row}
         showsVerticalScrollIndicator={false}
@@ -219,6 +222,7 @@ const CategoryList = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    paddingBottom:40
   },
 
   header: {
@@ -226,7 +230,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 12,
+    paddingBottom: 18,
   },
 
   backButton: {
@@ -265,7 +269,7 @@ const styles = StyleSheet.create({
 
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    // paddingBottom: 20, // Moved to inline style for dynamic control
   },
 
   row: {

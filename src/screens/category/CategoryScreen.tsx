@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Text,
   StatusBar,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -26,6 +27,7 @@ import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 import TopMenu from '../../components/common/Menubar';
 import Banner from '../../components/common/DynamicBanner';
 import { useTheme } from '../../redux/hooks/useTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -34,6 +36,17 @@ export default function Category() {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
   const { colors, isDark } = useTheme();
+  const { 
+    isTablet, 
+    isSmallDevice, 
+    spacing, 
+    font, 
+    sizes, 
+    moderateScale,
+    wp,
+    hp,
+    pixelRatio 
+  } = useResponsive();
 
   const slug = route.params?.slug ?? '';
   const postBaseUrl = Config.POSTS_BASE_URL;
@@ -47,6 +60,9 @@ export default function Category() {
   const [appliedYear, setAppliedYear] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
+
+  // Android detection
+  const isAndroid = Platform.OS === 'android';
 
   const handleBack = () => {
     navigation.goBack();
@@ -117,122 +133,151 @@ export default function Category() {
     return slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
+  // Responsive values
+  const contentPaddingTop = isAndroid ? (isSmallDevice ? 6 : isTablet ? 16 : 10) : (isTablet ? 16 : 10);
+  const minHeight = isAndroid ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.6;
+  const skeletonCount = isTablet ? 4 : isSmallDevice ? 2 : 3;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <>
+      {/* Status Bar - Separate from SafeAreaView */}
       <StatusBar 
-        barStyle={isDark ? 'light-content' : 'light-content'} 
-        backgroundColor={colors.primary} 
+        barStyle="light-content"
+        backgroundColor={colors.primary}
+        translucent={false}
+      />
+      
+      {/* SafeAreaView for notch handling */}
+      <SafeAreaView 
+        style={[
+          styles.safeArea, 
+          { 
+            backgroundColor: colors.primary 
+          }
+        ]}
+        edges={['top']}
       />
 
-      {/* BANNER WITH BACK BUTTON INTEGRATED */}
-      <Banner
-        title={getCategoryTitle()}
-        showBackButton={true}
-        onBackPress={handleBack}
-        renderFilter={close => (
-          <YearFilter
-            years={years}
-            selectedYear={selectedYear}
-            onSelect={setSelectedYear}
-            onApply={() => {
-              setAppliedYear(selectedYear);
-              close();
-            }}
-          />
-        )}
-      />
-
-      {/* TOP MENU */}
-      <TopMenu activeSlug={slug} />
-
-      <ScrollView
-        ref={scrollRef}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <View style={[styles.content, { backgroundColor: colors.background }]}>
-          {appliedYear && (
-            <View style={[styles.activeFilterContainer, {
-              backgroundColor: colors.primaryBackground,
-              borderLeftColor: colors.primary,
-            }]}>
-              <Text style={[styles.activeFilterText, { color: colors.text }]}>
-                Showing posts from {appliedYear}
-              </Text>
-              <TouchableOpacity 
-                onPress={() => {
-                  setSelectedYear(null);
-                  setAppliedYear(null);
-                }}
-              >
-                <Icon name="close-circle" size={20} color={colors.primary} />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {loading ? (
-            <View>
-              {[1, 2, 3].map(i => (
-                <ArticleSkeleton key={i} />
-              ))}
-            </View>
-          ) : (
-            <PostList
-              posts={posts}
-              postBaseUrl={postBaseUrl}
-              emptyMessage={
-                appliedYear
-                  ? `No posts for ${appliedYear}`
-                  : 'No posts available'
-              }
-            />
-          )}
-
-          {!loading && posts.length > 0 && category?.id && (
-            <Pagination
-              currentPage={currentPage}
-              lastPage={lastPage}
-              onPageChange={page => {
-                fetchData(category.id, appliedYear, page);
-                scrollRef.current?.scrollTo({ y: 0, animated: true });
+      {/* Main Container */}
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* BANNER WITH BACK BUTTON INTEGRATED */}
+        <Banner
+          title={getCategoryTitle()}
+          showBackButton={true}
+          onBackPress={handleBack}
+          renderFilter={close => (
+            <YearFilter
+              years={years}
+              selectedYear={selectedYear}
+              onSelect={setSelectedYear}
+              onApply={() => {
+                setAppliedYear(selectedYear);
+                close();
               }}
             />
           )}
-        </View>
-      </ScrollView>
-    </View>
+        />
+
+        {/* TOP MENU */}
+        <TopMenu activeSlug={slug} />
+
+        <ScrollView
+          ref={scrollRef}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+              progressBackgroundColor={isDark ? colors.card : colors.background}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { 
+              paddingBottom: isAndroid ? spacing.lg : spacing.md,
+              paddingTop: isAndroid ? spacing.xs : 0,
+            }
+          ]}
+        >
+          <View style={[
+            styles.content, 
+            { 
+              backgroundColor: colors.background,
+              paddingTop: contentPaddingTop,
+              minHeight: minHeight,
+            }
+          ]}>
+           
+
+            {loading ? (
+              <View>
+                {[...Array(skeletonCount)].map((_, i) => (
+                  <ArticleSkeleton key={i} />
+                ))}
+              </View>
+            ) : (
+              <PostList
+                posts={posts}
+                postBaseUrl={postBaseUrl}
+                emptyMessage={
+                  appliedYear
+                    ? `No posts for ${appliedYear}`
+                    : 'No posts available'
+                }
+              />
+            )}
+
+            {!loading && posts.length > 0 && category?.id && (
+              <View style={[
+                styles.paginationWrapper,
+                {
+                  paddingVertical: isAndroid ? spacing.md : spacing.lg,
+                  paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                  marginTop: isAndroid ? spacing.xs : 0,
+                }
+              ]}>
+                <Pagination
+                  currentPage={currentPage}
+                  lastPage={lastPage}
+                  onPageChange={page => {
+                    fetchData(category.id, appliedYear, page);
+                    scrollRef.current?.scrollTo({ y: 0, animated: true });
+                  }}
+                />
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 0,
+  },
   container: {
     flex: 1,
   },
-  scrollContent: {},
+  scrollContent: {
+    flexGrow: 1,
+  },
   content: {
-    paddingTop: 10,
-    minHeight: SCREEN_HEIGHT * 0.6,
+    flex: 1,
   },
   activeFilterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 8,
-    borderLeftWidth: 3,
   },
   activeFilterText: {
-    fontSize: 14,
+    fontWeight: '500',
+  },
+  paginationWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

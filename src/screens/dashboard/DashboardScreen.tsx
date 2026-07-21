@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StatusBar,
   LayoutAnimation,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
@@ -23,6 +24,7 @@ import { logout } from '../../redux/slices/authSlice';
 import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
 import { refreshProfile } from '../../utils/helper/refreshProfile';
 import { useTheme } from '../../redux/hooks/useTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 
 // ------ TYPES ------
 
@@ -69,6 +71,17 @@ const DashboardScreen = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
+  const {
+    isTablet,
+    isSmallDevice,
+    moderateScale,
+    spacing,
+    font,
+    sizes,
+    wp,
+    hp,
+    pixelRatio
+  } = useResponsive();
 
   const { user, subscription, nextSubscriptions } = useSelector(
     (state: any) => state.auth,
@@ -76,6 +89,14 @@ const DashboardScreen = () => {
 
   const [expandedPlans, setExpandedPlans] = useState<number[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const isMounted = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // ------ HELPERS ------
 
@@ -141,33 +162,37 @@ const DashboardScreen = () => {
 
   const upcomingPlans = nextSubscriptions || [];
 
-  // ------ LOGOUT HANDLER ------
+  // ------ FIXED LOGOUT HANDLER ------
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
 
- const clearUserData = async () => {
-  // console.log('AsyncStorage:', AsyncStorage);
-  // console.log('multiRemove:', AsyncStorage?.multiRemove);
-  // console.log('dispatch:', dispatch);
-  // console.log('logout:', logout);
+    const clearUserData = async () => {
+      await Promise.all([
+        AsyncStorage.removeItem('token'),
+        AsyncStorage.removeItem('user'),
+        AsyncStorage.removeItem('subscription'),
+        AsyncStorage.removeItem('nextSubscriptions'),
+        AsyncStorage.removeItem('persist:root'),
+      ]);
 
- await Promise.all([
-  AsyncStorage.removeItem('token'),
-  AsyncStorage.removeItem('user'),
-  AsyncStorage.removeItem('subscription'),
-  AsyncStorage.removeItem('nextSubscriptions'),
-  AsyncStorage.removeItem('persist:root'),
-]);
-
-  dispatch(logout());
-};
+      dispatch(logout());
+    };
 
     const navigateToSignIn = () => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'SignIn' }],
-      });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            {
+              name: 'MainApp',
+            },
+            {
+              name: 'SignIn',
+            },
+          ],
+        })
+      );
     };
 
     Alert.alert(
@@ -178,58 +203,84 @@ const DashboardScreen = () => {
         {
           text: 'Logout',
           style: 'destructive',
-          onPress: async () => {
-            setIsLoggingOut(true);
+        onPress: async () => {
+  setIsLoggingOut(true);
 
-            try {
-              // Attempt logout API (don't block logout if it fails)
-              try {
-                const response = await logoutApi();
-                console.log(' Logout API Success:', response);
-              } catch (apiError) {
-                console.error(' Logout API Failed:', apiError);
-              }
+  try {
+    // Try API logout (don't block if it fails)
+    try {
+      const response = await logoutApi();
+      console.log('Logout API Success:', response);
+    } catch (apiError) {
+      console.error('Logout API Failed:', apiError);
+    }
 
-              await clearUserData();
+    // Remove AsyncStorage data only
+    await Promise.all([
+      AsyncStorage.removeItem('token'),
+      AsyncStorage.removeItem('user'),
+      AsyncStorage.removeItem('subscription'),
+      AsyncStorage.removeItem('nextSubscriptions'),
+      AsyncStorage.removeItem('persist:root'),
+    ]);
 
-              Toast.show({
-                type: 'success',
-                text1: '👋 Logged Out',
-                text2: 'You have been successfully logged out',
-                position: 'top',
-                visibilityTime: 2000,
-              });
+    Toast.show({
+      type: 'success',
+      text1: '👋 Logged Out',
+      text2: 'You have been successfully logged out',
+      position: 'top',
+      visibilityTime: 2000,
+    });
 
-              navigateToSignIn();
-            } catch (error) {
-              console.error(' Logout Process Failed:', error);
+    // Navigate FIRST
+    navigateToSignIn();
 
-              // Best-effort cleanup
-              try {
-                await clearUserData();
-              } catch (cleanupError) {
-                console.error(
-                  ' Failed to clear local user data:',
-                  cleanupError,
-                );
-              }
+    // Clear Redux after navigation
+    requestAnimationFrame(() => {
+      if (isMounted.current) {
+        dispatch(logout());
+      }
+    });
 
-              Toast.show({
-                type: 'info',
-                text1: 'Logged Out',
-                text2: 'Local session cleared',
-                position: 'top',
-                visibilityTime: 2000,
-              });
+  } catch (error) {
+    console.error('Logout Process Failed:', error);
 
-              navigateToSignIn();
-            } finally {
-              setIsLoggingOut(false);
-            }
-          },
+    // Remove AsyncStorage even if API fails
+    await Promise.all([
+      AsyncStorage.removeItem('token'),
+      AsyncStorage.removeItem('user'),
+      AsyncStorage.removeItem('subscription'),
+      AsyncStorage.removeItem('nextSubscriptions'),
+      AsyncStorage.removeItem('persist:root'),
+    ]);
+
+    Toast.show({
+      type: 'info',
+      text1: 'Logged Out',
+      text2: 'Local session cleared',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+
+    // Navigate FIRST
+    navigateToSignIn();
+
+    // Clear Redux after navigation
+    requestAnimationFrame(() => {
+      if (isMounted.current) {
+        dispatch(logout());
+      }
+    });
+
+  } finally {
+    if (isMounted.current) {
+      setIsLoggingOut(false);
+    }
+  }
+}
         },
       ],
-      { cancelable: true },
+      { cancelable: true }
     );
   };
 
@@ -334,25 +385,70 @@ const DashboardScreen = () => {
 
   // ------ RENDER ------
 
+  const isAndroid = Platform.OS === 'android';
+
+  const cardMargin = isTablet ? 24 : 16;
+  const headerPaddingTop = isAndroid ? (isTablet ? 70 : 60) : (isTablet ? 80 : 60);
+  const headerPaddingHorizontal = isTablet ? 32 : 20;
+  const headerPaddingBottom = isAndroid ? (isTablet ? 40 : 55) : (isTablet ? 45 : 65);
+  const avatarSize = isTablet ? 76 : 60;
+  const borderRadius = isTablet ? 24 : 20;
+
+  const androidFontWeight = isAndroid ? '600' : '700';
+  const androidFontWeightBold = isAndroid ? '800' : '700';
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar
         barStyle="light-content"
-        backgroundColor={colors.primaryDark || '#b30404'}
+        backgroundColor={colors.primaryDark || '#c9060a'}
       />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={[
+          styles.scrollContainer,
+          {
+            paddingBottom: isAndroid ? (isTablet ? 40 : 30) : (isTablet ? 50 : 40),
+            paddingTop: isAndroid ? (isSmallDevice ? 0 : 0) : 0,
+          }
+        ]}
       >
         {/* HEADER */}
         <LinearGradient
           colors={[colors.primary, colors.primaryDark || '#8f0205']}
-          style={styles.header}
+          style={[
+            styles.header,
+            {
+              paddingTop: headerPaddingTop,
+              paddingHorizontal: headerPaddingHorizontal,
+              paddingBottom: headerPaddingBottom,
+              borderBottomLeftRadius: isTablet ? 32 : 28,
+              borderBottomRightRadius: isTablet ? 32 : 28,
+              elevation: isAndroid ? 8 : 0,
+            }
+          ]}
         >
-          <View style={styles.topRow}>
-            <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
-              <Icon name="arrow-left" size={22} color="#fff" />
+          <View style={[
+            styles.topRow,
+            {
+              marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 15),
+              marginTop: isAndroid ? (isTablet ? -50 : -40) : (isTablet ? -60 : -50),
+            }
+          ]}>
+            <TouchableOpacity
+              onPress={handleBack}
+              style={[
+                styles.backBtn,
+                {
+                  width: isTablet ? 48 : 40,
+                  height: isTablet ? 48 : 40,
+                  borderRadius: isTablet ? 24 : 20,
+                  android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
+                }
+              ]}
+            >
+              <Icon name="arrow-left" size={isAndroid ? (isTablet ? 24 : 28) : (isTablet ? 26 : 22)} color="#fff" />
             </TouchableOpacity>
             <View style={{ flex: 1 }} />
           </View>
@@ -361,30 +457,64 @@ const DashboardScreen = () => {
             <View
               style={[
                 styles.avatar,
-                { backgroundColor: 'rgba(255,255,255,0.18)' },
+                {
+                  backgroundColor: 'rgba(255,255,255,0.18)',
+                  width: avatarSize,
+                  height: avatarSize,
+                  borderRadius: avatarSize / 2,
+                  marginRight: isTablet ? 16 : 12,
+                }
               ]}
             >
-              <Text style={styles.avatarText}>
-                {user?.first_name?.charAt(0) || 'U'}
+              <Text style={[
+                styles.avatarText,
+                {
+                  fontSize: isAndroid ? (isTablet ? 30 : 24) : (isTablet ? 34 : 28),
+                  fontWeight: androidFontWeightBold,
+                }
+              ]}>
+                {user?.first_name?.charAt(0) + user?.last_name?.charAt(0) || 'U'}
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.welcome}>Welcome Back</Text>
-              <Text style={styles.name}>
+              <Text style={[
+                styles.welcome,
+                {
+                  fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                  fontWeight: isAndroid ? '500' : '400',
+                }
+              ]}>
+                Welcome Back
+              </Text>
+              <Text style={[
+                styles.name,
+                {
+                  fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
+                  fontWeight: androidFontWeightBold,
+                  marginTop: isAndroid ? (isTablet ? 2 : 1) : (isTablet ? 4 : 2),
+                }
+              ]}>
                 {user?.first_name} {user?.last_name}
               </Text>
             </View>
             <TouchableOpacity
               style={[
                 styles.notificationBtn,
-                { backgroundColor: 'rgba(255,255,255,0.18)' },
+                {
+                  backgroundColor: 'rgba(255,255,255,0.18)',
+                  width: isTablet ? 48 : 40,
+                  height: isTablet ? 48 : 40,
+                  borderRadius: isTablet ? 24 : 20,
+                  android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
+                }
               ]}
             >
-              <Icon name="bell" size={20} color="#fff" />
+              <Icon name="bell" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20)} color="#fff" />
             </TouchableOpacity>
           </View>
         </LinearGradient>
 
+        {/* Rest of your component... */}
         {/* PERSONAL INFO */}
         <View
           style={[
@@ -392,57 +522,157 @@ const DashboardScreen = () => {
             {
               backgroundColor: colors.card,
               shadowColor: isDark ? '#000' : '#000',
-            },
+              marginHorizontal: cardMargin,
+              marginTop: isAndroid ? (isTablet ? -20 : -16) : (isTablet ? -24 : -18),
+              borderRadius: borderRadius,
+              padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+              shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
+              shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
+              elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
+            }
           ]}
         >
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
+          <View style={[
+            styles.sectionHeader,
+            {
+              marginBottom: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+            }
+          ]}>
+            <Text style={[
+              styles.cardTitle,
+              {
+                color: colors.text,
+                fontSize: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18),
+                fontWeight: androidFontWeightBold,
+              }
+            ]}>
               Personal Information
             </Text>
             <View
               style={[
                 styles.iconCircle,
-                { backgroundColor: colors.primaryBackground },
+                {
+                  backgroundColor: colors.primaryBackground,
+                  width: isTablet ? 40 : 34,
+                  height: isTablet ? 40 : 34,
+                  borderRadius: isTablet ? 20 : 17,
+                }
               ]}
             >
-              <Icon name="user" size={16} color={colors.primary} />
+              <Icon name="user" size={isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 20 : 16)} color={colors.primary} />
             </View>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textMuted }]}>
+          <View style={[
+            styles.infoRow,
+            { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
+          ]}>
+            <Text style={[
+              styles.label,
+              {
+                color: colors.textMuted,
+                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                fontWeight: isAndroid ? '500' : '400',
+              }
+            ]}>
               Email
             </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
+            <Text style={[
+              styles.value,
+              {
+                color: colors.text,
+                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                fontWeight: isAndroid ? '600' : '600',
+              }
+            ]}>
               {user?.email || '—'}
             </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textMuted }]}>
+          <View style={[
+            styles.infoRow,
+            { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
+          ]}>
+            <Text style={[
+              styles.label,
+              {
+                color: colors.textMuted,
+                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                fontWeight: isAndroid ? '500' : '400',
+              }
+            ]}>
               Contact
             </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
+            <Text style={[
+              styles.value,
+              {
+                color: colors.text,
+                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                fontWeight: isAndroid ? '600' : '600',
+              }
+            ]}>
               {user?.contact || '—'}
             </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textMuted }]}>
+          <View style={[
+            styles.infoRow,
+            { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
+          ]}>
+            <Text style={[
+              styles.label,
+              {
+                color: colors.textMuted,
+                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                fontWeight: isAndroid ? '500' : '400',
+              }
+            ]}>
               Location
             </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
+            <Text style={[
+              styles.value,
+              {
+                color: colors.text,
+                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                fontWeight: isAndroid ? '600' : '600',
+              }
+            ]}>
               {user?.city && user?.state
                 ? `${user?.city}, ${user?.state}`
                 : '—'}
             </Text>
           </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[styles.label, { color: colors.textMuted }]}>
+          <View style={[
+            styles.infoRow,
+            { marginBottom: 0 }
+          ]}>
+            <Text style={[
+              styles.label,
+              {
+                color: colors.textMuted,
+                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                fontWeight: isAndroid ? '500' : '400',
+              }
+            ]}>
               Country
             </Text>
-            <Text style={[styles.value, { color: colors.text }]}>
+            <Text style={[
+              styles.value,
+              {
+                color: colors.text,
+                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                fontWeight: isAndroid ? '600' : '600',
+              }
+            ]}>
               {user?.country || '—'}
             </Text>
           </View>
@@ -455,16 +685,36 @@ const DashboardScreen = () => {
           remainingDays <= 30 &&
           remainingDays > 0 && (
             <TouchableOpacity
-              style={styles.renewBtn}
+              style={[
+                styles.renewBtn,
+                {
+                  marginHorizontal: cardMargin,
+                  marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                  borderRadius: isTablet ? 20 : 18,
+                  android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
+                }
+              ]}
               activeOpacity={0.9}
               onPress={handleRenewPlan}
             >
               <LinearGradient
                 colors={[colors.primary, colors.primaryDark || '#8f0205']}
-                style={styles.renewGradient}
+                style={[
+                  styles.renewGradient,
+                  {
+                    paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                  }
+                ]}
               >
-                <Icon name="refresh-cw" size={18} color="#fff" />
-                <Text style={styles.renewText}>
+                <Icon name="refresh-cw" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
+                <Text style={[
+                  styles.renewText,
+                  {
+                    fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                    marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
                   Renew Plan ({remainingDays} day
                   {remainingDays > 1 ? 's' : ''} left)
                 </Text>
@@ -474,23 +724,43 @@ const DashboardScreen = () => {
 
         {/* UPGRADE / CHANGE PLAN */}
         <TouchableOpacity
-          style={styles.upgradeBtn}
+          style={[
+            styles.upgradeBtn,
+            {
+              marginHorizontal: cardMargin,
+              marginTop: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+              borderRadius: isTablet ? 20 : 18,
+              android_ripple: { color: 'rgba(255,255,255,0.2)', borderless: true },
+            }
+          ]}
           activeOpacity={0.9}
           onPress={handleSubscriptionPress}
         >
           <LinearGradient
             colors={['#111827', '#1f2937']}
-            style={styles.upgradeGradient}
+            style={[
+              styles.upgradeGradient,
+              {
+                paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+              }
+            ]}
           >
-            <Icon name="zap" size={18} color="#fff" />
-            <Text style={styles.upgradeText}>
+            <Icon name="zap" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
+            <Text style={[
+              styles.upgradeText,
+              {
+                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
+                fontWeight: isAndroid ? '700' : '700',
+              }
+            ]}>
               {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
             </Text>
             <Icon
               name="arrow-up-right"
-              size={18}
+              size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)}
               color="#fff"
-              style={{ marginLeft: 8 }}
+              style={{ marginLeft: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 10 : 8) }}
             />
           </LinearGradient>
         </TouchableOpacity>
@@ -500,51 +770,98 @@ const DashboardScreen = () => {
           style={[
             styles.subscriptionCard,
             {
-              shadowColor: isDark ? '#000' : '#000',
-            },
+              marginHorizontal: cardMargin,
+              marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+              borderRadius: isTablet ? 26 : 24,
+              shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
+              shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
+              elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
+            }
           ]}
         >
           <LinearGradient
             colors={isDark ? ['#1a1a1a', '#2a1a1a'] : ['#ffffff', '#fff5f5']}
-            style={styles.subscriptionInner}
+            style={[
+              styles.subscriptionInner,
+              {
+                padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+              }
+            ]}
           >
             <View style={styles.subscriptionHeader}>
               <View>
                 <Text
                   style={[
                     styles.subscriptionTitle,
-                    { color: colors.textSecondary },
+                    {
+                      color: colors.textSecondary,
+                      fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                      marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                      fontWeight: isAndroid ? '500' : '400',
+                    }
                   ]}
                 >
                   Current Subscription
                 </Text>
-                <Text style={[styles.planName, { color: colors.text }]}>
+                <Text style={[
+                  styles.planName,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
+                    fontWeight: androidFontWeightBold,
+                  }
+                ]}>
                   {subscription?.plan?.name || 'No Plan'}
                 </Text>
               </View>
               <View
                 style={[
                   styles.durationBadge,
-                  { backgroundColor: colors.primary },
+                  {
+                    backgroundColor: colors.primary,
+                    paddingHorizontal: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+                    paddingVertical: isAndroid ? (isTablet ? 7 : 5) : (isTablet ? 9 : 7),
+                    borderRadius: isTablet ? 32 : 30,
+                    elevation: isAndroid ? 4 : 0,
+                  }
                 ]}
               >
-                <Text style={styles.durationText}>{currentPlanDuration}</Text>
+                <Text style={[
+                  styles.durationText,
+                  {
+                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
+                  {currentPlanDuration}
+                </Text>
               </View>
             </View>
 
-            <View style={styles.statusRow}>
+            <View style={[
+              styles.statusRow,
+              { marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18) }
+            ]}>
               <View
                 style={[
                   styles.activeDot,
                   {
                     backgroundColor: isActive ? colors.success : colors.primary,
-                  },
+                    width: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 12 : 10),
+                    height: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 12 : 10),
+                    borderRadius: isAndroid ? (isTablet ? 5 : 4) : (isTablet ? 6 : 5),
+                    marginRight: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                  }
                 ]}
               />
               <Text
                 style={[
                   styles.activeText,
-                  { color: isActive ? colors.success : colors.primary },
+                  {
+                    color: isActive ? colors.success : colors.primary,
+                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
                 ]}
               >
                 {isActive ? 'Active' : isExpired ? 'Expired' : status || '—'}
@@ -557,15 +874,27 @@ const DashboardScreen = () => {
                 {
                   backgroundColor: colors.card,
                   shadowColor: isDark ? '#000' : '#000',
-                },
+                  marginTop: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
+                  borderRadius: isTablet ? 16 : 14,
+                  paddingHorizontal: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
+                  paddingVertical: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                  shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
+                  shadowRadius: isAndroid ? 2 : (isTablet ? 6 : 4),
+                  elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
+                }
               ]}
             >
               <View style={styles.remainingLeft}>
-                <Icon name="clock" size={16} color={colors.primary} />
+                <Icon name="clock" size={isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 20 : 16)} color={colors.primary} />
                 <Text
                   style={[
                     styles.remainingLabel,
-                    { color: colors.textSecondary },
+                    {
+                      color: colors.textSecondary,
+                      fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 15 : 13),
+                      marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                      fontWeight: isAndroid ? '600' : '600',
+                    }
                   ]}
                 >
                   Remaining Time
@@ -579,7 +908,9 @@ const DashboardScreen = () => {
                       remainingDays !== null && remainingDays <= 7
                         ? colors.primary
                         : colors.success,
-                  },
+                    fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                    fontWeight: isAndroid ? '800' : '800',
+                  }
                 ]}
               >
                 {remainingDaysLabel}
@@ -587,59 +918,159 @@ const DashboardScreen = () => {
             </View>
 
             <View
-              style={[styles.divider, { backgroundColor: colors.border }]}
+              style={[
+                styles.divider,
+                {
+                  backgroundColor: colors.border,
+                  height: isAndroid ? 0.5 : 1,
+                  marginVertical: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 22 : 18),
+                }
+              ]}
             />
 
-            <View style={styles.detailGrid}>
+            <View style={[
+              styles.detailGrid,
+              {
+                gap: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 8),
+              }
+            ]}>
               <View
                 style={[
                   styles.detailBox,
-                  { backgroundColor: colors.background },
+                  {
+                    backgroundColor: colors.background,
+                    width: isAndroid ? '48%' : '48%',
+                    borderRadius: isTablet ? 14 : 12,
+                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                    elevation: isAndroid ? 2 : 0,
+                  }
                 ]}
               >
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+                <Text style={[
+                  styles.detailLabel,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                    fontWeight: isAndroid ? '500' : '400',
+                  }
+                ]}>
                   Start Date
                 </Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>
+                <Text style={[
+                  styles.detailValue,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
                   {formatDate(subscription?.start_date)}
                 </Text>
               </View>
               <View
                 style={[
                   styles.detailBox,
-                  { backgroundColor: colors.background },
+                  {
+                    backgroundColor: colors.background,
+                    width: isAndroid ? '48%' : '48%',
+                    borderRadius: isTablet ? 14 : 12,
+                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                    elevation: isAndroid ? 2 : 0,
+                  }
                 ]}
               >
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+                <Text style={[
+                  styles.detailLabel,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                    fontWeight: isAndroid ? '500' : '400',
+                  }
+                ]}>
                   End Date
                 </Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>
+                <Text style={[
+                  styles.detailValue,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
                   {formatDate(subscription?.end_date)}
                 </Text>
               </View>
               <View
                 style={[
                   styles.detailBox,
-                  { backgroundColor: colors.background },
+                  {
+                    backgroundColor: colors.background,
+                    width: isAndroid ? '48%' : '48%',
+                    borderRadius: isTablet ? 14 : 12,
+                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                    elevation: isAndroid ? 2 : 0,
+                  }
                 ]}
               >
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+                <Text style={[
+                  styles.detailLabel,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                    fontWeight: isAndroid ? '500' : '400',
+                  }
+                ]}>
                   Amount
                 </Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>
+                <Text style={[
+                  styles.detailValue,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
                   ₹{subscription?.total_amount || 0}
                 </Text>
               </View>
               <View
                 style={[
                   styles.detailBox,
-                  { backgroundColor: colors.background },
+                  {
+                    backgroundColor: colors.background,
+                    width: isAndroid ? '48%' : '48%',
+                    borderRadius: isTablet ? 14 : 12,
+                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                    elevation: isAndroid ? 2 : 0,
+                  }
                 ]}
               >
-                <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+                <Text style={[
+                  styles.detailLabel,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                    fontWeight: isAndroid ? '500' : '400',
+                  }
+                ]}>
                   Plan Type
                 </Text>
-                <Text style={[styles.detailValue, { color: colors.text }]}>
+                <Text style={[
+                  styles.detailValue,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
                   {subscription?.purchase_type || 'NEW'}
                 </Text>
               </View>
@@ -649,19 +1080,52 @@ const DashboardScreen = () => {
 
         {/* UPCOMING PLANS */}
         {upcomingPlans.length > 0 && (
-          <View style={styles.upcomingWrapper}>
-            <View style={styles.upcomingHeadingRow}>
-              <Icon name="clock" size={18} color={colors.primary} />
-              <Text style={[styles.upcomingHeading, { color: colors.text }]}>
+          <View style={[
+            styles.upcomingWrapper,
+            {
+              marginHorizontal: cardMargin,
+              marginTop: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+            }
+          ]}>
+            <View style={[
+              styles.upcomingHeadingRow,
+              {
+                marginBottom: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+              }
+            ]}>
+              <Icon name="clock" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.primary} />
+              <Text style={[
+                styles.upcomingHeading,
+                {
+                  color: colors.text,
+                  fontSize: isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20),
+                  marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                  fontWeight: androidFontWeightBold,
+                }
+              ]}>
                 Upcoming Plans
               </Text>
               <View
                 style={[
                   styles.upcomingCount,
-                  { backgroundColor: colors.primary },
+                  {
+                    backgroundColor: colors.primary,
+                    marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
+                    minWidth: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
+                    height: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
+                    borderRadius: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    paddingHorizontal: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 8 : 6),
+                    elevation: isAndroid ? 4 : 0,
+                  }
                 ]}
               >
-                <Text style={styles.upcomingCountText}>
+                <Text style={[
+                  styles.upcomingCountText,
+                  {
+                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
                   {upcomingPlans.length}
                 </Text>
               </View>
@@ -682,22 +1146,46 @@ const DashboardScreen = () => {
                       backgroundColor: colors.card,
                       borderLeftColor: colors.primary,
                       shadowColor: isDark ? '#000' : '#000',
-                    },
+                      borderRadius: isTablet ? 22 : 20,
+                      marginBottom: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+                      borderLeftWidth: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 5 : 4),
+                      shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
+                      shadowRadius: isAndroid ? 2 : (isTablet ? 7 : 5),
+                      elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 3),
+                    }
                   ]}
                 >
                   <TouchableOpacity
                     activeOpacity={0.9}
                     onPress={() => togglePlan(index)}
-                    style={styles.todoHeader}
+                    style={[
+                      styles.todoHeader,
+                      {
+                        padding: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                        android_ripple: { color: 'rgba(0,0,0,0.1)', borderless: true },
+                      }
+                    ]}
                   >
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.todoTitle, { color: colors.text }]}>
+                      <Text style={[
+                        styles.todoTitle,
+                        {
+                          color: colors.text,
+                          fontSize: isAndroid ? (isTablet ? 17 : 15) : (isTablet ? 19 : 17),
+                          fontWeight: androidFontWeightBold,
+                        }
+                      ]}>
                         {item?.plan?.name || 'Plan'}
                       </Text>
                       <Text
                         style={[
                           styles.todoSub,
-                          { color: colors.textSecondary },
+                          {
+                            color: colors.textSecondary,
+                            fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 15 : 13),
+                            marginTop: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                            fontWeight: isAndroid ? '500' : '400',
+                          }
                         ]}
                       >
                         {duration}
@@ -706,13 +1194,22 @@ const DashboardScreen = () => {
                     <View
                       style={[
                         styles.pendingBadge,
-                        { backgroundColor: isDark ? '#2d1a1a' : '#fff3e8' },
+                        {
+                          backgroundColor: isDark ? '#2d1a1a' : '#fff3e8',
+                          paddingHorizontal: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                          paddingVertical: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 8 : 6),
+                          borderRadius: isTablet ? 32 : 30,
+                        }
                       ]}
                     >
                       <Text
                         style={[
                           styles.pendingBadgeText,
-                          { color: isDark ? '#ff8a00' : '#ff8a00' },
+                          {
+                            color: isDark ? '#ff8a00' : '#ff8a00',
+                            fontSize: isAndroid ? (isTablet ? 11 : 9) : (isTablet ? 13 : 11),
+                            fontWeight: isAndroid ? '700' : '700',
+                          }
                         ]}
                       >
                         {item?.status || 'PENDING'}
@@ -720,10 +1217,10 @@ const DashboardScreen = () => {
                     </View>
                     <Icon
                       name="chevron-down"
-                      size={22}
+                      size={isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 26 : 22)}
                       color={colors.text}
                       style={{
-                        marginLeft: 12,
+                        marginLeft: isAndroid ? (isTablet ? 12 : 8) : (isTablet ? 16 : 12),
                         transform: [{ rotate: expanded ? '180deg' : '0deg' }],
                       }}
                     />
@@ -735,27 +1232,52 @@ const DashboardScreen = () => {
                       {
                         maxHeight: expanded ? 500 : 0,
                         opacity: expanded ? 1 : 0,
-                        paddingBottom: expanded ? 18 : 0,
-                      },
+                        paddingBottom: expanded ? (isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18)) : 0,
+                        paddingHorizontal: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                      }
                     ]}
                   >
-                    <View style={styles.detailGrid}>
+                    <View style={[
+                      styles.detailGrid,
+                      {
+                        gap: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 8),
+                      }
+                    ]}>
                       <View
                         style={[
                           styles.detailBox,
-                          { backgroundColor: colors.background },
+                          {
+                            backgroundColor: colors.background,
+                            width: isAndroid ? '48%' : '48%',
+                            borderRadius: isTablet ? 14 : 12,
+                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                            elevation: isAndroid ? 2 : 0,
+                          }
                         ]}
                       >
                         <Text
                           style={[
                             styles.detailLabel,
-                            { color: colors.textMuted },
+                            {
+                              color: colors.textMuted,
+                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                              fontWeight: isAndroid ? '500' : '400',
+                            }
                           ]}
                         >
                           Starts
                         </Text>
                         <Text
-                          style={[styles.detailValue, { color: colors.text }]}
+                          style={[
+                            styles.detailValue,
+                            {
+                              color: colors.text,
+                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                              fontWeight: isAndroid ? '700' : '700',
+                            }
+                          ]}
                         >
                           {formatDate(item?.start_date)}
                         </Text>
@@ -763,19 +1285,38 @@ const DashboardScreen = () => {
                       <View
                         style={[
                           styles.detailBox,
-                          { backgroundColor: colors.background },
+                          {
+                            backgroundColor: colors.background,
+                            width: isAndroid ? '48%' : '48%',
+                            borderRadius: isTablet ? 14 : 12,
+                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                            elevation: isAndroid ? 2 : 0,
+                          }
                         ]}
                       >
                         <Text
                           style={[
                             styles.detailLabel,
-                            { color: colors.textMuted },
+                            {
+                              color: colors.textMuted,
+                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                              fontWeight: isAndroid ? '500' : '400',
+                            }
                           ]}
                         >
                           Ends
                         </Text>
                         <Text
-                          style={[styles.detailValue, { color: colors.text }]}
+                          style={[
+                            styles.detailValue,
+                            {
+                              color: colors.text,
+                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                              fontWeight: isAndroid ? '700' : '700',
+                            }
+                          ]}
                         >
                           {formatDate(item?.end_date)}
                         </Text>
@@ -783,19 +1324,38 @@ const DashboardScreen = () => {
                       <View
                         style={[
                           styles.detailBox,
-                          { backgroundColor: colors.background },
+                          {
+                            backgroundColor: colors.background,
+                            width: isAndroid ? '48%' : '48%',
+                            borderRadius: isTablet ? 14 : 12,
+                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                            elevation: isAndroid ? 2 : 0,
+                          }
                         ]}
                       >
                         <Text
                           style={[
                             styles.detailLabel,
-                            { color: colors.textMuted },
+                            {
+                              color: colors.textMuted,
+                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                              fontWeight: isAndroid ? '500' : '400',
+                            }
                           ]}
                         >
                           Amount
                         </Text>
                         <Text
-                          style={[styles.detailValue, { color: colors.text }]}
+                          style={[
+                            styles.detailValue,
+                            {
+                              color: colors.text,
+                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                              fontWeight: isAndroid ? '700' : '700',
+                            }
+                          ]}
                         >
                           ₹{item?.total_amount || 0}
                         </Text>
@@ -803,19 +1363,38 @@ const DashboardScreen = () => {
                       <View
                         style={[
                           styles.detailBox,
-                          { backgroundColor: colors.background },
+                          {
+                            backgroundColor: colors.background,
+                            width: isAndroid ? '48%' : '48%',
+                            borderRadius: isTablet ? 14 : 12,
+                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                            elevation: isAndroid ? 2 : 0,
+                          }
                         ]}
                       >
                         <Text
                           style={[
                             styles.detailLabel,
-                            { color: colors.textMuted },
+                            {
+                              color: colors.textMuted,
+                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                              fontWeight: isAndroid ? '500' : '400',
+                            }
                           ]}
                         >
                           Purchase
                         </Text>
                         <Text
-                          style={[styles.detailValue, { color: colors.text }]}
+                          style={[
+                            styles.detailValue,
+                            {
+                              color: colors.text,
+                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                              fontWeight: isAndroid ? '700' : '700',
+                            }
+                          ]}
                         >
                           {item?.purchase_type || 'NEW'}
                         </Text>
@@ -836,16 +1415,33 @@ const DashboardScreen = () => {
               backgroundColor: colors.card,
               borderColor: colors.border,
               shadowColor: isDark ? '#000' : '#000',
-            },
+              marginHorizontal: cardMargin,
+              marginTop: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
+              borderRadius: isTablet ? 20 : 18,
+              paddingVertical: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
+              paddingHorizontal: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+              borderWidth: isAndroid ? 0.5 : 1,
+              shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
+              shadowRadius: isAndroid ? 2 : (isTablet ? 8 : 6),
+              elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
+              android_ripple: { color: 'rgba(0,0,0,0.05)', borderless: true },
+            }
           ]}
           activeOpacity={0.85}
           onPress={handleInvoicePress}
         >
-          <Icon name="file-text" size={18} color={colors.text} />
-          <Text style={[styles.invoiceBtnText, { color: colors.text }]}>
+          <Icon name="file-text" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.text} />
+          <Text style={[
+            styles.invoiceBtnText,
+            {
+              color: colors.text,
+              fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 18 : 16),
+              fontWeight: isAndroid ? '600' : '700',
+            }
+          ]}>
             Invoices
           </Text>
-          <Icon name="arrow-right" size={18} color={colors.text} />
+          <Icon name="arrow-right" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.text} />
         </TouchableOpacity>
 
         {/* LOGOUT BUTTON */}
@@ -855,27 +1451,56 @@ const DashboardScreen = () => {
             {
               backgroundColor: colors.primary,
               shadowColor: colors.primary,
-            },
+              marginHorizontal: cardMargin,
+              marginTop: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+              marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
+              borderRadius: isTablet ? 20 : 18,
+              paddingVertical: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
+              shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
+              shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
+              elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
+              android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
+            }
           ]}
           activeOpacity={0.85}
           onPress={handleLogout}
           disabled={isLoggingOut}
         >
           {isLoggingOut ? (
-            <ActivityIndicator color="#fff" size="small" />
+            <ActivityIndicator color="#fff" size={isAndroid ? (isSmallDevice ? 'small' : 'small') : 'large'} />
           ) : (
             <>
-              <Icon name="log-out" size={18} color="#fff" />
-              <Text style={styles.logoutBtnText}>Logout</Text>
+              <Icon name="log-out" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
+              <Text style={[
+                styles.logoutBtnText,
+                {
+                  fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 18 : 16),
+                  fontWeight: isAndroid ? '700' : '700',
+                }
+              ]}>
+                Logout
+              </Text>
             </>
           )}
         </TouchableOpacity>
+
+         <View style={styles.versionContainer}>
+            <Text style={[
+              styles.versionText,
+              {
+                color: colors.textMuted,
+                fontSize: moderateScale(isTablet ? 14 : 11),
+              }
+            ]}>
+              Version 1.0.0
+            </Text>
+          </View>
       </ScrollView>
     </View>
   );
 };
 
-// ------ STYLES ------
+// ------ STYLES (Unchanged) ------
 
 const styles = StyleSheet.create({
   container: {
@@ -1276,6 +1901,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+   versionContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingBottom: 20,
+  },
+
+  versionText: {
+    fontWeight: '500',
+    opacity: 0.6,
   },
 });
 
