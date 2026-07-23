@@ -5,14 +5,11 @@ import {
   RefreshControl,
   StyleSheet,
   Dimensions,
-  TouchableOpacity,
-  Text,
   StatusBar,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 
 import { getPosts } from '../../services/api/posts';
@@ -36,16 +33,10 @@ export default function Category() {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
   const { colors, isDark } = useTheme();
-  const { 
-    isTablet, 
-    isSmallDevice, 
-    spacing, 
-    font, 
-    sizes, 
-    moderateScale,
-    wp,
-    hp,
-    pixelRatio 
+  const {
+    isTablet,
+    isSmallDevice,
+    spacing,
   } = useResponsive();
 
   const slug = route.params?.slug ?? '';
@@ -141,18 +132,18 @@ export default function Category() {
   return (
     <>
       {/* Status Bar - Separate from SafeAreaView */}
-      <StatusBar 
+      <StatusBar
         barStyle="light-content"
         backgroundColor={colors.primary}
         translucent={false}
       />
-      
+
       {/* SafeAreaView for notch handling */}
-      <SafeAreaView 
+      <SafeAreaView
         style={[
-          styles.safeArea, 
-          { 
-            backgroundColor: colors.primary 
+          styles.safeArea,
+          {
+            backgroundColor: colors.primary
           }
         ]}
         edges={['top']}
@@ -195,21 +186,21 @@ export default function Category() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[
             styles.scrollContent,
-            { 
+            {
               paddingBottom: isAndroid ? spacing.lg : spacing.md,
               paddingTop: isAndroid ? spacing.xs : 0,
             }
           ]}
         >
           <View style={[
-            styles.content, 
-            { 
+            styles.content,
+            {
               backgroundColor: colors.background,
               paddingTop: contentPaddingTop,
               minHeight: minHeight,
             }
           ]}>
-           
+
 
             {loading ? (
               <View>

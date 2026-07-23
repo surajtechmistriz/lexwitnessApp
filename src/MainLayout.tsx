@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, StatusBar, Platform, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
 import Banner from './components/common/DynamicBanner';
 import TopMenu from './components/common/Menubar';
@@ -23,7 +23,7 @@ type Props = {
   showBackButton?: boolean;
   onBackPress?: () => void;
   statusBarColor?: string;
-    statusBarStyle?: 'light-content' | 'dark-content';
+  statusBarStyle?: 'light-content' | 'dark-content';
   scrollable?: boolean; // New prop for scrollable content
   contentPadding?: boolean; // New prop for content padding
 };
@@ -41,7 +41,7 @@ const MainLayout = ({
   showBackButton = false,
   onBackPress,
   statusBarColor,
-   statusBarStyle,
+  statusBarStyle,
   scrollable = false,
   contentPadding = true,
 }: Props) => {
@@ -49,12 +49,12 @@ const MainLayout = ({
   const route = useRoute<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  
+
   // Use your responsive hook
-  const { 
-    wp, hp, spacing, font, sizes, 
+  const {
+    wp, hp, spacing, font, sizes,
     isTablet, isSmallDevice, isLandscape,
-    moderateScale 
+    moderateScale
   } = useResponsive();
 
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
@@ -120,17 +120,34 @@ const MainLayout = ({
   };
 
   // Dynamic status bar color
- const resolvedStatusBg =
-  statusBarColor || (isDark ? '#f80101' : colors.primary);
+const isHome = routeName === 'Home';
+
+const resolvedStatusBg =
+  isHome
+    ? '#f5f5f7'
+    : statusBarColor || (isDark ? '#f80101' : colors.primary);
 
 const resolvedBarStyle =
-  statusBarStyle || (isDark ? 'light-content' : 'dark-content');
+  isHome
+    ? 'dark-content'
+    : statusBarStyle || (isDark ? 'light-content' : 'dark-content');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle(resolvedBarStyle);
+
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(resolvedStatusBg);
+        StatusBar.setTranslucent(false);
+      }
+    }, [resolvedStatusBg, resolvedBarStyle]),
+  );
 
   // Render content with optional ScrollView
   const renderContent = () => {
     const contentStyles = [
       styles.content,
-      { 
+      {
         // backgroundColor: colors.background,
         // paddingHorizontal: contentPadding ? spacing.md : 0,
         // paddingVertical: contentPadding ? spacing.sm : 0,
@@ -162,68 +179,81 @@ const resolvedBarStyle =
     <View style={[styles.wrapper, { backgroundColor: colors.background }]}>
       {/* iOS Status Bar Solid Color Block */}
       {Platform.OS === 'ios' && (
-        <View 
+        <View
           style={[
-            styles.iosStatusBarPlaceholder, 
-            { 
-              height: insets.top, 
-              backgroundColor: resolvedStatusBg 
+            styles.iosStatusBarPlaceholder,
+            {
+              height: insets.top,
+              backgroundColor: resolvedStatusBg
             }
-          ]} 
+          ]}
         />
       )}
 
-      <StatusBar 
-        barStyle={resolvedBarStyle} 
+      <StatusBar
+        barStyle={resolvedBarStyle}
         backgroundColor={resolvedStatusBg}
         translucent={Platform.OS === 'ios'}
       />
 
       <SafeAreaView
-        style={[styles.safeArea, { backgroundColor: colors.background }]}
+        style={[
+          styles.safeArea,
+          {
+            backgroundColor: resolvedStatusBg,
+          },
+        ]}
         edges={['top']}
       >
-        {/* HEADER with responsive styling */}
-        {!hiddenHeader.includes(routeName || '') && showHeader && (
-          <View >
-            <Header 
-              navigation={navigation} 
-              onSearchPress={() => setIsSearchVisible(true)}
-            />
-          </View>
-        )}
 
-        {/* BANNER with responsive sizing */}
-        {!hiddenBanner.includes(routeName || '') && showBanner && (
-          <View >
-            <Banner
-              title={title}
-              renderFilter={renderFilter}
-              showFilter={showFilter}
-              showBackButton={shouldShowBackButton}
-              onBackPress={handleBackPress}
-            />
-          </View>
-        )}
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: colors.background,
+          }}
+        >
+          {/* HEADER with responsive styling */}
+          {!hiddenHeader.includes(routeName || '') && showHeader && (
+            <View >
+              <Header
+                navigation={navigation}
+                onSearchPress={() => setIsSearchVisible(true)}
+              />
+            </View>
+          )}
 
-        {/* TOP MENU with responsive styling */}
-        {!hiddenTopMenu.includes(routeName || '') && showTopMenu && (
-          <View style={{ 
-            paddingHorizontal: isTablet ? spacing.lg : spacing.md,
-            marginBottom: spacing.xs,
-          }}>
-            <TopMenu activeSlug={activeSlug} />
-          </View>
-        )}
+          {/* BANNER with responsive sizing */}
+          {!hiddenBanner.includes(routeName || '') && showBanner && (
+            <View >
+              <Banner
+                title={title}
+                renderFilter={renderFilter}
+                showFilter={showFilter}
+                showBackButton={shouldShowBackButton}
+                onBackPress={handleBackPress}
+              />
+            </View>
+          )}
 
-        {/* CONTENT */}
-        {renderContent()}
+          {/* TOP MENU with responsive styling */}
+          {!hiddenTopMenu.includes(routeName || '') && showTopMenu && (
+            <View style={{
+              paddingHorizontal: isTablet ? spacing.lg : spacing.md,
+              marginBottom: spacing.xs,
+            }}>
+              <TopMenu activeSlug={activeSlug} />
+            </View>
+          )}
 
-        {/* SEARCH OVERLAY */}
-        <SearchOverlay
-          visible={isSearchVisible}
-          onClose={() => setIsSearchVisible(false)}
-        />
+          {/* CONTENT */}
+          {renderContent()}
+
+          {/* SEARCH OVERLAY */}
+          <SearchOverlay
+            visible={isSearchVisible}
+            onClose={() => setIsSearchVisible(false)}
+          />
+        </View>
       </SafeAreaView>
     </View>
   );

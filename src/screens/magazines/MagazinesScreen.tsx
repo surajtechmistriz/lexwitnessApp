@@ -9,9 +9,10 @@ import {
   Dimensions,
   ActivityIndicator,
   Platform,
+  StatusBar,
 } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import Config from 'react-native-config';
@@ -68,6 +69,23 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const itemWidth = (width - horizontalPadding * 2 - cardGap * (numColumns - 1)) / numColumns;
   const headingSize = isTablet ? font.lg : font.sm;
   const titleSize = isTablet ? font.md : font.sm;
+
+  // Status bar color
+  const statusBarColor = '#c9060a';
+  const statusBarStyle = 'light-content';
+
+  // Force status bar update when screen is focused
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     if (Platform.OS === 'android') {
+  //       StatusBar.setBackgroundColor(statusBarColor);
+  //       StatusBar.setTranslucent(false);
+  //       StatusBar.setBarStyle(statusBarStyle);
+  //     } else {
+  //       StatusBar.setBarStyle(statusBarStyle);
+  //     }
+  //   }, [])
+  // );
 
   /* ---------------- SCROLL HANDLER ---------------- */
   const handleScroll = (event: any) => {
@@ -224,7 +242,8 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
     <MainLayout
       title="Magazines"
       routeName="Magazines"
-      statusBarColor="#c9060a"
+      statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}
       renderFilter={close => (
         <YearFilter
           years={years}

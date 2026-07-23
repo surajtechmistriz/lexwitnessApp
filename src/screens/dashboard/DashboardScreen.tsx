@@ -25,6 +25,7 @@ import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
 import { refreshProfile } from '../../utils/helper/refreshProfile';
 import { useTheme } from '../../redux/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ------ TYPES ------
 
@@ -87,6 +88,8 @@ const DashboardScreen = () => {
     (state: any) => state.auth,
   ) as AuthState;
 
+  const insets = useSafeAreaInsets();
+
   const [expandedPlans, setExpandedPlans] = useState<number[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isMounted = useRef(true);
@@ -144,21 +147,20 @@ const DashboardScreen = () => {
 
   const remainingDays = subscription?.end_date
     ? Math.ceil(
-        (new Date(subscription.end_date).getTime() - now.getTime()) /
-          (1000 * 60 * 60 * 24),
-      )
+      (new Date(subscription.end_date).getTime() - now.getTime()) /
+      (1000 * 60 * 60 * 24),
+    )
     : null;
 
   const remainingDaysLabel =
     remainingDays === null
       ? '—'
       : remainingDays <= 0
-      ? 'Expired'
-      : `${remainingDays} day${remainingDays > 1 ? 's' : ''} left`;
+        ? 'Expired'
+        : `${remainingDays} day${remainingDays > 1 ? 's' : ''} left`;
 
-  const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${
-    subscription?.plan?.duration_unit || ''
-  }`;
+  const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${subscription?.plan?.duration_unit || ''
+    }`;
 
   const upcomingPlans = nextSubscriptions || [];
 
@@ -203,81 +205,81 @@ const DashboardScreen = () => {
         {
           text: 'Logout',
           style: 'destructive',
-        onPress: async () => {
-  setIsLoggingOut(true);
+          onPress: async () => {
+            setIsLoggingOut(true);
 
-  try {
-    // Try API logout (don't block if it fails)
-    try {
-      const response = await logoutApi();
-      console.log('Logout API Success:', response);
-    } catch (apiError) {
-      console.error('Logout API Failed:', apiError);
-    }
+            try {
+              // Try API logout (don't block if it fails)
+              try {
+                const response = await logoutApi();
+                console.log('Logout API Success:', response);
+              } catch (apiError) {
+                console.error('Logout API Failed:', apiError);
+              }
 
-    // Remove AsyncStorage data only
-    await Promise.all([
-      AsyncStorage.removeItem('token'),
-      AsyncStorage.removeItem('user'),
-      AsyncStorage.removeItem('subscription'),
-      AsyncStorage.removeItem('nextSubscriptions'),
-      AsyncStorage.removeItem('persist:root'),
-    ]);
+              // Remove AsyncStorage data only
+              await Promise.all([
+                AsyncStorage.removeItem('token'),
+                AsyncStorage.removeItem('user'),
+                AsyncStorage.removeItem('subscription'),
+                AsyncStorage.removeItem('nextSubscriptions'),
+                AsyncStorage.removeItem('persist:root'),
+              ]);
 
-    Toast.show({
-      type: 'success',
-      text1: '👋 Logged Out',
-      text2: 'You have been successfully logged out',
-      position: 'top',
-      visibilityTime: 2000,
-    });
+              Toast.show({
+                type: 'success',
+                text1: '👋 Logged Out',
+                text2: 'You have been successfully logged out',
+                position: 'top',
+                visibilityTime: 2000,
+              });
 
-    // Navigate FIRST
-    navigateToSignIn();
+              // Navigate FIRST
+              navigateToSignIn();
 
-    // Clear Redux after navigation
-    requestAnimationFrame(() => {
-      if (isMounted.current) {
-        dispatch(logout());
-      }
-    });
+              // Clear Redux after navigation
+              requestAnimationFrame(() => {
+                if (isMounted.current) {
+                  dispatch(logout());
+                }
+              });
 
-  } catch (error) {
-    console.error('Logout Process Failed:', error);
+            } catch (error) {
+              console.error('Logout Process Failed:', error);
 
-    // Remove AsyncStorage even if API fails
-    await Promise.all([
-      AsyncStorage.removeItem('token'),
-      AsyncStorage.removeItem('user'),
-      AsyncStorage.removeItem('subscription'),
-      AsyncStorage.removeItem('nextSubscriptions'),
-      AsyncStorage.removeItem('persist:root'),
-    ]);
+              // Remove AsyncStorage even if API fails
+              await Promise.all([
+                AsyncStorage.removeItem('token'),
+                AsyncStorage.removeItem('user'),
+                AsyncStorage.removeItem('subscription'),
+                AsyncStorage.removeItem('nextSubscriptions'),
+                AsyncStorage.removeItem('persist:root'),
+              ]);
 
-    Toast.show({
-      type: 'info',
-      text1: 'Logged Out',
-      text2: 'Local session cleared',
-      position: 'top',
-      visibilityTime: 2000,
-    });
+              Toast.show({
+                type: 'info',
+                text1: 'Logged Out',
+                text2: 'Local session cleared',
+                position: 'top',
+                visibilityTime: 2000,
+              });
 
-    // Navigate FIRST
-    navigateToSignIn();
+              // Navigate FIRST
+              navigateToSignIn();
 
-    // Clear Redux after navigation
-    requestAnimationFrame(() => {
-      if (isMounted.current) {
-        dispatch(logout());
-      }
-    });
+              // Clear Redux after navigation
+              requestAnimationFrame(() => {
+                if (isMounted.current) {
+                  dispatch(logout());
+                }
+              });
 
-  } finally {
-    if (isMounted.current) {
-      setIsLoggingOut(false);
-    }
-  }
-}
+            } finally {
+              if (isMounted.current) {
+                setIsLoggingOut(false);
+              }
+            }
+          }
         },
       ],
       { cancelable: true }
@@ -388,7 +390,7 @@ const DashboardScreen = () => {
   const isAndroid = Platform.OS === 'android';
 
   const cardMargin = isTablet ? 24 : 16;
-  const headerPaddingTop = isAndroid ? (isTablet ? 70 : 60) : (isTablet ? 80 : 60);
+  const headerPaddingTop = insets.top + (isTablet ? 12 : 8);
   const headerPaddingHorizontal = isTablet ? 32 : 20;
   const headerPaddingBottom = isAndroid ? (isTablet ? 40 : 55) : (isTablet ? 45 : 65);
   const avatarSize = isTablet ? 76 : 60;
@@ -398,1093 +400,1110 @@ const DashboardScreen = () => {
   const androidFontWeightBold = isAndroid ? '800' : '700';
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={colors.primaryDark || '#c9060a'}
-      />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContainer,
+    <SafeAreaView
+      edges={['top']}
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.primary, // header color
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.container,
           {
-            paddingBottom: isAndroid ? (isTablet ? 40 : 30) : (isTablet ? 50 : 40),
-            paddingTop: isAndroid ? (isSmallDevice ? 0 : 0) : 0,
-          }
+            backgroundColor: colors.background,
+          },
         ]}
       >
-        {/* HEADER */}
-        <LinearGradient
-          colors={[colors.primary, colors.primaryDark || '#8f0205']}
-          style={[
-            styles.header,
+        <StatusBar
+          translucent={false}
+          backgroundColor={colors.primary}
+          barStyle="light-content"
+        />
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContainer,
             {
-              paddingTop: headerPaddingTop,
-              paddingHorizontal: headerPaddingHorizontal,
-              paddingBottom: headerPaddingBottom,
-              borderBottomLeftRadius: isTablet ? 32 : 28,
-              borderBottomRightRadius: isTablet ? 32 : 28,
-              elevation: isAndroid ? 8 : 0,
+              paddingBottom: isAndroid ? (isTablet ? 40 : 30) : (isTablet ? 50 : 40),
+              paddingTop: isAndroid ? (isSmallDevice ? 0 : 0) : 0,
             }
           ]}
         >
-          <View style={[
-            styles.topRow,
-            {
-              marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 15),
-              marginTop: isAndroid ? (isTablet ? -50 : -40) : (isTablet ? -60 : -50),
-            }
-          ]}>
-            <TouchableOpacity
-              onPress={handleBack}
-              style={[
-                styles.backBtn,
-                {
-                  width: isTablet ? 48 : 40,
-                  height: isTablet ? 48 : 40,
-                  borderRadius: isTablet ? 24 : 20,
-                  android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-                }
-              ]}
-            >
-              <Icon name="arrow-left" size={isAndroid ? (isTablet ? 24 : 28) : (isTablet ? 26 : 22)} color="#fff" />
-            </TouchableOpacity>
-            <View style={{ flex: 1 }} />
-          </View>
-
-          <View style={styles.profileRow}>
-            <View
-              style={[
-                styles.avatar,
-                {
-                  backgroundColor: 'rgba(255,255,255,0.18)',
-                  width: avatarSize,
-                  height: avatarSize,
-                  borderRadius: avatarSize / 2,
-                  marginRight: isTablet ? 16 : 12,
-                }
-              ]}
-            >
-              <Text style={[
-                styles.avatarText,
-                {
-                  fontSize: isAndroid ? (isTablet ? 30 : 24) : (isTablet ? 34 : 28),
-                  fontWeight: androidFontWeightBold,
-                }
-              ]}>
-                {user?.first_name?.charAt(0) + user?.last_name?.charAt(0) || 'U'}
-              </Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[
-                styles.welcome,
-                {
-                  fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                  fontWeight: isAndroid ? '500' : '400',
-                }
-              ]}>
-                Welcome Back
-              </Text>
-              <Text style={[
-                styles.name,
-                {
-                  fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
-                  fontWeight: androidFontWeightBold,
-                  marginTop: isAndroid ? (isTablet ? 2 : 1) : (isTablet ? 4 : 2),
-                }
-              ]}>
-                {user?.first_name} {user?.last_name}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={[
-                styles.notificationBtn,
-                {
-                  backgroundColor: 'rgba(255,255,255,0.18)',
-                  width: isTablet ? 48 : 40,
-                  height: isTablet ? 48 : 40,
-                  borderRadius: isTablet ? 24 : 20,
-                  android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-                }
-              ]}
-            >
-              <Icon name="bell" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20)} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-
-        {/* Rest of your component... */}
-        {/* PERSONAL INFO */}
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              shadowColor: isDark ? '#000' : '#000',
-              marginHorizontal: cardMargin,
-              marginTop: isAndroid ? (isTablet ? -20 : -16) : (isTablet ? -24 : -18),
-              borderRadius: borderRadius,
-              padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-              shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
-              shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
-              elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
-            }
-          ]}
-        >
-          <View style={[
-            styles.sectionHeader,
-            {
-              marginBottom: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-            }
-          ]}>
-            <Text style={[
-              styles.cardTitle,
+          {/* HEADER */}
+          <LinearGradient
+            colors={[colors.primary, colors.primaryDark || '#8f0205']}
+            style={[
+              styles.header,
               {
-                color: colors.text,
-                fontSize: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18),
-                fontWeight: androidFontWeightBold,
+                paddingTop: headerPaddingTop,
+                paddingHorizontal: headerPaddingHorizontal,
+                paddingBottom: headerPaddingBottom,
+                borderBottomLeftRadius: isTablet ? 32 : 28,
+                borderBottomRightRadius: isTablet ? 32 : 28,
+                elevation: isAndroid ? 8 : 0,
+              }
+            ]}
+          >
+            <View style={[
+              styles.topRow,
+              {
+                marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 15),
+                marginTop: 0,
               }
             ]}>
-              Personal Information
-            </Text>
-            <View
-              style={[
-                styles.iconCircle,
-                {
-                  backgroundColor: colors.primaryBackground,
-                  width: isTablet ? 40 : 34,
-                  height: isTablet ? 40 : 34,
-                  borderRadius: isTablet ? 20 : 17,
-                }
-              ]}
-            >
-              <Icon name="user" size={isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 20 : 16)} color={colors.primary} />
-            </View>
-          </View>
-
-          <View style={[
-            styles.infoRow,
-            { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
-          ]}>
-            <Text style={[
-              styles.label,
-              {
-                color: colors.textMuted,
-                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                fontWeight: isAndroid ? '500' : '400',
-              }
-            ]}>
-              Email
-            </Text>
-            <Text style={[
-              styles.value,
-              {
-                color: colors.text,
-                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                fontWeight: isAndroid ? '600' : '600',
-              }
-            ]}>
-              {user?.email || '—'}
-            </Text>
-          </View>
-
-          <View style={[
-            styles.infoRow,
-            { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
-          ]}>
-            <Text style={[
-              styles.label,
-              {
-                color: colors.textMuted,
-                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                fontWeight: isAndroid ? '500' : '400',
-              }
-            ]}>
-              Contact
-            </Text>
-            <Text style={[
-              styles.value,
-              {
-                color: colors.text,
-                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                fontWeight: isAndroid ? '600' : '600',
-              }
-            ]}>
-              {user?.contact || '—'}
-            </Text>
-          </View>
-
-          <View style={[
-            styles.infoRow,
-            { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
-          ]}>
-            <Text style={[
-              styles.label,
-              {
-                color: colors.textMuted,
-                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                fontWeight: isAndroid ? '500' : '400',
-              }
-            ]}>
-              Location
-            </Text>
-            <Text style={[
-              styles.value,
-              {
-                color: colors.text,
-                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                fontWeight: isAndroid ? '600' : '600',
-              }
-            ]}>
-              {user?.city && user?.state
-                ? `${user?.city}, ${user?.state}`
-                : '—'}
-            </Text>
-          </View>
-
-          <View style={[
-            styles.infoRow,
-            { marginBottom: 0 }
-          ]}>
-            <Text style={[
-              styles.label,
-              {
-                color: colors.textMuted,
-                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                fontWeight: isAndroid ? '500' : '400',
-              }
-            ]}>
-              Country
-            </Text>
-            <Text style={[
-              styles.value,
-              {
-                color: colors.text,
-                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                fontWeight: isAndroid ? '600' : '600',
-              }
-            ]}>
-              {user?.country || '—'}
-            </Text>
-          </View>
-        </View>
-
-        {/* RENEW BUTTON */}
-        {subscription &&
-          isActive &&
-          remainingDays !== null &&
-          remainingDays <= 30 &&
-          remainingDays > 0 && (
-            <TouchableOpacity
-              style={[
-                styles.renewBtn,
-                {
-                  marginHorizontal: cardMargin,
-                  marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-                  borderRadius: isTablet ? 20 : 18,
-                  android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-                }
-              ]}
-              activeOpacity={0.9}
-              onPress={handleRenewPlan}
-            >
-              <LinearGradient
-                colors={[colors.primary, colors.primaryDark || '#8f0205']}
+              <TouchableOpacity
+                onPress={handleBack}
                 style={[
-                  styles.renewGradient,
+                  styles.backBtn,
                   {
-                    paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                    width: isTablet ? 48 : 40,
+                    height: isTablet ? 48 : 40,
+                    borderRadius: isTablet ? 24 : 20,
+                    android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
                   }
                 ]}
               >
-                <Icon name="refresh-cw" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
-                <Text style={[
-                  styles.renewText,
+                <Icon name="arrow-left" size={isAndroid ? (isTablet ? 24 : 28) : (isTablet ? 26 : 22)} color="#fff" />
+              </TouchableOpacity>
+              <View style={{ flex: 1 }} />
+            </View>
+
+            <View style={styles.profileRow}>
+              <View
+                style={[
+                  styles.avatar,
                   {
-                    fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                    marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
-                    fontWeight: isAndroid ? '700' : '700',
+                    backgroundColor: 'rgba(255,255,255,0.18)',
+                    width: avatarSize,
+                    height: avatarSize,
+                    borderRadius: avatarSize / 2,
+                    marginRight: isTablet ? 16 : 12,
                   }
-                ]}>
-                  Renew Plan ({remainingDays} day
-                  {remainingDays > 1 ? 's' : ''} left)
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
-
-        {/* UPGRADE / CHANGE PLAN */}
-        <TouchableOpacity
-          style={[
-            styles.upgradeBtn,
-            {
-              marginHorizontal: cardMargin,
-              marginTop: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-              borderRadius: isTablet ? 20 : 18,
-              android_ripple: { color: 'rgba(255,255,255,0.2)', borderless: true },
-            }
-          ]}
-          activeOpacity={0.9}
-          onPress={handleSubscriptionPress}
-        >
-          <LinearGradient
-            colors={['#111827', '#1f2937']}
-            style={[
-              styles.upgradeGradient,
-              {
-                paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-              }
-            ]}
-          >
-            <Icon name="zap" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
-            <Text style={[
-              styles.upgradeText,
-              {
-                fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
-                fontWeight: isAndroid ? '700' : '700',
-              }
-            ]}>
-              {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
-            </Text>
-            <Icon
-              name="arrow-up-right"
-              size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)}
-              color="#fff"
-              style={{ marginLeft: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 10 : 8) }}
-            />
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* CURRENT SUBSCRIPTION */}
-        <View
-          style={[
-            styles.subscriptionCard,
-            {
-              marginHorizontal: cardMargin,
-              marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-              borderRadius: isTablet ? 26 : 24,
-              shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
-              shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
-              elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
-            }
-          ]}
-        >
-          <LinearGradient
-            colors={isDark ? ['#1a1a1a', '#2a1a1a'] : ['#ffffff', '#fff5f5']}
-            style={[
-              styles.subscriptionInner,
-              {
-                padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-              }
-            ]}
-          >
-            <View style={styles.subscriptionHeader}>
-              <View>
-                <Text
-                  style={[
-                    styles.subscriptionTitle,
-                    {
-                      color: colors.textSecondary,
-                      fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                      marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                      fontWeight: isAndroid ? '500' : '400',
-                    }
-                  ]}
-                >
-                  Current Subscription
-                </Text>
+                ]}
+              >
                 <Text style={[
-                  styles.planName,
+                  styles.avatarText,
                   {
-                    color: colors.text,
-                    fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
+                    fontSize: isAndroid ? (isTablet ? 30 : 24) : (isTablet ? 34 : 28),
                     fontWeight: androidFontWeightBold,
                   }
                 ]}>
-                  {subscription?.plan?.name || 'No Plan'}
+                  {user?.first_name?.charAt(0) + user?.last_name?.charAt(0) || 'U'}
                 </Text>
               </View>
-              <View
-                style={[
-                  styles.durationBadge,
-                  {
-                    backgroundColor: colors.primary,
-                    paddingHorizontal: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
-                    paddingVertical: isAndroid ? (isTablet ? 7 : 5) : (isTablet ? 9 : 7),
-                    borderRadius: isTablet ? 32 : 30,
-                    elevation: isAndroid ? 4 : 0,
-                  }
-                ]}
-              >
+              <View style={{ flex: 1 }}>
                 <Text style={[
-                  styles.durationText,
+                  styles.welcome,
                   {
-                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}>
-                  {currentPlanDuration}
-                </Text>
-              </View>
-            </View>
-
-            <View style={[
-              styles.statusRow,
-              { marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18) }
-            ]}>
-              <View
-                style={[
-                  styles.activeDot,
-                  {
-                    backgroundColor: isActive ? colors.success : colors.primary,
-                    width: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 12 : 10),
-                    height: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 12 : 10),
-                    borderRadius: isAndroid ? (isTablet ? 5 : 4) : (isTablet ? 6 : 5),
-                    marginRight: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
-                  }
-                ]}
-              />
-              <Text
-                style={[
-                  styles.activeText,
-                  {
-                    color: isActive ? colors.success : colors.primary,
                     fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}
-              >
-                {isActive ? 'Active' : isExpired ? 'Expired' : status || '—'}
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.remainingContainer,
-                {
-                  backgroundColor: colors.card,
-                  shadowColor: isDark ? '#000' : '#000',
-                  marginTop: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
-                  borderRadius: isTablet ? 16 : 14,
-                  paddingHorizontal: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
-                  paddingVertical: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                  shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
-                  shadowRadius: isAndroid ? 2 : (isTablet ? 6 : 4),
-                  elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
-                }
-              ]}
-            >
-              <View style={styles.remainingLeft}>
-                <Icon name="clock" size={isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 20 : 16)} color={colors.primary} />
-                <Text
-                  style={[
-                    styles.remainingLabel,
-                    {
-                      color: colors.textSecondary,
-                      fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 15 : 13),
-                      marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
-                      fontWeight: isAndroid ? '600' : '600',
-                    }
-                  ]}
-                >
-                  Remaining Time
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.remainingValue,
-                  {
-                    color:
-                      remainingDays !== null && remainingDays <= 7
-                        ? colors.primary
-                        : colors.success,
-                    fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                    fontWeight: isAndroid ? '800' : '800',
-                  }
-                ]}
-              >
-                {remainingDaysLabel}
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.divider,
-                {
-                  backgroundColor: colors.border,
-                  height: isAndroid ? 0.5 : 1,
-                  marginVertical: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 22 : 18),
-                }
-              ]}
-            />
-
-            <View style={[
-              styles.detailGrid,
-              {
-                gap: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 8),
-              }
-            ]}>
-              <View
-                style={[
-                  styles.detailBox,
-                  {
-                    backgroundColor: colors.background,
-                    width: isAndroid ? '48%' : '48%',
-                    borderRadius: isTablet ? 14 : 12,
-                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                    elevation: isAndroid ? 2 : 0,
-                  }
-                ]}
-              >
-                <Text style={[
-                  styles.detailLabel,
-                  {
-                    color: colors.textMuted,
-                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
                     fontWeight: isAndroid ? '500' : '400',
                   }
                 ]}>
-                  Start Date
+                  Welcome Back
                 </Text>
                 <Text style={[
-                  styles.detailValue,
+                  styles.name,
                   {
-                    color: colors.text,
-                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                    fontWeight: isAndroid ? '700' : '700',
+                    fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
+                    fontWeight: androidFontWeightBold,
+                    marginTop: isAndroid ? (isTablet ? 2 : 1) : (isTablet ? 4 : 2),
                   }
                 ]}>
-                  {formatDate(subscription?.start_date)}
+                  {user?.first_name} {user?.last_name}
                 </Text>
               </View>
-              <View
+              <TouchableOpacity
                 style={[
-                  styles.detailBox,
+                  styles.notificationBtn,
                   {
-                    backgroundColor: colors.background,
-                    width: isAndroid ? '48%' : '48%',
-                    borderRadius: isTablet ? 14 : 12,
-                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                    elevation: isAndroid ? 2 : 0,
+                    backgroundColor: 'rgba(255,255,255,0.18)',
+                    width: isTablet ? 48 : 40,
+                    height: isTablet ? 48 : 40,
+                    borderRadius: isTablet ? 24 : 20,
+                    android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
                   }
                 ]}
               >
-                <Text style={[
-                  styles.detailLabel,
-                  {
-                    color: colors.textMuted,
-                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                    fontWeight: isAndroid ? '500' : '400',
-                  }
-                ]}>
-                  End Date
-                </Text>
-                <Text style={[
-                  styles.detailValue,
-                  {
-                    color: colors.text,
-                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}>
-                  {formatDate(subscription?.end_date)}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.detailBox,
-                  {
-                    backgroundColor: colors.background,
-                    width: isAndroid ? '48%' : '48%',
-                    borderRadius: isTablet ? 14 : 12,
-                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                    elevation: isAndroid ? 2 : 0,
-                  }
-                ]}
-              >
-                <Text style={[
-                  styles.detailLabel,
-                  {
-                    color: colors.textMuted,
-                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                    fontWeight: isAndroid ? '500' : '400',
-                  }
-                ]}>
-                  Amount
-                </Text>
-                <Text style={[
-                  styles.detailValue,
-                  {
-                    color: colors.text,
-                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}>
-                  ₹{subscription?.total_amount || 0}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.detailBox,
-                  {
-                    backgroundColor: colors.background,
-                    width: isAndroid ? '48%' : '48%',
-                    borderRadius: isTablet ? 14 : 12,
-                    padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                    marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                    elevation: isAndroid ? 2 : 0,
-                  }
-                ]}
-              >
-                <Text style={[
-                  styles.detailLabel,
-                  {
-                    color: colors.textMuted,
-                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                    fontWeight: isAndroid ? '500' : '400',
-                  }
-                ]}>
-                  Plan Type
-                </Text>
-                <Text style={[
-                  styles.detailValue,
-                  {
-                    color: colors.text,
-                    fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}>
-                  {subscription?.purchase_type || 'NEW'}
-                </Text>
-              </View>
+                <Icon name="bell" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20)} color="#fff" />
+              </TouchableOpacity>
             </View>
           </LinearGradient>
-        </View>
 
-        {/* UPCOMING PLANS */}
-        {upcomingPlans.length > 0 && (
-          <View style={[
-            styles.upcomingWrapper,
-            {
-              marginHorizontal: cardMargin,
-              marginTop: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-            }
-          ]}>
-            <View style={[
-              styles.upcomingHeadingRow,
+          {/* Rest of your component... */}
+          {/* PERSONAL INFO */}
+          <View
+            style={[
+              styles.card,
               {
-                marginBottom: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+                backgroundColor: colors.card,
+                shadowColor: isDark ? '#000' : '#000',
+                marginHorizontal: cardMargin,
+                marginTop: isAndroid ? (isTablet ? -20 : -16) : (isTablet ? -24 : -18),
+                borderRadius: borderRadius,
+                padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+                shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
+                shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
+                elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
+              }
+            ]}
+          >
+            <View style={[
+              styles.sectionHeader,
+              {
+                marginBottom: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
               }
             ]}>
-              <Icon name="clock" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.primary} />
               <Text style={[
-                styles.upcomingHeading,
+                styles.cardTitle,
                 {
                   color: colors.text,
-                  fontSize: isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20),
-                  marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                  fontSize: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18),
                   fontWeight: androidFontWeightBold,
                 }
               ]}>
-                Upcoming Plans
+                Personal Information
               </Text>
               <View
                 style={[
-                  styles.upcomingCount,
+                  styles.iconCircle,
                   {
-                    backgroundColor: colors.primary,
-                    marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
-                    minWidth: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
-                    height: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
-                    borderRadius: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    paddingHorizontal: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 8 : 6),
-                    elevation: isAndroid ? 4 : 0,
+                    backgroundColor: colors.primaryBackground,
+                    width: isTablet ? 40 : 34,
+                    height: isTablet ? 40 : 34,
+                    borderRadius: isTablet ? 20 : 17,
                   }
                 ]}
               >
-                <Text style={[
-                  styles.upcomingCountText,
-                  {
-                    fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}>
-                  {upcomingPlans.length}
-                </Text>
+                <Icon name="user" size={isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 20 : 16)} color={colors.primary} />
               </View>
             </View>
 
-            {upcomingPlans.map((item: Subscription, index: number) => {
-              const expanded = expandedPlans.includes(index);
-              const duration = `${item?.plan?.duration_value || ''} ${
-                item?.plan?.duration_unit || ''
-              }`;
+            <View style={[
+              styles.infoRow,
+              { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
+            ]}>
+              <Text style={[
+                styles.label,
+                {
+                  color: colors.textMuted,
+                  fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                  fontWeight: isAndroid ? '500' : '400',
+                }
+              ]}>
+                Email
+              </Text>
+              <Text style={[
+                styles.value,
+                {
+                  color: colors.text,
+                  fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                  fontWeight: isAndroid ? '600' : '600',
+                }
+              ]}>
+                {user?.email || '—'}
+              </Text>
+            </View>
 
-              return (
-                <View
-                  key={index}
+            <View style={[
+              styles.infoRow,
+              { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
+            ]}>
+              <Text style={[
+                styles.label,
+                {
+                  color: colors.textMuted,
+                  fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                  fontWeight: isAndroid ? '500' : '400',
+                }
+              ]}>
+                Contact
+              </Text>
+              <Text style={[
+                styles.value,
+                {
+                  color: colors.text,
+                  fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                  fontWeight: isAndroid ? '600' : '600',
+                }
+              ]}>
+                {user?.contact || '—'}
+              </Text>
+            </View>
+
+            <View style={[
+              styles.infoRow,
+              { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
+            ]}>
+              <Text style={[
+                styles.label,
+                {
+                  color: colors.textMuted,
+                  fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                  fontWeight: isAndroid ? '500' : '400',
+                }
+              ]}>
+                Location
+              </Text>
+              <Text style={[
+                styles.value,
+                {
+                  color: colors.text,
+                  fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                  fontWeight: isAndroid ? '600' : '600',
+                }
+              ]}>
+                {user?.city && user?.state
+                  ? `${user?.city}, ${user?.state}`
+                  : '—'}
+              </Text>
+            </View>
+
+            <View style={[
+              styles.infoRow,
+              { marginBottom: 0 }
+            ]}>
+              <Text style={[
+                styles.label,
+                {
+                  color: colors.textMuted,
+                  fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
+                  fontWeight: isAndroid ? '500' : '400',
+                }
+              ]}>
+                Country
+              </Text>
+              <Text style={[
+                styles.value,
+                {
+                  color: colors.text,
+                  fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                  fontWeight: isAndroid ? '600' : '600',
+                }
+              ]}>
+                {user?.country || '—'}
+              </Text>
+            </View>
+          </View>
+
+          {/* RENEW BUTTON */}
+          {subscription &&
+            isActive &&
+            remainingDays !== null &&
+            remainingDays <= 30 &&
+            remainingDays > 0 && (
+              <TouchableOpacity
+                style={[
+                  styles.renewBtn,
+                  {
+                    marginHorizontal: cardMargin,
+                    marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                    borderRadius: isTablet ? 20 : 18,
+                    android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
+                  }
+                ]}
+                activeOpacity={0.9}
+                onPress={handleRenewPlan}
+              >
+                <LinearGradient
+                  colors={[colors.primary, colors.primaryDark || '#8f0205']}
                   style={[
-                    styles.todoCard,
+                    styles.renewGradient,
                     {
-                      backgroundColor: colors.card,
-                      borderLeftColor: colors.primary,
-                      shadowColor: isDark ? '#000' : '#000',
-                      borderRadius: isTablet ? 22 : 20,
-                      marginBottom: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
-                      borderLeftWidth: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 5 : 4),
-                      shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
-                      shadowRadius: isAndroid ? 2 : (isTablet ? 7 : 5),
-                      elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 3),
+                      paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
                     }
                   ]}
                 >
-                  <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={() => togglePlan(index)}
-                    style={[
-                      styles.todoHeader,
-                      {
-                        padding: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-                        android_ripple: { color: 'rgba(0,0,0,0.1)', borderless: true },
-                      }
-                    ]}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={[
-                        styles.todoTitle,
-                        {
-                          color: colors.text,
-                          fontSize: isAndroid ? (isTablet ? 17 : 15) : (isTablet ? 19 : 17),
-                          fontWeight: androidFontWeightBold,
-                        }
-                      ]}>
-                        {item?.plan?.name || 'Plan'}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.todoSub,
-                          {
-                            color: colors.textSecondary,
-                            fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 15 : 13),
-                            marginTop: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                            fontWeight: isAndroid ? '500' : '400',
-                          }
-                        ]}
-                      >
-                        {duration}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.pendingBadge,
-                        {
-                          backgroundColor: isDark ? '#2d1a1a' : '#fff3e8',
-                          paddingHorizontal: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                          paddingVertical: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 8 : 6),
-                          borderRadius: isTablet ? 32 : 30,
-                        }
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.pendingBadgeText,
-                          {
-                            color: isDark ? '#ff8a00' : '#ff8a00',
-                            fontSize: isAndroid ? (isTablet ? 11 : 9) : (isTablet ? 13 : 11),
-                            fontWeight: isAndroid ? '700' : '700',
-                          }
-                        ]}
-                      >
-                        {item?.status || 'PENDING'}
-                      </Text>
-                    </View>
-                    <Icon
-                      name="chevron-down"
-                      size={isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 26 : 22)}
-                      color={colors.text}
-                      style={{
-                        marginLeft: isAndroid ? (isTablet ? 12 : 8) : (isTablet ? 16 : 12),
-                        transform: [{ rotate: expanded ? '180deg' : '0deg' }],
-                      }}
-                    />
-                  </TouchableOpacity>
+                  <Icon name="refresh-cw" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
+                  <Text style={[
+                    styles.renewText,
+                    {
+                      fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                      marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    Renew Plan ({remainingDays} day
+                    {remainingDays > 1 ? 's' : ''} left)
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            )}
 
-                  <View
-                    style={[
-                      styles.todoDetails,
-                      {
-                        maxHeight: expanded ? 500 : 0,
-                        opacity: expanded ? 1 : 0,
-                        paddingBottom: expanded ? (isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18)) : 0,
-                        paddingHorizontal: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-                      }
-                    ]}
-                  >
-                    <View style={[
-                      styles.detailGrid,
-                      {
-                        gap: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 8),
-                      }
-                    ]}>
-                      <View
-                        style={[
-                          styles.detailBox,
-                          {
-                            backgroundColor: colors.background,
-                            width: isAndroid ? '48%' : '48%',
-                            borderRadius: isTablet ? 14 : 12,
-                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                            elevation: isAndroid ? 2 : 0,
-                          }
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            {
-                              color: colors.textMuted,
-                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                              fontWeight: isAndroid ? '500' : '400',
-                            }
-                          ]}
-                        >
-                          Starts
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            {
-                              color: colors.text,
-                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                              fontWeight: isAndroid ? '700' : '700',
-                            }
-                          ]}
-                        >
-                          {formatDate(item?.start_date)}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.detailBox,
-                          {
-                            backgroundColor: colors.background,
-                            width: isAndroid ? '48%' : '48%',
-                            borderRadius: isTablet ? 14 : 12,
-                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                            elevation: isAndroid ? 2 : 0,
-                          }
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            {
-                              color: colors.textMuted,
-                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                              fontWeight: isAndroid ? '500' : '400',
-                            }
-                          ]}
-                        >
-                          Ends
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            {
-                              color: colors.text,
-                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                              fontWeight: isAndroid ? '700' : '700',
-                            }
-                          ]}
-                        >
-                          {formatDate(item?.end_date)}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.detailBox,
-                          {
-                            backgroundColor: colors.background,
-                            width: isAndroid ? '48%' : '48%',
-                            borderRadius: isTablet ? 14 : 12,
-                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                            elevation: isAndroid ? 2 : 0,
-                          }
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            {
-                              color: colors.textMuted,
-                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                              fontWeight: isAndroid ? '500' : '400',
-                            }
-                          ]}
-                        >
-                          Amount
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            {
-                              color: colors.text,
-                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                              fontWeight: isAndroid ? '700' : '700',
-                            }
-                          ]}
-                        >
-                          ₹{item?.total_amount || 0}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.detailBox,
-                          {
-                            backgroundColor: colors.background,
-                            width: isAndroid ? '48%' : '48%',
-                            borderRadius: isTablet ? 14 : 12,
-                            padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
-                            marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
-                            elevation: isAndroid ? 2 : 0,
-                          }
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.detailLabel,
-                            {
-                              color: colors.textMuted,
-                              fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
-                              marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
-                              fontWeight: isAndroid ? '500' : '400',
-                            }
-                          ]}
-                        >
-                          Purchase
-                        </Text>
-                        <Text
-                          style={[
-                            styles.detailValue,
-                            {
-                              color: colors.text,
-                              fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
-                              fontWeight: isAndroid ? '700' : '700',
-                            }
-                          ]}
-                        >
-                          {item?.purchase_type || 'NEW'}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-
-        {/* INVOICE BUTTON */}
-        <TouchableOpacity
-          style={[
-            styles.invoiceBtn,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              shadowColor: isDark ? '#000' : '#000',
-              marginHorizontal: cardMargin,
-              marginTop: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
-              borderRadius: isTablet ? 20 : 18,
-              paddingVertical: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
-              paddingHorizontal: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-              borderWidth: isAndroid ? 0.5 : 1,
-              shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
-              shadowRadius: isAndroid ? 2 : (isTablet ? 8 : 6),
-              elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
-              android_ripple: { color: 'rgba(0,0,0,0.05)', borderless: true },
-            }
-          ]}
-          activeOpacity={0.85}
-          onPress={handleInvoicePress}
-        >
-          <Icon name="file-text" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.text} />
-          <Text style={[
-            styles.invoiceBtnText,
-            {
-              color: colors.text,
-              fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 18 : 16),
-              fontWeight: isAndroid ? '600' : '700',
-            }
-          ]}>
-            Invoices
-          </Text>
-          <Icon name="arrow-right" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.text} />
-        </TouchableOpacity>
-
-        {/* LOGOUT BUTTON */}
-        <TouchableOpacity
-          style={[
-            styles.logoutBtn,
-            {
-              backgroundColor: colors.primary,
-              shadowColor: colors.primary,
-              marginHorizontal: cardMargin,
-              marginTop: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-              marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
-              borderRadius: isTablet ? 20 : 18,
-              paddingVertical: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
-              shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
-              shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
-              elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
-              android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-            }
-          ]}
-          activeOpacity={0.85}
-          onPress={handleLogout}
-          disabled={isLoggingOut}
-        >
-          {isLoggingOut ? (
-            <ActivityIndicator color="#fff" size={isAndroid ? (isSmallDevice ? 'small' : 'small') : 'large'} />
-          ) : (
-            <>
-              <Icon name="log-out" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
-              <Text style={[
-                styles.logoutBtnText,
+          {/* UPGRADE / CHANGE PLAN */}
+          <TouchableOpacity
+            style={[
+              styles.upgradeBtn,
+              {
+                marginHorizontal: cardMargin,
+                marginTop: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                borderRadius: isTablet ? 20 : 18,
+                android_ripple: { color: 'rgba(255,255,255,0.2)', borderless: true },
+              }
+            ]}
+            activeOpacity={0.9}
+            onPress={handleSubscriptionPress}
+          >
+            <LinearGradient
+              colors={['#111827', '#1f2937']}
+              style={[
+                styles.upgradeGradient,
                 {
-                  fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 18 : 16),
+                  paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                }
+              ]}
+            >
+              <Icon name="zap" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
+              <Text style={[
+                styles.upgradeText,
+                {
+                  fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                  marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
                   fontWeight: isAndroid ? '700' : '700',
                 }
               ]}>
-                Logout
+                {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
               </Text>
-            </>
-          )}
-        </TouchableOpacity>
+              <Icon
+                name="arrow-up-right"
+                size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)}
+                color="#fff"
+                style={{ marginLeft: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 10 : 8) }}
+              />
+            </LinearGradient>
+          </TouchableOpacity>
 
-         <View style={styles.versionContainer}>
+          {/* CURRENT SUBSCRIPTION */}
+          <View
+            style={[
+              styles.subscriptionCard,
+              {
+                marginHorizontal: cardMargin,
+                marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                borderRadius: isTablet ? 26 : 24,
+                shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
+                shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
+                elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
+              }
+            ]}
+          >
+            <LinearGradient
+              colors={isDark ? ['#1a1a1a', '#2a1a1a'] : ['#ffffff', '#fff5f5']}
+              style={[
+                styles.subscriptionInner,
+                {
+                  padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+                }
+              ]}
+            >
+              <View style={styles.subscriptionHeader}>
+                <View>
+                  <Text
+                    style={[
+                      styles.subscriptionTitle,
+                      {
+                        color: colors.textSecondary,
+                        fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                        marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                        fontWeight: isAndroid ? '500' : '400',
+                      }
+                    ]}
+                  >
+                    Current Subscription
+                  </Text>
+                  <Text style={[
+                    styles.planName,
+                    {
+                      color: colors.text,
+                      fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
+                      fontWeight: androidFontWeightBold,
+                    }
+                  ]}>
+                    {subscription?.plan?.name || 'No Plan'}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.durationBadge,
+                    {
+                      backgroundColor: colors.primary,
+                      paddingHorizontal: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+                      paddingVertical: isAndroid ? (isTablet ? 7 : 5) : (isTablet ? 9 : 7),
+                      borderRadius: isTablet ? 32 : 30,
+                      elevation: isAndroid ? 4 : 0,
+                    }
+                  ]}
+                >
+                  <Text style={[
+                    styles.durationText,
+                    {
+                      fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    {currentPlanDuration}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={[
+                styles.statusRow,
+                { marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18) }
+              ]}>
+                <View
+                  style={[
+                    styles.activeDot,
+                    {
+                      backgroundColor: isActive ? colors.success : colors.primary,
+                      width: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 12 : 10),
+                      height: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 12 : 10),
+                      borderRadius: isAndroid ? (isTablet ? 5 : 4) : (isTablet ? 6 : 5),
+                      marginRight: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                    }
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.activeText,
+                    {
+                      color: isActive ? colors.success : colors.primary,
+                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}
+                >
+                  {isActive ? 'Active' : isExpired ? 'Expired' : status || '—'}
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.remainingContainer,
+                  {
+                    backgroundColor: colors.card,
+                    shadowColor: isDark ? '#000' : '#000',
+                    marginTop: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
+                    borderRadius: isTablet ? 16 : 14,
+                    paddingHorizontal: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
+                    paddingVertical: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                    shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
+                    shadowRadius: isAndroid ? 2 : (isTablet ? 6 : 4),
+                    elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
+                  }
+                ]}
+              >
+                <View style={styles.remainingLeft}>
+                  <Icon name="clock" size={isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 20 : 16)} color={colors.primary} />
+                  <Text
+                    style={[
+                      styles.remainingLabel,
+                      {
+                        color: colors.textSecondary,
+                        fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 15 : 13),
+                        marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                        fontWeight: isAndroid ? '600' : '600',
+                      }
+                    ]}
+                  >
+                    Remaining Time
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.remainingValue,
+                    {
+                      color:
+                        remainingDays !== null && remainingDays <= 7
+                          ? colors.primary
+                          : colors.success,
+                      fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
+                      fontWeight: isAndroid ? '800' : '800',
+                    }
+                  ]}
+                >
+                  {remainingDaysLabel}
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.divider,
+                  {
+                    backgroundColor: colors.border,
+                    height: isAndroid ? 0.5 : 1,
+                    marginVertical: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 22 : 18),
+                  }
+                ]}
+              />
+
+              <View style={[
+                styles.detailGrid,
+                {
+                  gap: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 8),
+                }
+              ]}>
+                <View
+                  style={[
+                    styles.detailBox,
+                    {
+                      backgroundColor: colors.background,
+                      width: isAndroid ? '48%' : '48%',
+                      borderRadius: isTablet ? 14 : 12,
+                      padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                      marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                      elevation: isAndroid ? 2 : 0,
+                    }
+                  ]}
+                >
+                  <Text style={[
+                    styles.detailLabel,
+                    {
+                      color: colors.textMuted,
+                      fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                      fontWeight: isAndroid ? '500' : '400',
+                    }
+                  ]}>
+                    Start Date
+                  </Text>
+                  <Text style={[
+                    styles.detailValue,
+                    {
+                      color: colors.text,
+                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    {formatDate(subscription?.start_date)}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.detailBox,
+                    {
+                      backgroundColor: colors.background,
+                      width: isAndroid ? '48%' : '48%',
+                      borderRadius: isTablet ? 14 : 12,
+                      padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                      marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                      elevation: isAndroid ? 2 : 0,
+                    }
+                  ]}
+                >
+                  <Text style={[
+                    styles.detailLabel,
+                    {
+                      color: colors.textMuted,
+                      fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                      fontWeight: isAndroid ? '500' : '400',
+                    }
+                  ]}>
+                    End Date
+                  </Text>
+                  <Text style={[
+                    styles.detailValue,
+                    {
+                      color: colors.text,
+                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    {formatDate(subscription?.end_date)}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.detailBox,
+                    {
+                      backgroundColor: colors.background,
+                      width: isAndroid ? '48%' : '48%',
+                      borderRadius: isTablet ? 14 : 12,
+                      padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                      marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                      elevation: isAndroid ? 2 : 0,
+                    }
+                  ]}
+                >
+                  <Text style={[
+                    styles.detailLabel,
+                    {
+                      color: colors.textMuted,
+                      fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                      fontWeight: isAndroid ? '500' : '400',
+                    }
+                  ]}>
+                    Amount
+                  </Text>
+                  <Text style={[
+                    styles.detailValue,
+                    {
+                      color: colors.text,
+                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    ₹{subscription?.total_amount || 0}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.detailBox,
+                    {
+                      backgroundColor: colors.background,
+                      width: isAndroid ? '48%' : '48%',
+                      borderRadius: isTablet ? 14 : 12,
+                      padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                      marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                      elevation: isAndroid ? 2 : 0,
+                    }
+                  ]}
+                >
+                  <Text style={[
+                    styles.detailLabel,
+                    {
+                      color: colors.textMuted,
+                      fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                      fontWeight: isAndroid ? '500' : '400',
+                    }
+                  ]}>
+                    Plan Type
+                  </Text>
+                  <Text style={[
+                    styles.detailValue,
+                    {
+                      color: colors.text,
+                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    {subscription?.purchase_type || 'NEW'}
+                  </Text>
+                </View>
+              </View>
+            </LinearGradient>
+          </View>
+
+          {/* UPCOMING PLANS */}
+          {upcomingPlans.length > 0 && (
+            <View style={[
+              styles.upcomingWrapper,
+              {
+                marginHorizontal: cardMargin,
+                marginTop: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+              }
+            ]}>
+              <View style={[
+                styles.upcomingHeadingRow,
+                {
+                  marginBottom: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+                }
+              ]}>
+                <Icon name="clock" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.primary} />
+                <Text style={[
+                  styles.upcomingHeading,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20),
+                    marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 10 : 8),
+                    fontWeight: androidFontWeightBold,
+                  }
+                ]}>
+                  Upcoming Plans
+                </Text>
+                <View
+                  style={[
+                    styles.upcomingCount,
+                    {
+                      backgroundColor: colors.primary,
+                      marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
+                      minWidth: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
+                      height: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
+                      borderRadius: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      paddingHorizontal: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 8 : 6),
+                      elevation: isAndroid ? 4 : 0,
+                    }
+                  ]}
+                >
+                  <Text style={[
+                    styles.upcomingCountText,
+                    {
+                      fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                      fontWeight: isAndroid ? '700' : '700',
+                    }
+                  ]}>
+                    {upcomingPlans.length}
+                  </Text>
+                </View>
+              </View>
+
+              {upcomingPlans.map((item: Subscription, index: number) => {
+                const expanded = expandedPlans.includes(index);
+                const duration = `${item?.plan?.duration_value || ''} ${item?.plan?.duration_unit || ''
+                  }`;
+
+                return (
+                  <View
+                    key={index}
+                    style={[
+                      styles.todoCard,
+                      {
+                        backgroundColor: colors.card,
+                        borderLeftColor: colors.primary,
+                        shadowColor: isDark ? '#000' : '#000',
+                        borderRadius: isTablet ? 22 : 20,
+                        marginBottom: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 18 : 14),
+                        borderLeftWidth: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 5 : 4),
+                        shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
+                        shadowRadius: isAndroid ? 2 : (isTablet ? 7 : 5),
+                        elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 3),
+                      }
+                    ]}
+                  >
+                    <TouchableOpacity
+                      activeOpacity={0.9}
+                      onPress={() => togglePlan(index)}
+                      style={[
+                        styles.todoHeader,
+                        {
+                          padding: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                          android_ripple: { color: 'rgba(0,0,0,0.1)', borderless: true },
+                        }
+                      ]}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={[
+                          styles.todoTitle,
+                          {
+                            color: colors.text,
+                            fontSize: isAndroid ? (isTablet ? 17 : 15) : (isTablet ? 19 : 17),
+                            fontWeight: androidFontWeightBold,
+                          }
+                        ]}>
+                          {item?.plan?.name || 'Plan'}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.todoSub,
+                            {
+                              color: colors.textSecondary,
+                              fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 15 : 13),
+                              marginTop: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                              fontWeight: isAndroid ? '500' : '400',
+                            }
+                          ]}
+                        >
+                          {duration}
+                        </Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.pendingBadge,
+                          {
+                            backgroundColor: isDark ? '#2d1a1a' : '#fff3e8',
+                            paddingHorizontal: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                            paddingVertical: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 8 : 6),
+                            borderRadius: isTablet ? 32 : 30,
+                          }
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.pendingBadgeText,
+                            {
+                              color: isDark ? '#ff8a00' : '#ff8a00',
+                              fontSize: isAndroid ? (isTablet ? 11 : 9) : (isTablet ? 13 : 11),
+                              fontWeight: isAndroid ? '700' : '700',
+                            }
+                          ]}
+                        >
+                          {item?.status || 'PENDING'}
+                        </Text>
+                      </View>
+                      <Icon
+                        name="chevron-down"
+                        size={isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 26 : 22)}
+                        color={colors.text}
+                        style={{
+                          marginLeft: isAndroid ? (isTablet ? 12 : 8) : (isTablet ? 16 : 12),
+                          transform: [{ rotate: expanded ? '180deg' : '0deg' }],
+                        }}
+                      />
+                    </TouchableOpacity>
+
+                    <View
+                      style={[
+                        styles.todoDetails,
+                        {
+                          maxHeight: expanded ? 500 : 0,
+                          opacity: expanded ? 1 : 0,
+                          paddingBottom: expanded ? (isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18)) : 0,
+                          paddingHorizontal: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                        }
+                      ]}
+                    >
+                      <View style={[
+                        styles.detailGrid,
+                        {
+                          gap: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 8),
+                        }
+                      ]}>
+                        <View
+                          style={[
+                            styles.detailBox,
+                            {
+                              backgroundColor: colors.background,
+                              width: isAndroid ? '48%' : '48%',
+                              borderRadius: isTablet ? 14 : 12,
+                              padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                              marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                              elevation: isAndroid ? 2 : 0,
+                            }
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.detailLabel,
+                              {
+                                color: colors.textMuted,
+                                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                                fontWeight: isAndroid ? '500' : '400',
+                              }
+                            ]}
+                          >
+                            Starts
+                          </Text>
+                          <Text
+                            style={[
+                              styles.detailValue,
+                              {
+                                color: colors.text,
+                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                                fontWeight: isAndroid ? '700' : '700',
+                              }
+                            ]}
+                          >
+                            {formatDate(item?.start_date)}
+                          </Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.detailBox,
+                            {
+                              backgroundColor: colors.background,
+                              width: isAndroid ? '48%' : '48%',
+                              borderRadius: isTablet ? 14 : 12,
+                              padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                              marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                              elevation: isAndroid ? 2 : 0,
+                            }
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.detailLabel,
+                              {
+                                color: colors.textMuted,
+                                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                                fontWeight: isAndroid ? '500' : '400',
+                              }
+                            ]}
+                          >
+                            Ends
+                          </Text>
+                          <Text
+                            style={[
+                              styles.detailValue,
+                              {
+                                color: colors.text,
+                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                                fontWeight: isAndroid ? '700' : '700',
+                              }
+                            ]}
+                          >
+                            {formatDate(item?.end_date)}
+                          </Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.detailBox,
+                            {
+                              backgroundColor: colors.background,
+                              width: isAndroid ? '48%' : '48%',
+                              borderRadius: isTablet ? 14 : 12,
+                              padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                              marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                              elevation: isAndroid ? 2 : 0,
+                            }
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.detailLabel,
+                              {
+                                color: colors.textMuted,
+                                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                                fontWeight: isAndroid ? '500' : '400',
+                              }
+                            ]}
+                          >
+                            Amount
+                          </Text>
+                          <Text
+                            style={[
+                              styles.detailValue,
+                              {
+                                color: colors.text,
+                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                                fontWeight: isAndroid ? '700' : '700',
+                              }
+                            ]}
+                          >
+                            ₹{item?.total_amount || 0}
+                          </Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.detailBox,
+                            {
+                              backgroundColor: colors.background,
+                              width: isAndroid ? '48%' : '48%',
+                              borderRadius: isTablet ? 14 : 12,
+                              padding: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                              marginBottom: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 14 : 12),
+                              elevation: isAndroid ? 2 : 0,
+                            }
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.detailLabel,
+                              {
+                                color: colors.textMuted,
+                                fontSize: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 14 : 12),
+                                marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 8 : 6),
+                                fontWeight: isAndroid ? '500' : '400',
+                              }
+                            ]}
+                          >
+                            Purchase
+                          </Text>
+                          <Text
+                            style={[
+                              styles.detailValue,
+                              {
+                                color: colors.text,
+                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 16 : 14),
+                                fontWeight: isAndroid ? '700' : '700',
+                              }
+                            ]}
+                          >
+                            {item?.purchase_type || 'NEW'}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+
+          {/* INVOICE BUTTON */}
+          <TouchableOpacity
+            style={[
+              styles.invoiceBtn,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                shadowColor: isDark ? '#000' : '#000',
+                marginHorizontal: cardMargin,
+                marginTop: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 28 : 24),
+                borderRadius: isTablet ? 20 : 18,
+                paddingVertical: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
+                paddingHorizontal: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+                borderWidth: isAndroid ? 0.5 : 1,
+                shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
+                shadowRadius: isAndroid ? 2 : (isTablet ? 8 : 6),
+                elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
+                android_ripple: { color: 'rgba(0,0,0,0.05)', borderless: true },
+              }
+            ]}
+            activeOpacity={0.85}
+            onPress={handleInvoicePress}
+          >
+            <Icon name="file-text" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.text} />
+            <Text style={[
+              styles.invoiceBtnText,
+              {
+                color: colors.text,
+                fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 18 : 16),
+                fontWeight: isAndroid ? '600' : '700',
+              }
+            ]}>
+              Invoices
+            </Text>
+            <Icon name="arrow-right" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color={colors.text} />
+          </TouchableOpacity>
+
+          {/* LOGOUT BUTTON */}
+          <TouchableOpacity
+            style={[
+              styles.logoutBtn,
+              {
+                backgroundColor: colors.primary,
+                shadowColor: colors.primary,
+                marginHorizontal: cardMargin,
+                marginTop: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+                marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
+                borderRadius: isTablet ? 20 : 18,
+                paddingVertical: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 18 : 16),
+                shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
+                shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
+                elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
+                android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
+              }
+            ]}
+            activeOpacity={0.85}
+            onPress={handleLogout}
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? (
+              <ActivityIndicator color="#fff" size={isAndroid ? (isSmallDevice ? 'small' : 'small') : 'large'} />
+            ) : (
+              <>
+                <Icon name="log-out" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
+                <Text style={[
+                  styles.logoutBtnText,
+                  {
+                    fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 18 : 16),
+                    fontWeight: isAndroid ? '700' : '700',
+                  }
+                ]}>
+                  Logout
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.versionContainer}>
             <Text style={[
               styles.versionText,
               {
@@ -1495,8 +1514,9 @@ const DashboardScreen = () => {
               Version 1.0.0
             </Text>
           </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -1902,7 +1922,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-   versionContainer: {
+  versionContainer: {
     alignItems: 'center',
     paddingVertical: 12,
     paddingBottom: 20,

@@ -8,12 +8,13 @@ import {
   RefreshControl,
   useWindowDimensions,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Carousel from 'react-native-reanimated-carousel';
 import Config from 'react-native-config';
 import NetInfo from '@react-native-community/netinfo';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import TopMenu from '../../components/common/Menubar';
 import HeroCard from './components/HeroCard';
@@ -41,6 +42,9 @@ const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
 const Home = () => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+
+
+
   const insets = useSafeAreaInsets();
   
   const { 

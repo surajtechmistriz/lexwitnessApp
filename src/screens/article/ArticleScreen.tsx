@@ -291,16 +291,15 @@ export default function ArticleDetailPage() {
                 <TouchableOpacity
                   onPress={handleBack}
                   style={[
-                    styles.backBtn,
-                    {
-                      backgroundColor: colors.card,
-                      top: isAndroid ? insets.top + 10 : insets.top + 10,
-                      left: isAndroid ? 15 : 15,
-                      width: isAndroid ? 44 : 40,
-                      height: isAndroid ? 44 : 40,
-                      borderRadius: isAndroid ? 22 : 20,
-                    }
-                  ]}
+    styles.backBtn,
+    {
+      top: 16,
+      left: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+    },
+  ]}
                 >
                   <IconBack
                     name="arrow-left"
@@ -1330,7 +1329,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    backgroundColor: '#c9060a',
+    backgroundColor: '#DA2129',
   },
   authorMeta: {
     flex: 1,
@@ -1385,15 +1384,16 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   backBtn: {
-    position: 'absolute',
-    left: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
+  position: 'absolute',
+  left: 15,
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 10,
+  backgroundColor: '#FFFFFF', // or 'white'
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+},
 });

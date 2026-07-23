@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 25,
+    marginVertical:20,
     gap: 10,
   },
   pagesRow: {
