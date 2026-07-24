@@ -46,11 +46,11 @@ const Home = () => {
 
 
   const insets = useSafeAreaInsets();
-  
-  const { 
-    spacing, font, 
-    isTablet, isSmallDevice, 
-    moderateScale 
+
+  const {
+    spacing, font,
+    isTablet, isSmallDevice,
+    moderateScale
   } = useResponsive();
 
   const tabBarHeight = useTabBarHeight();
@@ -74,7 +74,7 @@ const Home = () => {
   const horizontalPadding = isTablet ? spacing.lg : spacing.md;
   const carouselWidth = width - (horizontalPadding * 2);
   const HERO_HEIGHT = carouselWidth * (9 / 16);
-  
+
   //  Calculate bottom padding for ScrollView
   // Add extra spacing so content doesn't hide behind tab bar
   const bottomPadding = tabBarHeight - spacing.lg;
@@ -188,7 +188,7 @@ const Home = () => {
   //  Render Latest Articles with Grid for Tablet
   const renderLatestArticles = () => {
     if (heroLoading) return <HeroSkeleton />;
-    
+
     return (
       <View style={{ marginTop: spacing.md }}>
         <Text
@@ -203,15 +203,15 @@ const Home = () => {
         >
           Latest Articles
         </Text>
-        
+
         {isTablet ? (
           <View style={styles.gridContainer}>
             {remainingCards.slice(0, 4).map((item, index) => (
-              <View 
-                key={item.id} 
+              <View
+                key={item.id}
                 style={[
                   styles.gridItem,
-                  { 
+                  {
                     width: '50%',
                     paddingRight: index % 2 === 0 ? spacing.sm : 0,
                     paddingLeft: index % 2 !== 0 ? spacing.sm : 0,
@@ -243,6 +243,10 @@ const Home = () => {
     );
   };
 
+
+  const statusBarColor = '#c9060a';
+  const statusBarStyle = 'light-content';
+
   return (
     <MainLayout
       title="Home"
@@ -252,8 +256,8 @@ const Home = () => {
       showBanner={false}
       scrollable={false}
       contentPadding={false}
-      statusBarColor='#f5f5f7'
-       statusBarStyle="dark-content"
+      statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}
     >
       {/*  Remove SafeAreaView wrapper - MainLayout already handles it */}
       <ScrollView
@@ -305,23 +309,7 @@ const Home = () => {
               )}
               onSnapToItem={(index) => setActiveIndex(index)}
             />
-            {/* <View style={[styles.paginationContainer, { marginTop: spacing.sm }]}>
-              {sliderData.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.paginationDot,
-                    {
-                      width: activeIndex === index ? moderateScale(20) : moderateScale(8),
-                      height: moderateScale(8),
-                      backgroundColor: activeIndex === index 
-                        ? colors.primary 
-                        : isDark ? colors.border : '#ddd',
-                    }
-                  ]}
-                />
-              ))}
-            </View> */}
+
           </View>
         )}
 

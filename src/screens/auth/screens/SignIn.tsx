@@ -14,6 +14,7 @@ import {
   Dimensions,
   Image,
   Linking,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useNavigation } from '@react-navigation/native';
@@ -58,7 +59,7 @@ const BRAND = {
   primary: '#c9060a',
   primaryDark: '#a80508',
   primaryLight: '#fef2f2',
-  primaryGradient: ['#c9060a', '#a80508'],
+  primaryGradient: ['#c9060a', '#c34244'],
   secondary: '#1a1a2e',
   accent: '#e63946',
   success: '#10B981',
@@ -254,6 +255,12 @@ const SignInScreen = () => {
   const glassIconInner = isTablet ? 18 : 18;
 
   return (
+    <>
+     <StatusBar
+            barStyle="light-content"
+            backgroundColor={colors.primary}
+            translucent={false}
+          />
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.card }]}
       edges={['left', 'right', 'bottom']}
@@ -688,7 +695,7 @@ const SignInScreen = () => {
             <View style={[
               styles.socialIconsContainer,
               {
-                gap: scale(isTablet ? 20 : 16),
+                gap: scale(isTablet ? 20 : 8),
                 marginTop: verticalScale(isTablet ? 16 : 12),
               }
             ]}>
@@ -700,7 +707,7 @@ const SignInScreen = () => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
                     borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
                   }
@@ -733,7 +740,7 @@ const SignInScreen = () => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
                     borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
                   }
@@ -766,7 +773,7 @@ const SignInScreen = () => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
                     borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
                   }
@@ -799,7 +806,7 @@ const SignInScreen = () => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.5)',
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
                     borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
                   }
@@ -841,6 +848,7 @@ const SignInScreen = () => {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </>
   );
 };
 

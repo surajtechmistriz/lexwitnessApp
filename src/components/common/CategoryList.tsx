@@ -166,14 +166,15 @@ const CategoryList = () => {
   }
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: colors.background }]}
-      edges={['top', 'left', 'right', ]} // Removed 'bottom' from edges
-    >
+    <>
       <StatusBar
-        barStyle={isDark ? 'light-content' : 'dark-content'}
+        barStyle={isDark ? 'light-content' : 'light-content'}
         backgroundColor={isDark ? '#121212' : '#c9060a'}
       />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.primary }]}
+      edges={['top', 'left', 'right', ]} // Removed 'bottom' from edges
+    >
 
       {/* Header with Back Button */}
       <View style={[styles.header, { backgroundColor: colors.background }]}>
@@ -216,6 +217,7 @@ const CategoryList = () => {
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
+    </>
   );
 };
 

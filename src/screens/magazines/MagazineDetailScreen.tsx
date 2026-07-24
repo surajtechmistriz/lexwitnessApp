@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
   useWindowDimensions,
   Platform,
-  StatusBar,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,7 +17,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
 import { useTheme } from '../../redux/hooks/useTheme';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import MainLayout from '../../MainLayout';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -28,16 +27,19 @@ export default function MagazineDetailScreen() {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  
+
   const { slug } = route.params || {};
   const [magazine, setMagazine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // Breakpoints / Responsive Adjustments
   const isTablet = width >= 768;
-  const contentWidthMax = isTablet ? 650 : width; // Caps text layout on large screens
-  const heroHeight = isTablet ? 400 : width * 0.75; // Caps crazy tall heights on tablets
+  const contentWidthMax = isTablet ? 650 : width;
+  const heroHeight = isTablet ? 400 : width * 0.75;
+
+  // Status bar color
+  const statusBarColor = '#c9060a';
+  const statusBarStyle = 'light-content';
 
   useEffect(() => {
     if (slug) fetchMagazine();
@@ -62,32 +64,47 @@ export default function MagazineDetailScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loader, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
+      <MainLayout
+        title="Magazine Detail"
+        routeName="MagazineDetail"
+        statusBarColor={statusBarColor}
+        statusBarStyle={statusBarStyle}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      >
+        <View style={[styles.loader, { backgroundColor: colors.background }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </MainLayout>
     );
   }
 
   if (!magazine) {
     return (
-      <View style={[styles.loader, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.textSecondary }}>No Data</Text>
-      </View>
+      <MainLayout
+        title="Magazine Detail"
+        routeName="MagazineDetail"
+        statusBarColor={statusBarColor}
+        statusBarStyle={statusBarStyle}
+        showBackButton
+        onBackPress={() => navigation.goBack()}
+      >
+        <View style={[styles.loader, { backgroundColor: colors.background }]}>
+          <Text style={{ color: colors.textSecondary }}>No Data</Text>
+        </View>
+      </MainLayout>
     );
   }
 
   return (
-
-  <SafeAreaView
-  style={styles.screen}
-  edges={['top', 'bottom']}
->  
-   <StatusBar
-              barStyle="light-content"
-              backgroundColor="#c9060a"
-              translucent={false}
-            />
-            
+    <MainLayout
+      title={magazine.title || 'Magazine Detail'}
+      routeName="MagazineDetail"
+      statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}
+      showBackButton
+      onBackPress={() => navigation.goBack()}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollWrap}
         showsVerticalScrollIndicator={false}
@@ -105,7 +122,7 @@ export default function MagazineDetailScreen() {
                 colors={['transparent', 'rgba(51,51,51,0.4)']}
                 style={styles.imageGradient}
               />
-              
+
               {/* Back Button */}
               <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -113,7 +130,7 @@ export default function MagazineDetailScreen() {
                   styles.backBtn,
                   {
                     backgroundColor: colors.card,
-                    top: insets.top + 5,
+                    top: 5,
                   },
                 ]}
               >
@@ -121,6 +138,7 @@ export default function MagazineDetailScreen() {
               </TouchableOpacity>
             </View>
           )}
+
 
           {/* Centered container wrapper for tablet readability */}
           <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
@@ -149,7 +167,7 @@ export default function MagazineDetailScreen() {
         </View>
 
         {/* CONTENT SECTION */}
-        <View style={[styles.contentCard, { 
+        <View style={[styles.contentCard, {
           backgroundColor: colors.card,
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
@@ -164,7 +182,7 @@ export default function MagazineDetailScreen() {
 
             {/* Subscribe Button */}
             <TouchableOpacity
-              style={[styles.subscribeBtn, { 
+              style={[styles.subscribeBtn, {
                 backgroundColor: colors.primary,
                 shadowColor: colors.primary,
               }]}
@@ -191,7 +209,7 @@ export default function MagazineDetailScreen() {
                     <TouchableOpacity
                       key={post.id}
                       style={[
-                        styles.articleCard, 
+                        styles.articleCard,
                         { backgroundColor: colors.card, borderColor: colors.border },
                         isTablet && styles.articleCardTablet
                       ]}
@@ -223,15 +241,20 @@ export default function MagazineDetailScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </MainLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  // scrollWrap: { paddingBottom: 40 },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  
+  scrollWrap: {
+    paddingBottom: 40,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
   // Responsive Wrapper to keep text reading bounds optimized on large layouts
   responsiveContentBlock: {
     width: '100%',
@@ -260,6 +283,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: 80,
   },
+
   backBtn: {
     position: 'absolute',
     left: 15,
@@ -362,7 +386,7 @@ const styles = StyleSheet.create({
     height: 1,
     marginLeft: 12,
   },
-  
+
   // Tablet optimization: Lists line up cleanly side-by-side on wide screens
   tabletGrid: {
     flexDirection: 'row',

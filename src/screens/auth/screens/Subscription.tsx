@@ -113,6 +113,8 @@ export default function SubscriptionPage() {
   const sectionTitleSize = moderateScale(isTablet ? 28 : 24);
   const benefitTitleSize = moderateScale(isTablet ? 19 : 17);
 
+   const statusBarColor = '#c9060a';
+  const statusBarStyle = 'light-content';
   return (
     <MainLayout
       title="Subscription"
@@ -120,6 +122,8 @@ export default function SubscriptionPage() {
       routeName="Subscription"
       showBackButton={true}
       onBackPress={handleBack}
+      statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}
     >
       <StatusBar barStyle="light-content" />
 

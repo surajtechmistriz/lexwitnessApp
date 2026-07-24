@@ -21,9 +21,9 @@ import { logout } from '../../redux/slices/authSlice';
 import { toggleTheme } from '../../redux/slices/themeSlice';
 import { LightColors, DarkColors } from '../../constants/colors';
 import { useTheme } from '../../redux/hooks/useTheme';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import { Linking } from 'react-native';
-import Feather from 'react-native-vector-icons/Feather';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ConfirmationModal from './ConfirmationModal';
+import { logoutApi } from '../../screens/auth/api/auth';
 
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -33,6 +33,8 @@ const CustomDrawer = ({ navigation }: any) => {
 
   const [settingsOpen, setSettingsOpen] = React.useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
   // Create styles with current theme
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -71,34 +73,62 @@ const CustomDrawer = ({ navigation }: any) => {
 
   // ------HANDLE LOGOUT------
 
-  const handleLogout = () => {
-    navigation.closeDrawer();
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
 
-    Toast.show({
-      type: 'info',
-      text1: '👋 Logged Out',
-      text2: 'You have been successfully logged out',
-      position: 'top',
-      visibilityTime: 2500,
-    });
+    setIsLoggingOut(true);
 
-    dispatch(logout());
+    try {
+      // Call logout API (don't stop logout if API fails)
+      try {
+        await logoutApi();
+      } catch (e) {
+        console.log('Logout API failed', e);
+      }
 
-    setTimeout(() => {
-      navigation.dispatch(
-       CommonActions.reset({
-  index: 1,
-  routes: [
-    {
-      name: 'MainApp',
-    },
-    {
-      name: 'SignIn',
-    },
-  ],
-})
-      );
-    }, 300);
+      // Clear storage
+      await Promise.all([
+        AsyncStorage.removeItem('token'),
+        AsyncStorage.removeItem('user'),
+        AsyncStorage.removeItem('subscription'),
+        AsyncStorage.removeItem('nextSubscriptions'),
+        AsyncStorage.removeItem('persist:root'),
+      ]);
+
+      // Close modal
+      setShowLogoutModal(false);
+
+      Toast.show({
+        type: 'success',
+        text1: '👋 Logged Out',
+        text2: 'You have been successfully logged out',
+        position: 'top',
+      });
+
+      // Clear redux
+      dispatch(logout());
+
+      // Close drawer
+      navigation.closeDrawer();
+
+      // Navigate to login
+      setTimeout(() => {
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [
+              { name: 'MainApp' },
+              { name: 'SignIn' },
+            ],
+          }),
+        );
+      }, 250);
+
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const handleShare = async () => {
@@ -116,9 +146,8 @@ const CustomDrawer = ({ navigation }: any) => {
   // ------Computed values------
   const initials = React.useMemo(() => {
     return (
-      `${user?.first_name?.[0] ?? ''}${
-        user?.last_name?.[0] ?? ''
-      }`.toUpperCase() || 'G'
+      `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''
+        }`.toUpperCase() || 'G'
     );
   }, [user?.first_name, user?.last_name]);
 
@@ -128,33 +157,33 @@ const CustomDrawer = ({ navigation }: any) => {
       title: 'MAIN',
       items: isLoggedIn
         ? [
-            {
-              id: 'dashboard',
-              label: 'Dashboard',
-              icon: 'grid',
-              onPress: goToDashboard,
-            },
-            {
-              id: 'subscribe',
-              label: 'Subscribe',
-              icon: 'shopping-bag',
-              onPress: goToSubscription,
-            },
-          ]
+          {
+            id: 'dashboard',
+            label: 'Dashboard',
+            icon: 'grid',
+            onPress: goToDashboard,
+          },
+          {
+            id: 'subscribe',
+            label: 'Subscribe',
+            icon: 'shopping-bag',
+            onPress: goToSubscription,
+          },
+        ]
         : [
-            {
-              id: 'signin',
-              label: 'Sign In',
-              icon: 'arrow-right',
-              onPress: goToSignIn,
-            },
-            {
-              id: 'subscribe',
-              label: 'Subscribe',
-              icon: 'shopping-bag',
-              onPress: goToSubscription,
-            },
-          ],
+          {
+            id: 'signin',
+            label: 'Sign In',
+            icon: 'arrow-right',
+            onPress: goToSignIn,
+          },
+          {
+            id: 'subscribe',
+            label: 'Subscribe',
+            icon: 'shopping-bag',
+            onPress: goToSubscription,
+          },
+        ],
     },
     {
       title: 'LEGAL',
@@ -282,9 +311,8 @@ const CustomDrawer = ({ navigation }: any) => {
               <View style={styles.profileInfo}>
                 <Text style={styles.welcomeText}>Welcome back</Text>
                 <Text style={[styles.fullName, { color: colors.text }]}>
-                  {`${user?.first_name || ''} ${
-                    user?.last_name || ''
-                  }`.trim() || 'User'}
+                  {`${user?.first_name || ''} ${user?.last_name || ''
+                    }`.trim() || 'User'}
                 </Text>
                 <View style={styles.emailContainer}>
                   <Icon name="mail" size={12} color={colors.textMuted} />
@@ -390,7 +418,7 @@ const CustomDrawer = ({ navigation }: any) => {
             {/* Logout Section */}
             <View style={styles.logoutSection}>
               <TouchableOpacity
-                onPress={handleLogout}
+                onPress={() => setShowLogoutModal(true)}
                 style={[
                   styles.logoutMenuItem,
                   { backgroundColor: colors.card },
@@ -416,7 +444,7 @@ const CustomDrawer = ({ navigation }: any) => {
           </>
         )}
 
-{/* 
+        {/* 
 <View style={styles.socialSection}>
   <Text style={[styles.socialTitle, { color: colors.textSecondary }]}>
     Connect With Us
@@ -475,6 +503,16 @@ const CustomDrawer = ({ navigation }: any) => {
           </Text>
         </View>
       </ScrollView>
+      <ConfirmationModal
+        visible={showLogoutModal}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        loading={isLoggingOut}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </SafeAreaView>
   );
 };

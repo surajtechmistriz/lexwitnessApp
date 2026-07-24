@@ -199,6 +199,8 @@ export default function ArchiveScreen() {
     navigation.goBack();
   };
   
+   const statusBarColor = '#c9060a';
+  const statusBarStyle = 'light-content';
   return (
     <MainLayout 
       title="Archive" 
@@ -209,6 +211,8 @@ export default function ArchiveScreen() {
       showFilter={false}
       showBackButton={true}
       onBackPress={handleBack}
+      statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}
     >
       <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
         <ScrollView

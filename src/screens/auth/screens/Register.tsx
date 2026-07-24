@@ -427,8 +427,12 @@ const RegisterScreen = () => {
     navigation.goBack();
   };
 
+   const statusBarColor = '#c9060a';
+  const statusBarStyle = 'light-content';
+
   return (
-    <MainLayout title="Register" routeName="Register" showFilter={false}>
+    <MainLayout title="Register" routeName="Register" showFilter={false} statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={[styles.flex, { backgroundColor: colors.background }]}

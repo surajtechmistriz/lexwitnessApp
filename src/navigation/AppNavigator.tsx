@@ -12,12 +12,13 @@ import { useSelector } from 'react-redux';
 
 import RootStack from './RootStack';
 import GlobalPopup from '../modal/GlobalPopup';
-// import GlobalPopup from '../modal/GlobalPopup';
+import ExitModal from '../components/common/ExitModal';
 
 export const navigationRef = createNavigationContainerRef();
 
 const AppNavigator = () => {
   const [isAppReady, setIsAppReady] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const darkMode = useSelector(
     (state: any) => state.theme.mode === 'dark',
@@ -47,23 +48,8 @@ const AppNavigator = () => {
 
       // Change this if your Home screen name is different
       if (route?.name === 'HomeTab') {
-        Alert.alert(
-          'Exit App',
-          'Are you sure you want to exit?',
-          [
-            {
-              text: 'Cancel',
-              style: 'cancel',
-            },
-            {
-              text: 'Exit',
-              onPress: () => BackHandler.exitApp(),
-            },
-          ],
-          { cancelable: true },
-        );
-
-        return true;
+        setShowExitModal(true);
+return true;
       }
 
       // Let React Navigation handle the back press
@@ -93,6 +79,10 @@ const AppNavigator = () => {
       >
         <RootStack />
         <GlobalPopup />
+          <ExitModal
+    visible={showExitModal}
+    onClose={() => setShowExitModal(false)}
+  />
       </NavigationContainer>
     </Animated.View>
   );
