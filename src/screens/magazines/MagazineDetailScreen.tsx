@@ -144,7 +144,7 @@ export default function MagazineDetailScreen() {
           <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
             {/* Magazine Info Row */}
             <View style={styles.topRow}>
-              <Text style={[styles.categoryText, { color: colors.text, fontSize: isTablet ? 24 : 20 }]}>
+              <Text style={[styles.categoryText, { color: colors.text, fontSize: isTablet ? 20 : 16 }]}>
                 {magazine.magazine_name?.toUpperCase() || 'MAGAZINE'}
               </Text>
             </View>
@@ -152,14 +152,14 @@ export default function MagazineDetailScreen() {
             {/* Title */}
             <View style={styles.titleRow}>
               <Icon name="calendar-outline" size={16} color={colors.textMuted} />
-              <Text style={[styles.magazineTitle, { color: colors.text, fontSize: isTablet ? 22 : 18 }]}>
+              <Text style={[styles.magazineTitle, { color: colors.text, fontSize: isTablet ? 27 : 13 }]}>
                 {magazine.title}
               </Text>
             </View>
 
             {/* Meta Info */}
             <View style={styles.metaRow}>
-              <Text style={[styles.dateText, { color: colors.primary, fontSize: isTablet ? 18 : 16 }]}>
+              <Text style={[styles.dateText, { color: colors.primary, fontSize: isTablet ? 17 : 15 }]}>
                 Magazine Details
               </Text>
             </View>
@@ -175,7 +175,7 @@ export default function MagazineDetailScreen() {
           <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
             {/* Description */}
             <View style={styles.descriptionContainer}>
-              <Text style={[styles.description, { color: colors.textSecondary, fontSize: isTablet ? 17 : 15 }]}>
+              <Text style={[styles.description, { color: colors.textSecondary, fontSize: isTablet ? 15 : 13 }]}>
                 {magazine.description?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')}
               </Text>
             </View>
@@ -247,7 +247,7 @@ export default function MagazineDetailScreen() {
 
 const styles = StyleSheet.create({
   scrollWrap: {
-    paddingBottom: 40,
+    // paddingBottom: 40,
   },
   loader: {
     flex: 1,
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   contentCard: {
     marginTop: -14,
-    paddingTop: 14,
+    // paddingTop: 14,
   },
   descriptionContainer: {
     marginBottom: 20,
@@ -371,6 +371,7 @@ const styles = StyleSheet.create({
   },
   articlesSection: {
     marginTop: 8,
+    paddingBottom:20
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
   },
   articleTitle: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13,
     marginBottom: 6,
     lineHeight: 20,
   },

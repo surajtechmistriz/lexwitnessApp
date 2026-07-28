@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   },
   filterLabel: {
     color: '#fff',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   filterHeaderTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   closeButton: {
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   magazineTitle: {
-    fontSize: 22, // or 30 if you want it even bigger
+    fontSize: 18, // or 30 if you want it even bigger
     fontWeight: '800',
     letterSpacing: 1,
     marginLeft: 10

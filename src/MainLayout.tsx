@@ -122,22 +122,22 @@ const MainLayout = ({
   // Dynamic status bar color
   const isHome = routeName === 'Home';
 
- const resolvedStatusBg =
-  statusBarColor ?? (isDark ? '#c9060a' : '#ffffff');
+  const resolvedStatusBg =
+    statusBarColor ?? (isDark ? '#c9060a' : '#ffffff');
 
-const resolvedBarStyle =
-  statusBarStyle ?? (isDark ? 'light-content' : 'dark-content');
+  const resolvedBarStyle =
+    statusBarStyle ?? (isDark ? 'light-content' : 'dark-content');
 
- useFocusEffect(
-  React.useCallback(() => {
-    StatusBar.setBarStyle(resolvedBarStyle);
+  useFocusEffect(
+    React.useCallback(() => {
+      StatusBar.setBarStyle(resolvedBarStyle);
 
-    if (Platform.OS === 'android') {
-      StatusBar.setBackgroundColor(resolvedStatusBg);
-      StatusBar.setTranslucent(false);
-    }
-  }, [resolvedStatusBg, resolvedBarStyle]),
-);
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor(resolvedStatusBg);
+        StatusBar.setTranslucent(false);
+      }
+    }, [resolvedStatusBg, resolvedBarStyle]),
+  );
 
   // Render content with optional ScrollView
   const renderContent = () => {
@@ -187,10 +187,10 @@ const resolvedBarStyle =
       )}
 
       <StatusBar
-  backgroundColor={resolvedStatusBg}
-  barStyle={resolvedBarStyle}
-  translucent={false}
-/>
+        backgroundColor={resolvedStatusBg}
+        barStyle={resolvedBarStyle}
+        translucent={false}
+      />
 
       <SafeAreaView
         style={[

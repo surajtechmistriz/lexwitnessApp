@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
 
   heading: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
   },
 
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 4,
     borderRadius: 20,
-    marginTop: 5,
+    marginTop: 3,
   },
 
   /* CARD */
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
 
   badgeText: {
     color: '#fff',
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '700',
     letterSpacing: 1,
   },

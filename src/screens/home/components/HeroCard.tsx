@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
 
   badgeText: {
     color: '#fff',
-    fontSize: 11,
+    fontSize: 8,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
 
   title: {
     color: '#fff',
-    fontSize: 19,
+    fontSize: 15,
     fontWeight: '700',
     lineHeight: 24,
     marginBottom: 6,

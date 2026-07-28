@@ -195,7 +195,7 @@ const Home = () => {
           style={[
             styles.heading,
             {
-              fontSize: isTablet ? font.xl : font.lg,
+              fontSize: isTablet ? font.lg : 15,
               color: colors.text,
               marginBottom: spacing.sm,
             },
@@ -203,6 +203,7 @@ const Home = () => {
         >
           Latest Articles
         </Text>
+         <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
 
         {isTablet ? (
           <View style={styles.gridContainer}>
@@ -414,4 +415,12 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginHorizontal: 4,
   },
+   accentBar: {
+    width: 30,
+    height: 3,
+    marginTop: -8,
+    marginBottom: 8,
+    // marginLeft: 12,
+  },
+
 });

@@ -151,29 +151,29 @@ const styles = StyleSheet.create({
   },
 
   // dropdown button
-  dropdownBtn: {
-    flex: 1,
-    borderWidth: 1,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 50,
-  },
+ dropdownBtn: {
+  flex: 1,
+  height: 46,
+  borderWidth: 1,
+  paddingHorizontal: 14,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  borderRadius: 14,
+},
 
-  // filter button
-  filterBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 10,
-  },
+filterBtn: {
+  height: 46,
+  paddingHorizontal: 18,
+  borderRadius: 14,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
 
   filterText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 15,
+    fontSize: 13,
   },
 
   // modal overlay
@@ -199,8 +199,11 @@ const styles = StyleSheet.create({
   },
 
   // item
-  item: {
-    padding: 12,
-    borderBottomWidth: 1,
-  },
+item: {
+  height: 46,
+  paddingHorizontal: 16,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
 });

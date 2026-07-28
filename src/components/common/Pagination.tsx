@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 25,
-    marginVertical:20,
+    // paddingVertical: 25,
+    // marginVertical:20,
     gap: 10,
   },
   pagesRow: {
@@ -127,8 +127,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   pageBtn: {
-    width: 38,
-    height: 38,
+    width: 32,
+    height: 32,
     borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     }),
   },
   pageText: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
   },
   activePageText: {
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   arrowBox: {
-    width: 38,
-    height: 38,
+    width: 32,
+    height: 32,
     borderRadius: 19,
     justifyContent: 'center',
     alignItems: 'center',

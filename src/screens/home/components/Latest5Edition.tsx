@@ -188,13 +188,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   heading: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 3,
     marginLeft: -22,
   },
   accentBar: {
-    width: 30,
+    width: 36,
     height: 3,
     marginLeft: -22,
   },

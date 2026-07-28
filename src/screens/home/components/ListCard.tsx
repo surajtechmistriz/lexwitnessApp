@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
 import Config from 'react-native-config';
 import { useTheme } from '../../../redux/hooks/useTheme';
+import Fallback from "../../../assets/fallback.png"
 
 /* ---------- TYPES ---------- */
 type HeroCardProps = {
@@ -32,12 +33,15 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
 
   const categorySlug = category?.slug ?? 'general';
 
+  const [imageError, setImageError] = useState(false);
+
+
   const fullImageUrl = image ? `${imgUrl}/${image}` : null;
 
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      style={[styles.card, { 
+      style={[styles.card, {
         backgroundColor: colors.card,
         borderColor: colors.border,
         shadowColor: isDark ? '#000' : '#000',
@@ -75,17 +79,21 @@ const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
         </View>
 
         {/* IMAGE */}
-        {fullImageUrl ? (
-          <Image
-            source={{ uri: fullImageUrl }}
-            style={[styles.thumbnail, { backgroundColor: isDark ? colors.border : '#eee' }]}
-            resizeMode="cover"
-            fadeDuration={300}
-          />
-        ) : (
-          <View style={[styles.thumbnailPlaceholder, { backgroundColor: isDark ? colors.border : '#f2f2f2' }]} />
-        )}
-      </View>
+        <Image
+          source={
+            fullImageUrl && !imageError
+              ? { uri: fullImageUrl }
+              : Fallback
+          }
+          style={[
+            styles.thumbnail,
+            { backgroundColor: isDark ? colors.border : '#eee' },
+          ]}
+          resizeMode="cover"
+          fadeDuration={300}
+          onError={() => setImageError(true)}
+        />
+        </View>
     </TouchableOpacity>
   );
 };

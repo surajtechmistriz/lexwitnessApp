@@ -197,13 +197,13 @@ const styles = StyleSheet.create({
   },
 
   heading: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '700',
-    marginBottom: 12,
+    // marginBottom: 6,
   },
   redLine: {
     width: 36,
-    height: 4,
+    height: 3,
     marginBottom: 12,
   },
 

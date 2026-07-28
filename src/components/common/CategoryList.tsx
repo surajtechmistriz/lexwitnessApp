@@ -191,7 +191,7 @@ const CategoryList = () => {
 
         <View style={styles.headerContent}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            Categories
+           All Categories
           </Text>
           <Text style={[styles.headerSub, { color: colors.primary }]}>
             Lex Witness Insights
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '800',
     marginLeft: 6,
     marginTop: 6,
@@ -268,10 +268,11 @@ const styles = StyleSheet.create({
   headerRight: {
     width: 40,
   },
-
+  
   listContent: {
     paddingHorizontal: 16,
     // paddingBottom: 20, // Moved to inline style for dynamic control
+    paddingVertical:20
   },
 
   row: {

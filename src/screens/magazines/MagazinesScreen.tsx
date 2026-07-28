@@ -68,7 +68,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   const numColumns = isTablet ? 3 : 2;
   const itemWidth = (width - horizontalPadding * 2 - cardGap * (numColumns - 1)) / numColumns;
   const headingSize = isTablet ? font.lg : font.sm;
-  const titleSize = isTablet ? font.md : font.sm;
+  const titleSize = isTablet ? font.xl : 16;
 
   // Status bar color
   const statusBarColor = '#c9060a';
@@ -328,7 +328,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
                 styles.footerWrapper,
                 {
                   marginTop: isTablet ? verticalScale(16) : verticalScale(10),
-                  paddingBottom: isTablet ? verticalScale(20) : 20,
+                  paddingBottom: isTablet ? verticalScale(20) : 55,
                 }
               ]}>
                 {magazines.length > 0 && (

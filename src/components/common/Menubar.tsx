@@ -165,7 +165,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
                   style={[
                     styles.menuText,
                     {
-                       fontSize: screenWidth >= 768 ? 15 : 13,
+                       fontSize: screenWidth >= 768 ? 15 : 11,
                     },
                     { color: isActive ? colors.primary : colors.textSecondary },
                     isActive && styles.activeText,

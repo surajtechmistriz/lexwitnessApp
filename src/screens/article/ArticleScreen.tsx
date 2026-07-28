@@ -217,7 +217,7 @@ export default function ArticleDetailPage() {
 
   // Responsive values
   const heroHeight = isTablet ? width * 0.5 : width * 0.7;
-  const titleSize = isTablet ? font.xxl : font.xl;
+  const titleSize = isTablet ? font.xl : font.lg;
   const contentPadding = isTablet ? spacing.xl : spacing.lg;
 
   // Show loading inside MainLayout to maintain status bar color
@@ -348,7 +348,7 @@ export default function ArticleDetailPage() {
                   styles.categoryText,
                   {
                     color: colors.primary,
-                    fontSize: isTablet ? font.sm : font.xs,
+                    fontSize: isTablet ? font.md : font.sm,
                   }
                 ]}>
                   {article.category?.name || 'UNCATEGORIZED'}
@@ -362,15 +362,15 @@ export default function ArticleDetailPage() {
                 styles.shareButton,
                 {
                   backgroundColor: colors.background,
-                  width: isAndroid ? 40 : 36,
-                  height: isAndroid ? 40 : 36,
+                  width: isAndroid ? 34 : 36,
+                  height: isAndroid ? 34 : 36,
                   borderRadius: isAndroid ? 20 : 18,
                 }
               ]}
             >
               <Icon
                 name="share-social"
-                size={isAndroid ? 22 : 20}
+                size={isAndroid ? 18 : 16}
                 color={colors.primary}
               />
             </TouchableOpacity>
@@ -383,8 +383,8 @@ export default function ArticleDetailPage() {
               color: colors.text,
               fontSize: titleSize,
               paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-              lineHeight: isTablet ? 38 : 30,
-              marginBottom: isAndroid ? spacing.xs : spacing.sm,
+              lineHeight: isTablet ? 32 : 24,
+              marginBottom: isAndroid ? spacing.md : spacing.lg,
             }
           ]}>
             {article.title}
@@ -413,7 +413,7 @@ export default function ArticleDetailPage() {
                     styles.authorName,
                     {
                       color: colors.primary,
-                      fontSize: isTablet ? font.lg : font.md,
+                      fontSize: isTablet ? font.lg : 12,
                     }
                   ]}>
                     {author?.name}
@@ -476,7 +476,7 @@ export default function ArticleDetailPage() {
                       ...tagsStyles,
                       p: {
                         ...tagsStyles.p,
-                        fontSize: isTablet ? 16 : 15,
+                        fontSize: isTablet ? 16 : 14,
                         lineHeight: isTablet ? 28 : 22,
                       },
                     }}
@@ -759,7 +759,7 @@ export default function ArticleDetailPage() {
                   styles.sectionTitle,
                   {
                     color: colors.text,
-                    fontSize: isTablet ? font.xl : font.lg,
+                    fontSize: isTablet ? font.xl : 15,
                   }
                 ]}>
                   About {article.authors.length > 1 ? 'Authors' : 'Author'}
@@ -1359,7 +1359,9 @@ const styles = StyleSheet.create({
   bio: {
     fontWeight: '400',
   },
-  relatedSection: {},
+  relatedSection: {
+    paddingBottom: 20
+  },
   relatedCard: {
     flexDirection: 'row',
     overflow: 'hidden',
