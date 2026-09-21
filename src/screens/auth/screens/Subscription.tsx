@@ -342,17 +342,8 @@ export default function SubscriptionPage() {
             ]}>
               <BenefitItem
                 icon="book-outline"
-                title="Unlimited Access"
-                text="Read all articles across web and app without limits"
-                colors={colors}
-                isDark={isDark}
-                isTablet={isTablet}
-              />
-
-              <BenefitItem
-                icon="newspaper-outline"
-                title="Weekly Magazine"
-                text="Get the latest print edition delivered to your doorstep"
+                title="Unlimited Digital Reading"
+                text="Access Lex Witness content anytime on desktop, tablet, or mobile."
                 colors={colors}
                 isDark={isDark}
                 isTablet={isTablet}
@@ -360,12 +351,46 @@ export default function SubscriptionPage() {
 
               <BenefitItem
                 icon="analytics-outline"
-                title="Premium Analysis"
-                text="Expert opinions and deep-dive editorial insights"
+                title="12–36 Print Editions"
+                text="Receive up to 36 print editions depending on your plan."
                 colors={colors}
                 isDark={isDark}
                 isTablet={isTablet}
               />
+
+              <BenefitItem
+                icon="newspaper-outline"
+                title="Print Magazine Delivery"
+                text="Get every issue delivered to your doorstep with paid plans."
+                colors={colors}
+                isDark={isDark}
+                isTablet={isTablet}
+              />
+              <BenefitItem
+                icon="newspaper-outline"
+                title="Flexible Subscription Options"
+                text="Choose from 1 month, 1 year, 2 year, or 3 year access."
+                colors={colors}
+                isDark={isDark}
+                isTablet={isTablet}
+              />
+              <BenefitItem
+                icon="newspaper-outline"
+                title="Expert Legal Insights"
+                text="In-depth analysis covering law, policy, and business."
+                colors={colors}
+                isDark={isDark}
+                isTablet={isTablet}
+              />
+              <BenefitItem
+                icon="newspaper-outline"
+                title="Trusted Industry Coverage"
+                text="Stay updated on developments shaping India's legal ecosystem."
+                colors={colors}
+                isDark={isDark}
+                isTablet={isTablet}
+              />
+
             </View>
           </View>
 

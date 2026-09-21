@@ -33,6 +33,7 @@ import ContactUs from '../screens/ContactUs';
 import ForgetPassword from '../screens/auth/screens/ForgetPassword';
 import ResetPassword from '../screens/auth/screens/ResetPassword';
 import { useSelector } from 'react-redux';
+import EditProfileScreen from '../screens/auth/screens/EditProfile';
 
 const Stack = createNativeStackNavigator();
 
@@ -79,6 +80,7 @@ export default function RootStack() {
       <Stack.Screen name="Subscription" component={Subscription} />
       <Stack.Screen name="InvoiceScreen" component={InvoiceScreen} />
       <Stack.Screen name="EditorialDetail" component={EditorialDetail} />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       
       {/* ===== 6. STATIC PAGES ===== */}
       <Stack.Screen name="AboutUs" component={AboutUs} />

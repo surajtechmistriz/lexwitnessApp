@@ -195,16 +195,16 @@ const CustomDrawer = ({ navigation }: any) => {
           onPress: () => handleNavigate('AboutUs'),
         },
         {
-          id: 'terms',
-          label: 'Terms & Conditions',
-          icon: 'file-text',
-          onPress: () => handleNavigate('TermsAndConditions'),
-        },
-        {
           id: 'privacy',
           label: 'Privacy Policy',
           icon: 'shield',
           onPress: () => handleNavigate('PrivacyPolicy'),
+        },
+        {
+          id: 'terms',
+          label: 'Terms & Conditions',
+          icon: 'file-text',
+          onPress: () => handleNavigate('TermsAndConditions'),
         },
       ],
     },

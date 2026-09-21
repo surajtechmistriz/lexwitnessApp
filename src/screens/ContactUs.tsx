@@ -1,91 +1,595 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+  Linking,
+  Dimensions,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import LinearGradient from 'react-native-linear-gradient';
+import Toast from 'react-native-toast-message';
 import { useTheme } from '../redux/hooks/useTheme';
+
+const { width, height } = Dimensions.get('window');
+
+// Responsive utility functions
+const scale = (size: number) => {
+  const baseWidth = 375;
+  const scaleFactor = width / baseWidth;
+  return Math.round(size * Math.min(scaleFactor, 1.5));
+};
+
+const verticalScale = (size: number) => {
+  const baseHeight = 667;
+  const scaleFactor = height / baseHeight;
+  return Math.round(size * Math.min(scaleFactor, 1.5));
+};
+
+const moderateScale = (size: number, factor = 0.5) => {
+  return size + (scale(size) - size) * factor;
+};
+
+const isSmallDevice = width < 375;
+const isTablet = width >= 768;
 
 const ContactUs = ({ navigation }: any) => {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  // Social Media Handlers
+  const handleWhatsApp = () => {
+    const phoneNumber = '+917982771770';
+    const url = `https://wa.me/${phoneNumber}`;
+    Linking.openURL(url).catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'WhatsApp is not installed',
+      });
+    });
+  };
+
+  const handlePhone = () => {
+    const phoneNumber = '+917982771770';
+    const url = `tel:${phoneNumber}`;
+    Linking.openURL(url).catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Phone dialer not available',
+      });
+    });
+  };
+
+  const handleLinkedIn = () => {
+    const url = 'https://www.linkedin.com/company/lexwitness';
+    Linking.openURL(url).catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'LinkedIn not available',
+      });
+    });
+  };
+
+  const handleEmail = () => {
+    const email = 'info@lexwitness.com';
+    const url = `mailto:${email}`;
+    Linking.openURL(url).catch(() => {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Email client not available',
+      });
+    });
+  };
+
+  // Responsive values
+  const glassIconSize = isTablet ? 50 : 44;
+  const glassIconInner = isTablet ? 22 : 18;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <StatusBar
+        translucent={false}
+        backgroundColor={colors.primary}
+        barStyle="light-content"
+      />
 
-        {/* HEADER */}
+      {/* Header with Gradient */}
+      <LinearGradient
+        colors={[colors.primary, colors.primaryDark || '#c9060a']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.headerGradient,
+          {
+            paddingTop: insets.top + (Platform.OS === 'ios' ? 12 : 8),
+            paddingHorizontal: scale(20),
+            paddingBottom: verticalScale(20),
+            borderBottomLeftRadius: scale(30),
+            borderBottomRightRadius: scale(30),
+          }
+        ]}
+      >
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={[styles.backBtn, { backgroundColor: colors.background }]}
+            style={[
+              styles.backBtn,
+              {
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                width: scale(40),
+                height: scale(40),
+                borderRadius: scale(30),
+              }
+            ]}
           >
-            <Icon name="arrow-left" size={20} color={colors.text} />
+            <Icon name="arrow-left" size={moderateScale(22)} color="#fff" />
+          </TouchableOpacity>
+          <Text style={[
+            styles.headerTitle,
+            {
+              fontSize: moderateScale(isTablet ? 22 : 18),
+            }
+          ]}>
+            Contact Us
+          </Text>
+          <View style={{ width: scale(40) }} />
+        </View>
+      </LinearGradient>
+
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        edges={['left', 'right', 'bottom']}
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: verticalScale(40) }
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* HERO */}
+          <View style={[
+            styles.hero,
+            {
+              marginBottom: verticalScale(24),
+              marginTop: verticalScale(8),
+            }
+          ]}>
+            <Text style={[
+              styles.title,
+              {
+                color: colors.primary,
+                fontSize: moderateScale(isTablet ? 32 : 28),
+              }
+            ]}>
+              Get in Touch
+            </Text>
+            <Text style={[
+              styles.subtitle,
+              {
+                color: colors.textSecondary,
+                fontSize: moderateScale(isTablet ? 16 : 14),
+                marginTop: verticalScale(4),
+              }
+            ]}>
+              We're here to help you anytime
+            </Text>
+          </View>
+
+          {/* EMAIL - Updated to match PrivacyPolicy card style */}
+          <View style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderRadius: scale(14),
+              padding: scale(16),
+              marginBottom: verticalScale(12),
+              // shadowColor: isDark ? '#000' : '#000',
+              // shadowOffset: { width: 0, height: 2 },
+              // shadowOpacity: 0.05,
+              // shadowRadius: 4,
+              // elevation: 2,
+            }
+          ]}>
+            <View style={styles.row}>
+              <View style={[
+                styles.iconWrap,
+                {
+                  backgroundColor: isDark ? colors.primaryBackground : '#fff1f1',
+                  width: scale(44),
+                  height: scale(44),
+                  borderRadius: scale(12),
+                  marginRight: scale(14),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }
+              ]}>
+                <Icon name="mail" size={moderateScale(20)} color={colors.primary} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: moderateScale(12),
+                    fontWeight: '500',
+                    marginBottom: verticalScale(2),
+                  }
+                ]}>
+                  Email
+                </Text>
+                <Text style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: moderateScale(isTablet ? 16 : 15),
+                    fontWeight: '600',
+                  }
+                ]}>
+                  support@lexwitness.com
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* PHONE - Updated to match PrivacyPolicy card style */}
+          <View style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderRadius: scale(14),
+              padding: scale(16),
+              marginBottom: verticalScale(12),
+              // shadowColor: isDark ? '#000' : '#000',
+              // shadowOffset: { width: 0, height: 2 },
+              // shadowOpacity: 0.05,
+              // shadowRadius: 4,
+              // elevation: 2,
+            }
+          ]}>
+            <View style={styles.row}>
+              <View style={[
+                styles.iconWrap,
+                {
+                  backgroundColor: isDark ? colors.primaryBackground : '#fff1f1',
+                  width: scale(44),
+                  height: scale(44),
+                  borderRadius: scale(12),
+                  marginRight: scale(14),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }
+              ]}>
+                <Icon name="phone" size={moderateScale(20)} color={colors.primary} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: moderateScale(12),
+                    fontWeight: '500',
+                    marginBottom: verticalScale(2),
+                  }
+                ]}>
+                  Phone
+                </Text>
+                <Text style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: moderateScale(isTablet ? 16 : 15),
+                    fontWeight: '600',
+                  }
+                ]}>
+                  +91 79827 71770
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* ADDRESS - Updated to match PrivacyPolicy card style */}
+          <View style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderRadius: scale(14),
+              padding: scale(16),
+              marginBottom: verticalScale(12),
+              // shadowColor: isDark ? '#000' : '#000',
+              // shadowOffset: { width: 0, height: 2 },
+              // shadowOpacity: 0.05,
+              // shadowRadius: 4,
+              // elevation: 2,
+            }
+          ]}>
+            <View style={styles.row}>
+              <View style={[
+                styles.iconWrap,
+                {
+                  backgroundColor: isDark ? colors.primaryBackground : '#fff1f1',
+                  width: scale(44),
+                  height: scale(44),
+                  borderRadius: scale(12),
+                  marginRight: scale(14),
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }
+              ]}>
+                <Icon name="map-pin" size={moderateScale(20)} color={colors.primary} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: moderateScale(12),
+                    fontWeight: '500',
+                    marginBottom: verticalScale(2),
+                  }
+                ]}>
+                  Address
+                </Text>
+                <Text style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: moderateScale(isTablet ? 16 : 15),
+                    fontWeight: '600',
+                  }
+                ]}>
+                  Delhi, India
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* SOCIAL MEDIA SECTION */}
+          <View style={[
+            styles.socialSection,
+            {
+              marginTop: verticalScale(16),
+              marginBottom: verticalScale(8),
+            }
+          ]}>
+            <View style={styles.socialDividerContainer}>
+              <View style={[
+                styles.socialDivider,
+                { backgroundColor: colors.border }
+              ]} />
+              <Text style={[
+                styles.socialDividerText,
+                {
+                  color: colors.textMuted,
+                  fontSize: moderateScale(12),
+                  paddingHorizontal: scale(16),
+                  fontWeight: '600',
+                  letterSpacing: 0.5,
+                }
+              ]}>
+                Connect With Us
+              </Text>
+              <View style={[
+                styles.socialDivider,
+                { backgroundColor: colors.border }
+              ]} />
+            </View>
+
+            {/* Liquid Glass Icons */}
+            <View style={[
+              styles.socialIconsContainer,
+              {
+                gap: scale(isTablet ? 20 : 12),
+                marginTop: verticalScale(isTablet ? 16 : 12),
+              }
+            ]}>
+              {/* WhatsApp */}
+              <TouchableOpacity
+                style={[
+                  styles.glassIconWrapper,
+                  {
+                    width: scale(glassIconSize),
+                    height: scale(glassIconSize),
+                    borderRadius: scale(glassIconSize / 2),
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    borderWidth: 1,
+                  }
+                ]}
+                onPress={handleWhatsApp}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  style={[
+                    styles.glassGradient,
+                    {
+                      borderRadius: scale(glassIconSize / 2),
+                    }
+                  ]}
+                >
+                  <FontAwesome
+                    name="whatsapp"
+                    size={scale(glassIconInner)}
+                    color={isDark ? '#25D366' : '#25D366'}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Phone */}
+              <TouchableOpacity
+                style={[
+                  styles.glassIconWrapper,
+                  {
+                    width: scale(glassIconSize),
+                    height: scale(glassIconSize),
+                    borderRadius: scale(glassIconSize / 2),
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    borderWidth: 1,
+                  }
+                ]}
+                onPress={handlePhone}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  style={[
+                    styles.glassGradient,
+                    {
+                      borderRadius: scale(glassIconSize / 2),
+                    }
+                  ]}
+                >
+                  <Icon
+                    name="phone"
+                    size={scale(glassIconInner)}
+                    color={isDark ? '#4CAF50' : '#4CAF50'}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* LinkedIn */}
+              <TouchableOpacity
+                style={[
+                  styles.glassIconWrapper,
+                  {
+                    width: scale(glassIconSize),
+                    height: scale(glassIconSize),
+                    borderRadius: scale(glassIconSize / 2),
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    borderWidth: 1,
+                  }
+                ]}
+                onPress={handleLinkedIn}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  style={[
+                    styles.glassGradient,
+                    {
+                      borderRadius: scale(glassIconSize / 2),
+                    }
+                  ]}
+                >
+                  <FontAwesome
+                    name="linkedin"
+                    size={scale(glassIconInner)}
+                    color={isDark ? '#0A66C2' : '#0A66C2'}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Email */}
+              <TouchableOpacity
+                style={[
+                  styles.glassIconWrapper,
+                  {
+                    width: scale(glassIconSize),
+                    height: scale(glassIconSize),
+                    borderRadius: scale(glassIconSize / 2),
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    borderWidth: 1,
+                  }
+                ]}
+                onPress={handleEmail}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  style={[
+                    styles.glassGradient,
+                    {
+                      borderRadius: scale(glassIconSize / 2),
+                    }
+                  ]}
+                >
+                  <Icon
+                    name="mail"
+                    size={scale(glassIconInner)}
+                    color={isDark ? '#EA4335' : '#EA4335'}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* CTA BUTTON */}
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: colors.primary,
+                marginTop: verticalScale(20),
+                paddingVertical: verticalScale(16),
+                borderRadius: scale(12),
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 5,
+              }
+            ]}
+          >
+            <Text style={[
+              styles.buttonText,
+              {
+                color: '#fff',
+                fontSize: moderateScale(isTablet ? 17 : 16),
+                fontWeight: '700',
+              }
+            ]}>
+              Send Message
+            </Text>
           </TouchableOpacity>
 
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Contact Us</Text>
-        </View>
-
-        {/* HERO */}
-        <View style={styles.hero}>
-          <Text style={[styles.title, { color: colors.primary }]}>Get in Touch</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            We're here to help you anytime
+          {/* FOOTER */}
+          <Text style={[
+            styles.footer,
+            {
+              color: colors.textMuted,
+              marginTop: verticalScale(20),
+              fontSize: moderateScale(12),
+              textAlign: 'center',
+              fontStyle: 'italic',
+            }
+          ]}>
+            We'll respond within 24 hours
           </Text>
-        </View>
 
-        {/* EMAIL */}
-        <View style={[styles.card, { 
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-        }]}>
-          <View style={styles.row}>
-            <View style={[styles.iconWrap, { backgroundColor: isDark ? colors.primaryBackground : '#fff1f1' }]}>
-              <Icon name="mail" size={16} color={colors.primary} />
-            </View>
-            <View>
-              <Text style={[styles.label, { color: colors.textMuted }]}>Email</Text>
-              <Text style={[styles.value, { color: colors.text }]}>support@lexwitness.com</Text>
-            </View>
+          {/* VERSION INFO */}
+          <View style={styles.versionContainer}>
+            <Text style={[
+              styles.versionText,
+              {
+                color: colors.textMuted,
+                fontSize: moderateScale(isTablet ? 14 : 11),
+                fontWeight: '500',
+                opacity: 0.6,
+              }
+            ]}>
+              Version 1.0.0
+            </Text>
           </View>
-        </View>
-
-        {/* PHONE */}
-        <View style={[styles.card, { 
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-        }]}>
-          <View style={styles.row}>
-            <View style={[styles.iconWrap, { backgroundColor: isDark ? colors.primaryBackground : '#fff1f1' }]}>
-              <Icon name="phone" size={16} color={colors.primary} />
-            </View>
-            <View>
-              <Text style={[styles.label, { color: colors.textMuted }]}>Phone</Text>
-              <Text style={[styles.value, { color: colors.text }]}>+91 00000 00000</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ADDRESS */}
-        <View style={[styles.card, { 
-          backgroundColor: colors.card,
-          borderColor: colors.border,
-        }]}>
-          <View style={styles.row}>
-            <View style={[styles.iconWrap, { backgroundColor: isDark ? colors.primaryBackground : '#fff1f1' }]}>
-              <Icon name="map-pin" size={16} color={colors.primary} />
-            </View>
-            <View>
-              <Text style={[styles.label, { color: colors.textMuted }]}>Address</Text>
-              <Text style={[styles.value, { color: colors.text }]}>Delhi, India</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* CTA BUTTON */}
-        <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]}>
-          <Text style={styles.buttonText}>Send Message</Text>
-        </TouchableOpacity>
-
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 
@@ -96,52 +600,46 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  content: {
-    padding: 20,
-    paddingBottom: 40,
+  headerGradient: {
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
   },
 
-  /* HEADER */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
   },
 
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
 
   headerTitle: {
-    fontSize: 16,
     fontWeight: '700',
+    color: '#fff',
+  },
+
+  content: {
+    padding: 20,
   },
 
   /* HERO */
   hero: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
 
   title: {
-    fontSize: 28,
     fontWeight: '800',
   },
 
   subtitle: {
-    fontSize: 13,
-    marginTop: 4,
+    lineHeight: 20,
   },
 
-  /* CARD */
+  /* CARD - Updated to match PrivacyPolicy */
   card: {
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12,
     borderWidth: 1,
   },
 
@@ -151,35 +649,89 @@ const styles = StyleSheet.create({
   },
 
   iconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+  },
+
+  contactInfo: {
+    flex: 1,
   },
 
   label: {
-    fontSize: 12,
+    fontWeight: '500',
   },
 
   value: {
-    fontSize: 14,
     fontWeight: '600',
-    marginTop: 2,
+  },
+
+  /* SOCIAL SECTION */
+  socialSection: {
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  socialDividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '80%',
+  },
+
+  socialDivider: {
+    flex: 1,
+    height: 1,
+  },
+
+  socialDividerText: {
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+
+  socialIconsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  glassIconWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    overflow: 'hidden',
+  },
+
+  glassGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   /* BUTTON */
   button: {
-    marginTop: 20,
-    padding: 14,
-    borderRadius: 12,
     alignItems: 'center',
   },
 
   buttonText: {
-    color: '#fff',
     fontWeight: '700',
-    fontSize: 14,
+  },
+
+  /* FOOTER */
+  footer: {
+    fontStyle: 'italic',
+  },
+
+  /* VERSION */
+  versionContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingBottom: 20,
+  },
+
+  versionText: {
+    fontWeight: '500',
+    opacity: 0.6,
   },
 });

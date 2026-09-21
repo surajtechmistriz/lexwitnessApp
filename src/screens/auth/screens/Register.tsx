@@ -70,6 +70,7 @@ const RegisterScreen = () => {
     otp: '',
     dob: '',
     organisation_name: '',
+    gst_number:'',
     address: '',
     city: '',
     pincode: '',
@@ -231,6 +232,7 @@ const RegisterScreen = () => {
         membership_plan_id: form.plan_id,
         dob: formatDisplayDate(form.dob).replace(/\//g, '-'),
         organisation: form.organisation_name,
+        gst_number: form.gst_number,
         city: form.city,
         state: form.state,
         country: form.country,
@@ -545,7 +547,7 @@ const RegisterScreen = () => {
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    placeholder="Enter 10 digit mobile number"
+                    placeholder="Enter contact number"
                     style={[styles.phoneInput, { color: colors.text }]}
                     keyboardType="number-pad"
                     value={form.contact}
@@ -672,7 +674,7 @@ const RegisterScreen = () => {
               label="Organisation Name"
               value={form.organisation_name}
               onChange={v => handleChange('organisation_name', v)}
-              placeholder="Organisation (optional)"
+              placeholder="Organisation  "
               icon="business-outline"
               focused={focusedField === 'organisation_name'}
               onFocus={() => setFocusedField('organisation_name')}
@@ -680,6 +682,20 @@ const RegisterScreen = () => {
               colors={colors}
               isDark={isDark}
             />
+
+            <Input
+  label="GST Number"
+  value={form.gst_number}
+  onChange={v => handleChange('gst_number', v.toUpperCase())}
+  placeholder="Enter GST Number "
+  icon="receipt-outline"
+  focused={focusedField === 'gst_number'}
+  onFocus={() => setFocusedField('gst_number')}
+  onBlur={() => setFocusedField(null)}
+  maxLength={15}
+  colors={colors}
+  isDark={isDark}
+/>
 
             <Input
               label="Address"
@@ -1280,12 +1296,12 @@ const styles = StyleSheet.create({
   },
   phoneInput: {
     flex: 1,
-    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+    // paddingVertical: Platform.OS === 'ios' ? 12 : 8,
     fontSize: 14,
   },
   otpBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderRadius: 12,
     minWidth: 80,
     alignItems: 'center',

@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
   Platform,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import IconBack from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
@@ -18,6 +18,8 @@ import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
 import { useTheme } from '../../redux/hooks/useTheme';
 import MainLayout from '../../MainLayout';
+import LatestEditions from '../home/components/Latest5Edition';
+import { getLatestMagazines } from '../home/api/home.api';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -31,6 +33,8 @@ export default function MagazineDetailScreen() {
   const { slug } = route.params || {};
   const [magazine, setMagazine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [latestEditions, setLatestEditions] = useState<any[]>([]);
+  const [loadingEditions, setLoadingEditions] = useState(false);
 
   // Breakpoints / Responsive Adjustments
   const isTablet = width >= 768;
@@ -42,7 +46,10 @@ export default function MagazineDetailScreen() {
   const statusBarStyle = 'light-content';
 
   useEffect(() => {
-    if (slug) fetchMagazine();
+    if (slug) {
+      fetchMagazine();
+      fetchLatestEditions();
+    }
   }, [slug]);
 
   const fetchMagazine = async () => {
@@ -57,10 +64,65 @@ export default function MagazineDetailScreen() {
     }
   };
 
+  const fetchLatestEditions = async () => {
+    try {
+      setLoadingEditions(true);
+      const data = await getLatestMagazines();
+      setLatestEditions(data || []);
+    } catch (err) {
+      console.error('Failed to fetch latest editions:', err);
+    } finally {
+      setLoadingEditions(false);
+    }
+  };
+
   const getImage = (img: string, base: string) => {
     if (!img) return 'https://via.placeholder.com/300x200';
     return img.startsWith('http') ? img : `${base}/${img}`;
   };
+
+  // Navigation handlers
+ const handleMagazinePress = (item: any) => {
+  // Use push to navigate to new magazine detail while keeping navigation stack
+  navigation.push('MagazineDetail', {
+    slug: item.slug,
+  });
+};
+
+const handleViewAllMagazines = () => {
+    // Option 1: Navigate to Magazines screen with reset to show tabs
+    // This will go back to the magazines list with tabs visible
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1,
+        routes: [
+          { 
+            name: 'MainApp', 
+            state: {
+              routes: [
+                { 
+                  name: 'HomeTab', 
+                  state: {
+                    routes: [{ name: 'Magazines' }],
+                    index: 0,
+                  }
+                }
+              ],
+              index: 0,
+            }
+          },
+          { name: 'Magazines' }
+        ],
+      })
+    );
+  };
+
+  // Alternative: Simple navigation to magazines (shows with tabs if nested)
+  // const handleViewAllMagazines = () => {
+  //   navigation.navigate('Magazines');
+  // };
+
+
 
   if (loading) {
     return (
@@ -138,7 +200,6 @@ export default function MagazineDetailScreen() {
               </TouchableOpacity>
             </View>
           )}
-
 
           {/* Centered container wrapper for tablet readability */}
           <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
@@ -240,6 +301,15 @@ export default function MagazineDetailScreen() {
             )}
           </View>
         </View>
+
+        {/* LATEST EDITIONS - Same as Home Screen */}
+        {/* <View style={styles.latestEditionsContainer}>
+          <LatestEditions
+            skipId={magazine?.id} // Skip the current magazine
+            onPressItem={handleMagazinePress}
+            onPressViewAll={handleViewAllMagazines}
+          />
+        </View> */}
       </ScrollView>
     </MainLayout>
   );
@@ -336,7 +406,6 @@ const styles = StyleSheet.create({
   },
   contentCard: {
     marginTop: -14,
-    // paddingTop: 14,
   },
   descriptionContainer: {
     marginBottom: 20,
@@ -371,7 +440,7 @@ const styles = StyleSheet.create({
   },
   articlesSection: {
     marginTop: 8,
-    paddingBottom:20
+    paddingBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -431,5 +500,11 @@ const styles = StyleSheet.create({
   },
   articleArrow: {
     marginRight: 12,
+  },
+  // Latest Editions Container
+  latestEditionsContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    // paddingBottom: 20,
   },
 });

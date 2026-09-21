@@ -27,7 +27,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
   const { colors, isDark } = useTheme();
 
   const { width: screenWidth } = useWindowDimensions();
-  const menuHeight = screenWidth >= 768 ? 60 : 50;
+  const menuHeight = screenWidth >= 768 ? 60 : 45;
 
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);

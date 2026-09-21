@@ -393,7 +393,7 @@ const DashboardScreen = () => {
   const isAndroid = Platform.OS === 'android';
 
   const cardMargin = isTablet ? 24 : 16;
-  const headerPaddingTop =  (isTablet ? 0 : 0);
+  const headerPaddingTop = (isTablet ? 0 : 0);
   const headerPaddingHorizontal = isTablet ? 32 : 20;
   const headerPaddingBottom = isAndroid ? (isTablet ? 40 : 55) : (isTablet ? 45 : 65);
   const avatarSize = isTablet ? 76 : 60;
@@ -571,19 +571,32 @@ const DashboardScreen = () => {
               ]}>
                 Personal Information
               </Text>
-              <View
-                style={[
-                  styles.iconCircle,
-                  {
-                    backgroundColor: colors.primaryBackground,
-                    width: isTablet ? 40 : 34,
-                    height: isTablet ? 40 : 34,
-                    borderRadius: isTablet ? 20 : 17,
-                  }
-                ]}
-              >
-                <Icon name="user" size={isAndroid ? (isTablet ? 18 : 16) : (isTablet ? 20 : 16)} color={colors.primary} />
-              </View>
+            <View
+  style={[
+    styles.iconCircle,
+    {
+      backgroundColor: colors.primaryBackground,
+      width: isTablet ? 40 : 34,
+      height: isTablet ? 40 : 34,
+      borderRadius: isTablet ? 20 : 17,
+    },
+  ]}
+>
+  <TouchableOpacity
+    onPress={() => navigation.navigate('EditProfile')}
+    style={{
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <Icon
+      name="edit"
+      size={isAndroid ? (isTablet ? 18 : 16) : (isTablet ? 20 : 16)}
+      color={colors.primary}
+    />
+  </TouchableOpacity>
+</View>
             </View>
 
             <View style={[
@@ -1528,8 +1541,8 @@ const DashboardScreen = () => {
           onCancel={() => setShowLogoutModal(false)}
           onConfirm={performLogout}
         />
-      </View>
-    </SafeAreaView>
+      </View >
+    </SafeAreaView >
   );
 };
 

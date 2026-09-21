@@ -695,7 +695,7 @@ export default function ArticleDetailPage() {
                     fontSize: isTablet ? font.xl : font.lg,
                   }
                 ]}>
-                  Topics
+                  Tags
                 </Text>
                 <View style={[
                   styles.sectionLine,
@@ -1399,7 +1399,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
-    backgroundColor: '#FFFFFF', // or 'white'
+    backgroundColor: '#f5f5f7', // or 'white'
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

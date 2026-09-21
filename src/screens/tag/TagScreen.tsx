@@ -5,12 +5,11 @@ import {
   StyleSheet,
   RefreshControl,
   Dimensions,
-  TouchableOpacity,
+  StatusBar,
 } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons'; //  ADDED
 import Config from 'react-native-config';
 
 // API
@@ -25,13 +24,14 @@ import Banner from '../../components/common/DynamicBanner';
 import HomeBanner from '../home/components/HomeBanner';
 import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
-import TopMenu from '../../components/common/Menubar';
+import { useTheme } from '../../redux/hooks/useTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function TagScreen() {
+  const { colors, isDark } = useTheme();
   const route = useRoute<any>();
-  const navigation = useNavigation<any>(); //  ADDED
+  const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
 
   const tagId = route.params?.id || null;
@@ -56,7 +56,7 @@ export default function TagScreen() {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
-  //  BACK BUTTON
+  /* ---------------- BACK BUTTON HANDLER ---------------- */
   const handleBack = () => {
     navigation.goBack();
   };
@@ -81,13 +81,10 @@ export default function TagScreen() {
         });
 
         setPosts(response?.data ?? []);
-
         setLastPage(response?.meta?.paging?.last_page ?? 1);
-
         setCurrentPage(page);
       } catch (error) {
         console.log('Fetch tag posts error:', error);
-
         setPosts([]);
         setLastPage(1);
       } finally {
@@ -111,11 +108,8 @@ export default function TagScreen() {
 
       try {
         const yearRes = await getYears();
-
         const yearList = yearRes?.data?.data || yearRes?.data || yearRes || [];
-
         setYears(yearList);
-
         await fetchTagPosts(1, null);
       } catch (error) {
         console.log('Initial load error:', error);
@@ -139,7 +133,6 @@ export default function TagScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-
     fetchTagPosts(currentPage, appliedYear);
   };
 
@@ -147,7 +140,6 @@ export default function TagScreen() {
 
   const handleApplyFilter = () => {
     setAppliedYear(selectedYear);
-
     scrollRef.current?.scrollTo({
       y: 0,
       animated: true,
@@ -161,21 +153,18 @@ export default function TagScreen() {
       y: 0,
       animated: true,
     });
-
     fetchTagPosts(page, appliedYear);
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
-      {/*  BACK BUTTON */}
-      <TouchableOpacity 
-        style={styles.backButton} 
-        onPress={handleBack}
-        activeOpacity={0.7}
-      >
-        <Icon name="arrow-back" size={24} color="#000" />
-      </TouchableOpacity>
-
+       <>
+           <StatusBar
+             translucent={false}
+             backgroundColor={colors.primary}
+             barStyle="light-content"
+           />
+         <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]}>
+             <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         ref={scrollRef}
         style={styles.container}
@@ -187,15 +176,14 @@ export default function TagScreen() {
             colors={['#c9060a']}
           />
         }
-        stickyHeaderIndices={[1]}
+        stickyHeaderIndices={[0]} // Changed from [1] to [0] since Banner is now first
         showsVerticalScrollIndicator={false}
       >
-        {/* TOP MENU */}
-        <TopMenu />
-
-        {/* STICKY BANNER */}
+        {/* BANNER WITH BACK BUTTON */}
         <Banner
           title={tagTitle}
+          showBackButton={true}  // Enable back button
+          onBackPress={handleBack}  // Handle back navigation
           renderFilter={close => (
             <YearFilter
               years={years}
@@ -241,18 +229,11 @@ export default function TagScreen() {
           )}
         </View>
 
-        {/* FOOTER */}
-        <View style={styles.footerContainer}>
-          <View style={styles.bannerContainer}>
-            <HomeBanner />
-          </View>
 
-          <View style={styles.adContainer}>
-            <HomeAdvertisement />
-          </View>
-        </View>
       </ScrollView>
+      </View>
     </SafeAreaView>
+    </>
   );
 }
 
@@ -261,53 +242,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-
-  //  BACK BUTTON STYLES
-  backButton: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    zIndex: 20,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 30,
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
   container: {
     flex: 1,
   },
-
   scrollContent: {
     flexGrow: 1,
   },
-
   content: {
-    paddingTop: 10,
-    paddingBottom: 20,
+    // paddingTop: 10,
+    // paddingBottom: 20,
     minHeight: SCREEN_HEIGHT * 0.6,
   },
-
   skeletonWrapper: {
     marginTop: 10,
   },
-
   footerContainer: {
     marginTop: 'auto',
     width: '100%',
   },
-
   bannerContainer: {
     marginHorizontal: 15,
   },
-
   adContainer: {
     height: 300,
     backgroundColor: '#fff',

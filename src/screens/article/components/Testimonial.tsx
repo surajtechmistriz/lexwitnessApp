@@ -68,7 +68,13 @@ export default function TestimonialCard({ data }: TestimonialProps) {
         </Text>
 
         {/* Author */}
-        <View style={{ alignItems: textAlignStyle }}>
+      <View
+  style={{
+    alignItems: textAlignStyle,
+    marginTop: 8,
+  }}>
+
+    
           <Text style={[styles.name, { 
             textAlign: textAlignText,
             color: colors.text,
@@ -92,33 +98,41 @@ export default function TestimonialCard({ data }: TestimonialProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 8,
-    padding: 20,
     width: '100%',
     alignSelf: 'center',
-    marginHorizontal: 16,
+
+    borderRadius: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+
+    marginTop: 0,
+    marginBottom: 8,
+    marginHorizontal: 0,
+
     position: 'relative',
-    marginTop: -20,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
 
   leftQuote: {
     position: 'absolute',
     top: 16,
-    left: 6,
-    width: 24,
-    height: 24,
+    left: 16,
+    width: 22,
+    height: 22,
+    // opacity: 0.18,
   },
 
   rightQuote: {
     position: 'absolute',
     top: 16,
-    right: 6,
-    width: 24,
-    height: 24,
+    right: 16,
+    width: 22,
+    height: 22,
+    // opacity: 0.18,
   },
 
   quoteIcon: {
@@ -127,23 +141,25 @@ const styles = StyleSheet.create({
   },
 
   contentWrapper: {
-    marginHorizontal: 18,
+    paddingHorizontal: 18,
   },
 
   feedbackText: {
+    fontSize: 15,
+    lineHeight: 25,
     fontStyle: 'italic',
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 10,
+    marginBottom: 18,
+    marginLeft:2
   },
 
   name: {
-    fontWeight: '600',
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '700',
   },
 
   designation: {
-    fontSize: 12,
-    marginTop: 2,
+    fontSize: 13,
+    marginTop: 4,
+    opacity: 0.75,
   },
 });

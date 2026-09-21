@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '800',
   },
 
