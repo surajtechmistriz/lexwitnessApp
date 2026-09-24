@@ -4,7 +4,7 @@
     "jsx": "react-native",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["jest", "react", "react-native"]
