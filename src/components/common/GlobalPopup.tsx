@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
 import Popup from './Popup';
+import { RootState } from '../../store/store';
 
 const GlobalPopup = () => {
   const { isLoggedIn, isHydrated } = useSelector(
-    (state: RootState) => state.auth
+    (state: RootState) => state.auth,
   );
 
   const [visible, setVisible] = useState(false);
@@ -24,12 +24,7 @@ const GlobalPopup = () => {
     }
   }, [isHydrated, isLoggedIn, shownOnce]);
 
-  return (
-    <Popup
-      visible={visible}
-      onClose={() => setVisible(false)}
-    />
-  );
+  return <Popup visible={visible} onClose={() => setVisible(false)} />;
 };
 
 export default GlobalPopup;

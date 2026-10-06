@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const Footer = () => {
   const year = new Date().getFullYear();
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
 
   heading: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginBottom: 8,
   },
 

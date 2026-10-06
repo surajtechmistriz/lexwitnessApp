@@ -1,104 +1,130 @@
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useState } from 'react';
-import { Text, StyleSheet, TouchableOpacity, View, Image } from 'react-native';
-import Config from 'react-native-config';
-import { useTheme } from '../../../redux/hooks/useTheme';
-import Fallback from "../../../assets/fallback.png"
+import { useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-/* ---------- TYPES ---------- */
-type HeroCardProps = {
-  category: any;
-  title: string;
-  slug: string;
-  date?: string;
-  image?: string;
-};
+import Fallback from '../../../assets/images/fallback.png';
+import { useTheme } from '../../../store/hooks/useTheme';
+import { getPostImageUrl } from '../../../utils/helpers/imageHelper';
+import type { ListCardProps } from '../types';
 
 type RootStackParamList = {
-  ArticleDetail: { slug: string; category: string };
+  ArticleDetail: {
+    slug: string;
+    category: string;
+  };
+  Category: {
+    slug: string;
+  };
 };
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const imgUrl = Config.POSTS_BASE_URL;
-
-/* ---------- COMPONENT ---------- */
-
-const ListCard = ({ category, title, slug, date, image }: HeroCardProps) => {
+const ListCard = ({ category, title, slug, date, image }: ListCardProps) => {
   const navigation = useNavigation<NavigationProp>();
   const { colors, isDark } = useTheme();
 
-  const categoryName = typeof category === 'string' ? category : category?.name;
-
-  const categorySlug = category?.slug ?? 'general';
-
   const [imageError, setImageError] = useState(false);
 
+  const categoryName = typeof category === 'string' ? category : category?.name;
 
-  const fullImageUrl = image ? `${imgUrl}/${image}` : null;
+  const categorySlug =
+    typeof category === 'string' ? 'general' : category?.slug ?? 'general';
+
+  const imageUrl = getPostImageUrl(image);
+
+  const handleArticlePress = () => {
+    navigation.navigate('ArticleDetail', {
+      slug,
+      category: categorySlug,
+    });
+  };
+
+  const handleCategoryPress = () => {
+    navigation.navigate('Category', {
+      slug: categorySlug,
+    });
+  };
 
   return (
     <TouchableOpacity
       activeOpacity={0.85}
-      style={[styles.card, {
-        backgroundColor: colors.card,
-        borderColor: colors.border,
-        shadowColor: isDark ? '#000' : '#000',
-      }]}
-      onPress={() =>
-        navigation.navigate('ArticleDetail', {
-          slug,
-          category: categorySlug,
-        })
-      }
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.border,
+          shadowColor: '#000',
+        },
+      ]}
+      onPress={handleArticlePress}
     >
       <View style={styles.row}>
-        {/* TEXT */}
         <View style={styles.textContainer}>
           {!!categoryName && (
             <TouchableOpacity
               style={styles.category}
-              onPress={() =>
-                navigation.navigate('Category', {
-                  slug: categorySlug,
-                })
-              }
+              onPress={handleCategoryPress}
+              activeOpacity={0.7}
             >
-              <Text numberOfLines={1} style={[styles.categoryText, { color: colors.primary }]}>
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.categoryText,
+                  {
+                    color: colors.primary,
+                  },
+                ]}
+              >
                 {categoryName.toUpperCase()}
               </Text>
             </TouchableOpacity>
           )}
 
-          <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
+          <Text
+            style={[
+              styles.title,
+              {
+                color: colors.text,
+              },
+            ]}
+            numberOfLines={2}
+          >
             {title}
           </Text>
 
-          {date && <Text style={[styles.date, { color: colors.textMuted }]}>{date}</Text>}
+          {date && (
+            <Text
+              style={[
+                styles.date,
+                {
+                  color: colors.textMuted,
+                },
+              ]}
+            >
+              {date}
+            </Text>
+          )}
         </View>
 
-        {/* IMAGE */}
         <Image
-          source={
-            fullImageUrl && !imageError
-              ? { uri: fullImageUrl }
-              : Fallback
-          }
+          source={imageUrl && !imageError ? { uri: imageUrl } : Fallback}
           style={[
             styles.thumbnail,
-            { backgroundColor: isDark ? colors.border : '#eee' },
+            {
+              backgroundColor: isDark ? colors.border : '#eee',
+            },
           ]}
           resizeMode="cover"
           fadeDuration={300}
           onError={() => setImageError(true)}
         />
-        </View>
+      </View>
     </TouchableOpacity>
   );
 };
 
-/* ---------- STYLES ---------- */
+export default ListCard;
 
 const styles = StyleSheet.create({
   card: {
@@ -106,16 +132,13 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 8,
     elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.4,
     shadowRadius: 6,
     borderWidth: 1,
-  },
-
-  categoryText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
 
   row: {
@@ -129,15 +152,18 @@ const styles = StyleSheet.create({
   },
 
   category: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
     marginBottom: 4,
+  },
+
+  categoryText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
 
   title: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     lineHeight: 20,
     marginBottom: 4,
   },
@@ -151,12 +177,4 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 10,
   },
-
-  thumbnailPlaceholder: {
-    width: 96,
-    height: 64,
-    borderRadius: 10,
-  },
 });
-
-export default ListCard;

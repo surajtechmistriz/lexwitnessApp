@@ -13,13 +13,12 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 
-import { getAuthor } from '../../services/api/author';
-import { getMenu } from '../../services/api/category';
-import { getYears } from '../../services/api/years';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
+import { getAuthor } from '../../features/author/api/author';
+import { getYears } from '../../features/magazines/api/years';
+import { getMenu } from '../../services/category.service';
 
-//  DEFINE TYPE LOCALLY
 type RootStackParamList = {
   Archive: {
     search?: string;
@@ -29,11 +28,17 @@ type RootStackParamList = {
     page?: number;
     mode?: string;
   };
-  // Add other screens as needed
 };
 
-type Author = { id: number; name: string };
-type Category = { id: number; name: string };
+type Author = {
+  id: number;
+  name: string;
+};
+
+type Category = {
+  id: number;
+  name: string;
+};
 
 type Props = {
   visible: boolean;
@@ -44,29 +49,26 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { colors, isDark } = useTheme();
 
-  // Animation Values
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  // Form States
   const [searchText, setSearchText] = useState('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedAuthor, setSelectedAuthor] = useState<string>('');
 
-  // App States
   const [years, setYears] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [authors, setAuthors] = useState<Author[]>([]);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Clear error when user changes any input
   useEffect(() => {
-    if (error) setError('');
-  }, [searchText, selectedYear, selectedCategory, selectedAuthor]);
+    if (error) {
+      setError('');
+    }
+  }, [error, searchText, selectedYear, selectedCategory, selectedAuthor]);
 
-  // 2. Animation Logic
   useEffect(() => {
     if (visible) {
       Animated.parallel([
@@ -83,7 +85,8 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
         }),
       ]).start();
     } else {
-      setError(''); // Reset error on close
+      setError('');
+
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
@@ -97,9 +100,8 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [fadeAnim, scaleAnim, visible]);
 
-  // Data Fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -108,6 +110,7 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
           getMenu(),
           getYears(),
         ]);
+
         setAuthors(authorRes.data || []);
         setCategories(categoryRes || []);
         setYears(yearRes.data || []);
@@ -115,17 +118,19 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
         console.log('Error fetching search data:', err);
       }
     };
+
     fetchData();
   }, []);
 
-  // Keyboard & Back Button Handlers
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () =>
       setKeyboardVisible(true),
     );
+
     const hideSub = Keyboard.addListener('keyboardDidHide', () =>
       setKeyboardVisible(false),
     );
+
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
@@ -133,9 +138,11 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
           onClose?.();
           return true;
         }
+
         return false;
       },
     );
+
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -143,14 +150,11 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     };
   }, [visible, onClose]);
 
-  // ------FIXED NAVIGATION------
-
   const handleSearch = () => {
     const params: any = { page: 1 };
     const hasSearch = searchText.trim().length > 0;
     const hasFilters = selectedYear || selectedCategory || selectedAuthor;
 
-    // VALIDATION: Prevent mixing text search and dropdown filters
     if (hasSearch && hasFilters) {
       setError('Please select only one: Search text OR Filters.');
       return;
@@ -164,15 +168,25 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
     if (hasSearch) {
       params.search = searchText.trim();
       params.mode = 'search';
-      if (/^\d{4}$/.test(searchText.trim())) params.year = searchText.trim();
+
+      if (/^\d{4}$/.test(searchText.trim())) {
+        params.year = searchText.trim();
+      }
     } else {
-      if (selectedYear) params.year = selectedYear;
-      if (selectedCategory) params.category_id = selectedCategory;
-      if (selectedAuthor) params.author_id = selectedAuthor;
+      if (selectedYear) {
+        params.year = selectedYear;
+      }
+
+      if (selectedCategory) {
+        params.category_id = selectedCategory;
+      }
+
+      if (selectedAuthor) {
+        params.author_id = selectedAuthor;
+      }
     }
 
     onClose?.();
-
     navigation.navigate('Archive', params);
   };
 
@@ -208,16 +222,11 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
         >
           {!keyboardVisible && (
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Ionicons
-                name="close"
-                size={35}
-                color={isDark ? '#fff' : 'white'}
-              />
+              <Ionicons name="close" size={35} color="white" />
             </TouchableOpacity>
           )}
 
           <View style={styles.formContainer}>
-            {/* ERROR MESSAGE DISPLAYED ABOVE SEARCH FIELD */}
             {error ? (
               <View style={styles.errorBox}>
                 <Ionicons name="alert-circle" size={16} color="#ff4d4d" />
@@ -229,7 +238,9 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               style={[
                 styles.searchBar,
                 error ? styles.searchBarError : null,
-                { borderColor: error ? '#ff4d4d' : isDark ? '#666' : '#555' },
+                {
+                  borderColor: error ? '#ff4d4d' : isDark ? '#666' : '#555',
+                },
               ]}
             >
               <TextInput
@@ -240,6 +251,7 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
                 onChangeText={setSearchText}
                 onSubmitEditing={handleSearch}
               />
+
               <TouchableOpacity onPress={handleSearch}>
                 <Ionicons name="search" size={24} color="white" />
               </TouchableOpacity>
@@ -249,21 +261,23 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               or
             </Text>
 
-            {/* PICKERS */}
             <View
               style={[
                 styles.pickerWrapper,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(255,255,255,0.05)',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                   borderColor: isDark ? '#555' : '#444',
                 },
               ]}
             >
               <Picker
                 selectedValue={selectedYear}
-                style={[styles.picker, { color: isDark ? '#bbb2b2' : 'white' }]}
+                style={[
+                  styles.picker,
+                  {
+                    color: isDark ? '#bbb2b2' : 'white',
+                  },
+                ]}
                 dropdownIconColor={isDark ? '#fff' : 'white'}
                 onValueChange={v => setSelectedYear(String(v))}
               >
@@ -272,6 +286,7 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
                   value=""
                   color={isDark ? '#888' : '#888'}
                 />
+
                 {years.map(y => (
                   <Picker.Item
                     key={y}
@@ -287,16 +302,19 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               style={[
                 styles.pickerWrapper,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(255,255,255,0.05)',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                   borderColor: isDark ? '#555' : '#444',
                 },
               ]}
             >
               <Picker
                 selectedValue={selectedCategory}
-                style={[styles.picker, { color: isDark ? '#bbb2b2' : 'white' }]}
+                style={[
+                  styles.picker,
+                  {
+                    color: isDark ? '#bbb2b2' : 'white',
+                  },
+                ]}
                 dropdownIconColor={isDark ? '#fff' : 'white'}
                 onValueChange={v => setSelectedCategory(String(v))}
               >
@@ -305,6 +323,7 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
                   value=""
                   color={isDark ? '#888' : '#888'}
                 />
+
                 {categories.map(c => (
                   <Picker.Item
                     key={c.id}
@@ -320,16 +339,19 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
               style={[
                 styles.pickerWrapper,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(255,255,255,0.05)'
-                    : 'rgba(255,255,255,0.05)',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
                   borderColor: isDark ? '#555' : '#444',
                 },
               ]}
             >
               <Picker
                 selectedValue={selectedAuthor}
-                style={[styles.picker, { color: isDark ? '#bbb2b2' : 'white' }]}
+                style={[
+                  styles.picker,
+                  {
+                    color: isDark ? '#bbb2b2' : 'white',
+                  },
+                ]}
                 dropdownIconColor={isDark ? '#fff' : 'white'}
                 onValueChange={v => setSelectedAuthor(String(v))}
               >
@@ -338,6 +360,7 @@ const SearchOverlay: React.FC<Props> = ({ visible, onClose }) => {
                   value=""
                   color={isDark ? '#888' : '#888'}
                 />
+
                 {authors.map(a => (
                   <Picker.Item
                     key={a.id}
@@ -385,7 +408,7 @@ const styles = StyleSheet.create({
     color: '#ff4d4d',
     fontSize: 13,
     marginLeft: 8,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   closeButton: {
     alignSelf: 'flex-end',

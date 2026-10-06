@@ -1,8 +1,9 @@
 // navigation/navigationConfig.ts
+import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { ThemeColors } from '../types/theme';
 import { Platform } from 'react-native';
 
-export const defaultStackOptions = {
+export const defaultStackOptions: NativeStackNavigationOptions = {
   headerShown: false,
   animation: 'slide_from_right',
   gestureEnabled: true,
@@ -27,12 +28,12 @@ export const getTabScreenOptions = (
     borderTopWidth: 0,
     elevation: 10,
     backgroundColor: colors.background,
-    
-    //  Add Android specific handling
+
+    // Add Android specific handling
     ...(Platform.OS === 'android' && {
       paddingBottom: (isTablet ? 6 : 4) + bottomInset,
     }),
-    
+
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -44,7 +45,7 @@ export const getTabScreenOptions = (
 
   tabBarLabelStyle: {
     fontSize: isTablet ? 12 : 10,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginBottom: isTablet ? 2 : 1,
     color: isDark ? colors.text : undefined,
   },
@@ -66,7 +67,7 @@ export const tabScreenOptions = {
   },
   tabBarLabelStyle: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginBottom: 1,
   },
   tabBarHideOnKeyboard: true,

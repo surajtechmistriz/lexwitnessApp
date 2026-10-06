@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { Animated } from "react-native";
+import { useRef } from 'react';
+import { Animated } from 'react-native';
 
 export const useTabBarAnimation = () => {
   const translateY = useRef(new Animated.Value(0)).current;

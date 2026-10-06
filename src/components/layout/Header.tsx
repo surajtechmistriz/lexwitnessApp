@@ -1,22 +1,26 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  useWindowDimensions,
+} from 'react-native';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import { RootState } from '../../redux/store';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { RootState } from '../../store/store';
+import { useTheme } from '../../store/hooks/useTheme';
 
 type HeaderProps = {
+  navigation?: any; //  ADD
   onSearchPress: () => void;
-  navigation?: any;
 };
 
-const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
-  const insets = useSafeAreaInsets();
+const Header = ({ navigation: _navigation, onSearchPress }: HeaderProps) => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
 
@@ -24,45 +28,41 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   const logoWidth = Math.min(width * 0.35, 150);
   const horizontalPadding = Math.max(12, width * 0.04);
 
-  const { isLoggedIn, isHydrated } = useSelector(
-    (state: RootState) => state.auth,
-  );
+  const { isLoggedIn } = useSelector((state: RootState) => state.auth);
 
-  // ------FIXED NAVIGATION FUNCTIONS ------
-
-  // 1. Toggle Drawer
+  // Toggle Drawer
   const handleToggleDrawer = () => {
     navigation.dispatch(DrawerActions.toggleDrawer());
   };
 
-  // 2. Go Home
+  // Go Home
   const handleGoHome = () => {
     navigation.navigate('HomeTab');
   };
 
-  // 3. Go to Login
+  // Go to Login
   const goToLogin = () => {
     navigation.navigate('SignIn');
   };
 
-  // 4. Go to Dashboard (if logged in)
+  // Go to Dashboard
   const goToDashboard = () => {
     navigation.navigate('Dashboard');
   };
 
   return (
-   <View
-  style={[
-    styles.container,
-    {
-      paddingTop: 0,
-      paddingHorizontal: horizontalPadding,
-      minHeight: width >= 768 ? 82 : 70,
-      backgroundColor: colors.background,
-      borderColor: colors.border,
-    },
-  ]}
->
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: 0,
+          paddingHorizontal: horizontalPadding,
+          minHeight: width >= 768 ? 82 : 70,
+          backgroundColor: colors.background,
+          borderColor: colors.border,
+        },
+      ]}
+    >
       {/* LEFT - Menu Button */}
       <View style={styles.sideContainer}>
         <TouchableOpacity
@@ -78,19 +78,18 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
       <View style={styles.centerContainer}>
         <TouchableOpacity onPress={handleGoHome} activeOpacity={0.7}>
           <Image
-
             source={
               isDark
-                ? require('../../assets/logo-dark.png')
-                : require('../../assets/main-logo-removebg-preview.png')
+                ? require('../../assets/icons/logo-dark.png')
+                : require('../../assets/icons/main-logo-removebg-preview.png')
             }
             style={[
-        styles.logo,
-        {
-            width: logoWidth,
-            height: logoWidth * 0.42,
-        },
-    ]}
+              styles.logo,
+              {
+                width: logoWidth,
+                height: logoWidth * 0.42,
+              },
+            ]}
             resizeMode="contain"
           />
         </TouchableOpacity>
@@ -98,7 +97,6 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
 
       {/* RIGHT - Search + Login/Profile */}
       <View style={styles.rightContainer}>
-        {/* Search Button */}
         <TouchableOpacity
           onPress={onSearchPress}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -108,7 +106,6 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
           <Entypo name="magnifying-glass" size={24} color={colors.primary} />
         </TouchableOpacity>
 
-        {/* Login/Profile Button */}
         {!isLoggedIn ? (
           <TouchableOpacity
             onPress={goToLogin}
@@ -137,7 +134,6 @@ const Header = ({ onSearchPress, navigation: propNavigation }: HeaderProps) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
@@ -147,27 +143,27 @@ const styles = StyleSheet.create({
     paddingBottom: 1,
   },
 
-sideContainer: {
+  sideContainer: {
     width: '15%',
     minWidth: 50,
     alignItems: 'center',
     justifyContent: 'center',
-},
+  },
 
-centerContainer:{
-    flex:1,
-    alignItems:'center',
-    justifyContent:'center',
-    paddingHorizontal:8,
-},
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
 
-rightContainer: {
+  rightContainer: {
     width: '22%',
     minWidth: 80,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
-},
+  },
 
   searchButton: {
     padding: 4,
@@ -180,8 +176,8 @@ rightContainer: {
 
   logo: {
     width: 130,
-    aspectRatio:2.36
+    aspectRatio: 2.36,
   },
 });
 
-  export default Header;
+export default Header;

@@ -1,4 +1,4 @@
-import api from "../../../services/axios";
+import api from '../../../network/client';
 
 export interface Editorial {
   description: string; // Changed from ReactNode to string for Native
@@ -11,6 +11,6 @@ export interface Editorial {
 
 export async function getEditorial(): Promise<Editorial> {
   // Replace with your actual API endpoint
-  const response = await api.get("/editorial-settings");
+  const response = await api.get('/editorial-settings');
   return response.data.data;
 }

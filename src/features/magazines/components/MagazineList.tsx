@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { useTheme } from '../../../redux/hooks/useTheme';
+import { useTheme } from '../../../store/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = width / 2 - 20;
@@ -45,20 +45,28 @@ const MagazineList: React.FC<MagazineListProps> = ({
       <Image source={{ uri: item.image }} style={styles.image} />
       <View style={styles.cardContent}>
         <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
-        <Text style={[styles.readMore, { color: colors.primary }]}>Read more</Text>
+        <Text style={[styles.readMore, { color: colors.primary }]}>
+          Read more
+        </Text>
       </View>
     </TouchableOpacity>
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 50 }} />;
+    return (
+      <ActivityIndicator
+        size="large"
+        color={colors.primary}
+        style={{ marginTop: 50 }}
+      />
+    );
   }
 
   return (
     <FlatList
       data={data}
       renderItem={renderItem}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={item => item.id.toString()}
       numColumns={numColumns}
       columnWrapperStyle={styles.columnWrapper}
       showsVerticalScrollIndicator={false}

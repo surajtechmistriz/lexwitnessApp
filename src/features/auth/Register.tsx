@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
   useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import RenderHTML from 'react-native-render-html';
@@ -29,30 +29,18 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 
 import {
-  getMembershipPlans,
-  sendOtpApi,
   registerApi,
+  sendOtpApi,
   verifyPaymentApi,
-} from '../api/services';
-import { loginSuccess } from '../../../redux/slices/authSlice';
-import MainLayout from '../../../MainLayout';
-import { useTheme } from '../../../redux/hooks/useTheme';
+} from '../../services/auth.service';
+import { getMembershipPlans } from '../../services/membership.service';
+import type { MembershipPlan } from '../../types/membership.types';
+import type { RegisterPayload } from '../../types/auth.types';
+import { STORAGE_KEYS } from '../../constant/storageKeys';
+import { loginSuccess } from '../../store/slices/authSlice';
+import MainLayout from '../../MainLayout';
+import { useTheme } from '../../store/hooks/useTheme';
 
-interface MembershipPlan {
-  id: number;
-  name: string;
-  price: string;
-  duration_value: number;
-  duration_unit: string;
-  tag: string | null;
-  print_editions: number;
-  is_featured: number;
-  is_trial: number;
-  status: number;
-  feature: string;
-  created_at: string;
-  updated_at: string;
-}
 
 const RegisterScreen = () => {
   const dispatch = useDispatch();
@@ -70,7 +58,7 @@ const RegisterScreen = () => {
     otp: '',
     dob: '',
     organisation_name: '',
-    gst_number:'',
+    gst_number: '',
     address: '',
     city: '',
     pincode: '',
@@ -94,27 +82,32 @@ const RegisterScreen = () => {
 
   // const [dobDate, setDobDate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     setLoadingPlans(true);
+
     try {
       const res = await getMembershipPlans();
+
       if (res?.status) {
         setPlans(res.data);
+
         if (res.data.length > 0) {
           let defaultPlan = res.data[0];
+
           if (preselectedPlanId) {
             const matchedPlan = res.data.find(
               (p: MembershipPlan) => Number(p.id) === Number(preselectedPlanId),
             );
+
             if (matchedPlan) {
               defaultPlan = matchedPlan;
             }
           }
-          setForm(prev => ({ ...prev, plan_id: defaultPlan.id.toString() }));
+
+          setForm(prev => ({
+            ...prev,
+            plan_id: defaultPlan.id.toString(),
+          }));
         }
       } else {
         showToast('error', 'Failed', res?.message || 'Unable to load plans');
@@ -124,7 +117,11 @@ const RegisterScreen = () => {
     } finally {
       setLoadingPlans(false);
     }
-  };
+  }, [preselectedPlanId]);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   const handleChange = (name: string, value: any) => {
     if (name === 'contact') {
@@ -251,8 +248,8 @@ const RegisterScreen = () => {
         const user = res?.data?.user;
         const subscription = res?.data?.subscription;
 
-        await AsyncStorage.setItem('token', token);
-        await AsyncStorage.setItem('user', JSON.stringify(user));
+       await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
         if (subscription) {
           await AsyncStorage.setItem(
             'subscription',
@@ -314,9 +311,7 @@ const RegisterScreen = () => {
           await AsyncStorage.setItem('token', token);
           await AsyncStorage.setItem('user', JSON.stringify(user));
           if (subscription) {
-            await AsyncStorage.setItem(
-              'subscription',
-              JSON.stringify(subscription),
+            await AsyncStorage.setItem(STORAGE_KEYS.SUBSCRIPTION, JSON.stringify(subscription)
             );
           }
 
@@ -429,12 +424,17 @@ const RegisterScreen = () => {
     navigation.goBack();
   };
 
-   const statusBarColor = '#c9060a';
+  const statusBarColor = '#c9060a';
   const statusBarStyle = 'light-content';
 
   return (
-    <MainLayout title="Register" routeName="Register" showFilter={false} statusBarColor={statusBarColor}
-      statusBarStyle={statusBarStyle}>
+    <MainLayout
+      title="Register"
+      routeName="Register"
+      showFilter={false}
+      statusBarColor={statusBarColor}
+      statusBarStyle={statusBarStyle}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={[styles.flex, { backgroundColor: colors.background }]}
@@ -481,7 +481,7 @@ const RegisterScreen = () => {
                   label="First Name"
                   required
                   value={form.first_name}
-                  onChange={v => handleChange('first_name', v)}
+                  onChange={(v: string) => handleChange('first_name', v)}
                   placeholder="First name"
                   icon="person-outline"
                   focused={focusedField === 'first_name'}
@@ -496,7 +496,7 @@ const RegisterScreen = () => {
                   label="Last Name"
                   required
                   value={form.last_name}
-                  onChange={v => handleChange('last_name', v)}
+                  onChange={(v: string) => handleChange('last_name', v)}
                   placeholder="Last name"
                   focused={focusedField === 'last_name'}
                   onFocus={() => setFocusedField('last_name')}
@@ -511,7 +511,7 @@ const RegisterScreen = () => {
               label="Email"
               required
               value={form.email}
-              onChange={v => handleChange('email', v)}
+              onChange={(v: string) => handleChange('email', v)}
               keyboardType="email-address"
               placeholder="you@example.com"
               icon="mail-outline"
@@ -551,7 +551,7 @@ const RegisterScreen = () => {
                     style={[styles.phoneInput, { color: colors.text }]}
                     keyboardType="number-pad"
                     value={form.contact}
-                    onChangeText={v => handleChange('contact', v)}
+                    onChangeText={(v: string) => handleChange('contact', v)}
                     maxLength={10}
                     placeholderTextColor={colors.textMuted}
                   />
@@ -584,7 +584,7 @@ const RegisterScreen = () => {
                 label="OTP"
                 required
                 value={form.otp}
-                onChange={v => handleChange('otp', v)}
+                onChange={(v: string) => handleChange('otp', v)}
                 keyboardType="number-pad"
                 placeholder="Enter 6 digit OTP"
                 icon="key-outline"
@@ -673,7 +673,7 @@ const RegisterScreen = () => {
             <Input
               label="Organisation Name"
               value={form.organisation_name}
-              onChange={v => handleChange('organisation_name', v)}
+              onChange={(v: string) => handleChange('organisation_name', v)}
               placeholder="Organisation  "
               icon="business-outline"
               focused={focusedField === 'organisation_name'}
@@ -684,24 +684,24 @@ const RegisterScreen = () => {
             />
 
             <Input
-  label="GST Number"
-  value={form.gst_number}
-  onChange={v => handleChange('gst_number', v.toUpperCase())}
-  placeholder="Enter GST Number "
-  icon="receipt-outline"
-  focused={focusedField === 'gst_number'}
-  onFocus={() => setFocusedField('gst_number')}
-  onBlur={() => setFocusedField(null)}
-  maxLength={15}
-  colors={colors}
-  isDark={isDark}
-/>
+              label="GST Number"
+              value={form.gst_number}
+              onChange={(v: string) => handleChange('gst_number', v.toUpperCase())}
+              placeholder="Enter GST Number "
+              icon="receipt-outline"
+              focused={focusedField === 'gst_number'}
+              onFocus={() => setFocusedField('gst_number')}
+              onBlur={() => setFocusedField(null)}
+              maxLength={15}
+              colors={colors}
+              isDark={isDark}
+            />
 
             <Input
               label="Address"
               required
               value={form.address}
-              onChange={v => handleChange('address', v)}
+              onChange={(v: string) => handleChange('address', v)}
               multiline
               placeholder="Your complete address"
               focused={focusedField === 'address'}
@@ -717,7 +717,7 @@ const RegisterScreen = () => {
                   label="City"
                   required
                   value={form.city}
-                  onChange={v => handleChange('city', v)}
+                  onChange={(v: string) => handleChange('city', v)}
                   placeholder="City"
                   icon="business-outline"
                   focused={focusedField === 'city'}
@@ -732,7 +732,7 @@ const RegisterScreen = () => {
                   label="Pincode"
                   required
                   value={form.pincode}
-                  onChange={v => handleChange('pincode', v)}
+                  onChange={(v: string) => handleChange('pincode', v)}
                   keyboardType="number-pad"
                   maxLength={6}
                   placeholder="Pincode"
@@ -752,7 +752,7 @@ const RegisterScreen = () => {
                   label="State"
                   required
                   value={form.state}
-                  onChange={v => handleChange('state', v)}
+                  onChange={(v: string) => handleChange('state', v)}
                   placeholder="State"
                   icon="map-outline"
                   focused={focusedField === 'state'}
@@ -767,7 +767,7 @@ const RegisterScreen = () => {
                   label="Country"
                   required
                   value={form.country}
-                  onChange={v => handleChange('country', v)}
+                  onChange={(v: string) => handleChange('country', v)}
                   placeholder="Country"
                   icon="flag-outline"
                   focused={focusedField === 'country'}
@@ -784,7 +784,7 @@ const RegisterScreen = () => {
               required
               secure
               value={form.password}
-              onChange={v => handleChange('password', v)}
+              onChange={(v: string) => handleChange('password', v)}
               placeholder="Create password"
               icon="lock-closed-outline"
               showPasswordToggle
@@ -800,7 +800,7 @@ const RegisterScreen = () => {
               required
               secure
               value={form.password_confirmation}
-              onChange={v => handleChange('password_confirmation', v)}
+              onChange={(v: string) => handleChange('password_confirmation', v)}
               placeholder="Confirm password"
               icon="lock-closed-outline"
               showPasswordToggle
@@ -1064,7 +1064,7 @@ const RegisterScreen = () => {
                 fontSize: 13,
                 color: colors.textSecondary,
                 paddingHorizontal: 20,
-                fontStyle: 'italic'
+                fontStyle: 'italic',
               }}
             >
               Please verify your mobile number using the OTP before completing
@@ -1307,7 +1307,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   otpBtnDisabled: { opacity: 0.6 },
-  otpBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  otpBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600' as const,
+  },
   dobContainer: { marginBottom: 16 },
   dateButton: {
     flexDirection: 'row',
@@ -1345,7 +1349,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
-  tagText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+  tagText: { color: '#fff', fontSize: 11, fontWeight: '600' as const },
   planDuration: { fontSize: 14, marginBottom: 8 },
   planPrice: {
     fontSize: 28,
@@ -1363,10 +1367,14 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
   },
-  selectedBadgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  selectedBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600' as const,
+  },
   otherPlansTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginBottom: 12,
   },
   planOption: {
@@ -1381,13 +1389,17 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 6,
   },
-  planOptionName: { fontSize: 16, fontWeight: '600' },
+  planOptionName: { fontSize: 16, fontWeight: '600' as const },
   optionTagBadge: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
-  optionTagText: { color: '#fff', fontSize: 9, fontWeight: '600' },
+  optionTagText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '600' as const,
+  },
   planOptionDuration: { fontSize: 12, marginBottom: 4 },
   planOptionPrice: { fontSize: 16, fontWeight: 'bold' },
   printEditionsSmall: { fontSize: 11, marginTop: 4 },
@@ -1469,9 +1481,9 @@ const styles = StyleSheet.create({
   copyButton: {
     borderWidth: 1,
   },
-  copyButtonText: { fontSize: 14, fontWeight: '600' },
+  copyButtonText: { fontSize: 14, fontWeight: '600' as const },
   autoFillButton: {},
-  autoFillButtonText: { fontSize: 14, fontWeight: '600' },
+  autoFillButtonText: { fontSize: 14, fontWeight: '600' as const },
   backBtn: {
     position: 'absolute',
     top: 10,

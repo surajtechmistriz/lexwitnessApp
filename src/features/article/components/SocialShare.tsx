@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome6';
-import { useTheme } from '../../../redux/hooks/useTheme';
+import { useTheme } from '../../../store/hooks/useTheme';
 
 type Props = {
   title: string;
@@ -52,12 +52,12 @@ const SocialShare = ({ title, url }: Props) => {
       <TouchableOpacity
         activeOpacity={0.8}
         style={[
-          styles.btn, 
-          styles.twitter, 
-          { 
+          styles.btn,
+          styles.twitter,
+          {
             backgroundColor: isDark ? colors.card : '#000',
             borderColor: isDark ? colors.border : '#000',
-          }
+          },
         ]}
         onPress={() =>
           openLink(
@@ -67,10 +67,10 @@ const SocialShare = ({ title, url }: Props) => {
           )
         }
       >
-        <Icon 
-          name="x-twitter" 
-          size={12} 
-          color={isDark ? colors.text : '#fff'} 
+        <Icon
+          name="x-twitter"
+          size={12}
+          color={isDark ? colors.text : '#fff'}
         />
       </TouchableOpacity>
 

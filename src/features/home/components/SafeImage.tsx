@@ -1,51 +1,51 @@
-import React, { useEffect, useState } from "react";
-import { Image, ImageProps } from "react-native";
-import { useTheme } from "../../../redux/hooks/useTheme";
+import { useCallback, useEffect, useState } from 'react';
+import { Image, ImageProps, ImageSourcePropType } from 'react-native';
 
-const localFallback = require("../../../assets/fallback.png");
+import fallbackImage from '../../../assets/images/fallback.png';
+import fallbackDarkImage from '../../../assets/images/fallback-dark.png';
+import { useTheme } from '../../../store/hooks/useTheme';
 
-type Props = ImageProps & {
+type SafeImageProps = ImageProps & {
   uri?: string;
-  fallback?: any; // can be require() or uri
-  useDarkFallback?: boolean; // Optional: use different fallback for dark mode
+  fallback?: ImageSourcePropType;
+  useDarkFallback?: boolean;
 };
 
-const SafeImage = ({ 
-  uri, 
-  fallback, 
-  style, 
+const SafeImage = ({
+  uri,
+  fallback,
   useDarkFallback = false,
-  ...props 
-}: Props) => {
+  ...props
+}: SafeImageProps) => {
   const { isDark } = useTheme();
-  const [source, setSource] = useState(
-    uri ? { uri } : localFallback
-  );
 
-  // Optional dark mode fallback
-  const getFallback = () => {
-    if (fallback) return fallback;
-    if (useDarkFallback && isDark) {
-      // You can add a dark-specific fallback here
-      return require("../../../assets/fallback-dark.png");
+  const getFallback = useCallback((): ImageSourcePropType => {
+    if (fallback) {
+      return fallback;
     }
-    return localFallback;
-  };
+
+    if (useDarkFallback && isDark) {
+      return fallbackDarkImage;
+    }
+
+    return fallbackImage;
+  }, [fallback, isDark, useDarkFallback]);
+
+  const getSource = useCallback((): ImageSourcePropType => {
+    return uri ? { uri } : getFallback();
+  }, [getFallback, uri]);
+
+  const [source, setSource] = useState<ImageSourcePropType>(getSource());
 
   useEffect(() => {
-    setSource(uri ? { uri } : getFallback());
-  }, [uri, isDark]);
+    setSource(getSource());
+  }, [getSource]);
 
-  return (
-    <Image
-      {...props}
-      source={source}
-      style={style}
-      onError={() =>
-        setSource(getFallback())
-      }
-    />
-  );
+  const handleImageError = useCallback(() => {
+    setSource(getFallback());
+  }, [getFallback]);
+
+  return <Image {...props} source={source} onError={handleImageError} />;
 };
 
 export default SafeImage;

@@ -29,12 +29,9 @@ const ExitModal = ({ visible, onClose }: ExitModalProps) => {
     >
       <Pressable style={styles.overlay} onPress={onClose}>
         <Pressable style={styles.container}>
-
           <Text style={styles.emoji}>👋</Text>
 
-          <Text style={styles.title}>
-            Exit App
-          </Text>
+          <Text style={styles.title}>Exit App</Text>
 
           <Text style={styles.message}>
             Are you sure you want to exit the application?
@@ -46,9 +43,7 @@ const ExitModal = ({ visible, onClose }: ExitModalProps) => {
               style={styles.cancelButton}
               onPress={onClose}
             >
-              <Text style={styles.cancelText}>
-                Cancel
-              </Text>
+              <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -56,12 +51,9 @@ const ExitModal = ({ visible, onClose }: ExitModalProps) => {
               style={styles.exitButton}
               onPress={handleExit}
             >
-              <Text style={styles.exitText}>
-                Exit
-              </Text>
+              <Text style={styles.exitText}>Exit</Text>
             </TouchableOpacity>
           </View>
-
         </Pressable>
       </Pressable>
     </Modal>
@@ -96,7 +88,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#111827',
     textAlign: 'center',
   },
@@ -137,12 +129,12 @@ const styles = StyleSheet.create({
   cancelText: {
     color: '#374151',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   exitText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

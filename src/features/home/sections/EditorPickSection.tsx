@@ -1,18 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import EditorPicks from '../components/EditorPicks';
-import { EditorPicksSectionProps } from '../types/types';
-import { useTheme } from '../../../redux/hooks/useTheme';
-
+import { useTheme } from '../../../store/hooks/useTheme';
+import { EditorPicksSectionProps } from '../../../types/home.types';
 const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
   data,
   getImage,
+  onPressItem,
 }) => {
   const { colors } = useTheme();
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.heading, { color: colors.text }]}>Editor’s Picks</Text>
+      <Text style={[styles.heading, { color: colors.text }]}>
+        Editor's Picks
+      </Text>
       <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
 
       <ScrollView
@@ -28,6 +30,7 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
             author={item.author?.name}
             category={item.category}
             slug={item.slug}
+            onPress={() => onPressItem(item)}
           />
         ))}
       </ScrollView>
@@ -38,17 +41,13 @@ const EditorPicksSection: React.FC<EditorPicksSectionProps> = ({
 export default EditorPicksSection;
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: 20,
-  },
-
+  container: { marginTop: 20 },
   heading: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 12,
     paddingHorizontal: 12,
   },
-
   accentBar: {
     width: 30,
     height: 3,
@@ -56,8 +55,5 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginLeft: 12,
   },
-
-  scroll: {
-    paddingRight: 6,
-  },
+  scroll: { paddingRight: 6 },
 });

@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/hooks/useTheme';
+import { useTheme } from '../../../store/hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 // Narrower card (can tweak 0.5 to 0.6 based on your layout)
@@ -24,38 +24,64 @@ interface EditorPicksProps {
   category?: {
     slug: string;
   };
+  onPress?: () => void; //  ADD
 }
 
-const EditorPicks = ({ image, title, author, slug, category }: EditorPicksProps) => {
+const EditorPicks = ({
+  image,
+  title,
+  author,
+  slug,
+  category,
+  onPress, //  destructure
+}: EditorPicksProps) => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
   const categorySlug = category?.slug ?? 'general';
 
+  const handlePress = () => {
+    // Prefer the parent-provided callback; fall back to internal nav
+    if (onPress) {
+      onPress();
+      return;
+    }
+    navigation.navigate('ArticleDetail', {
+      slug,
+      category: categorySlug,
+    });
+  };
+
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={() =>
-        navigation.navigate('ArticleDetail', {
-          slug,
-          category: categorySlug,
-        })
-      }
-      style={[styles.card, {
-        backgroundColor: isDark ? colors.card : 'rgba(255,255,255,0.8)',
-        borderColor: isDark ? colors.border : 'rgba(255,255,255,0.9)',
-        shadowColor: isDark ? '#000' : '#000',
-      }]}
+      onPress={handlePress}
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? colors.card : 'rgba(255,255,255,0.8)',
+          borderColor: isDark ? colors.border : 'rgba(255,255,255,0.9)',
+          shadowColor: isDark ? '#000' : '#000',
+        },
+      ]}
     >
       {/* Image */}
-      <Image 
-        source={{ uri: image }} 
-        style={[styles.image, { backgroundColor: isDark ? colors.border : '#f0f0f0' }]} 
+      <Image
+        source={{ uri: image }}
+        style={[
+          styles.image,
+          { backgroundColor: isDark ? colors.border : '#f0f0f0' },
+        ]}
       />
 
       {/* Content */}
-      <View style={[styles.content, { 
-        backgroundColor: isDark ? colors.card : 'rgba(255,255,255,0.8)',
-      }]}>
+      <View
+        style={[
+          styles.content,
+          {
+            backgroundColor: isDark ? colors.card : 'rgba(255,255,255,0.8)',
+          },
+        ]}
+      >
         <Text style={[styles.title, { color: colors.text }]} numberOfLines={2}>
           {title}
         </Text>
@@ -85,30 +111,25 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
   },
-
   image: {
     width: '100%',
     height: IMAGE_HEIGHT,
   },
-
   content: {
     paddingVertical: 8,
     paddingHorizontal: 10,
   },
-
   title: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 17,
     marginBottom: 3,
   },
-
   author: {
     fontSize: 11,
     fontWeight: '500',
     opacity: 0.8,
   },
-
   scroll: {
     paddingRight: 10,
     paddingLeft: 4,

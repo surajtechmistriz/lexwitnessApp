@@ -1,15 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getProfile } from '../../screens/dashboard/api';
-import { setProfile } from '../../redux/slices/authSlice';
+import { setProfile } from '../../store/slices/authSlice';
+import { getProfile } from '../../features/dashboard/api/dashboard.api';
 
 export const refreshProfile = async (dispatch: any) => {
   try {
     const profileRes = await getProfile();
 
-    console.log(
-      'PROFILE RESPONSE =>',
-      JSON.stringify(profileRes, null, 2),
-    );
+    console.log('PROFILE RESPONSE =>', JSON.stringify(profileRes, null, 2));
 
     const profile = profileRes?.data;
 
@@ -20,10 +17,7 @@ export const refreshProfile = async (dispatch: any) => {
 
     if (!profile) return;
 
-    await AsyncStorage.setItem(
-      'user',
-      JSON.stringify(profile.user),
-    );
+    await AsyncStorage.setItem('user', JSON.stringify(profile.user));
 
     await AsyncStorage.setItem(
       'subscription',

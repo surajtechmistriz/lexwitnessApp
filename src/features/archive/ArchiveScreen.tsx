@@ -5,38 +5,30 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Dimensions,
-  ActivityIndicator,
   Text,
   Modal,
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import Config from 'react-native-config';
 
-import { getPosts } from '../../services/api/posts';
-import { getAuthor } from '../../services/api/author';
-import { getMenu } from '../../services/api/category';
-import { getYears } from '../../services/api/years';
-
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
-import Header from '../../components/common/Header';
-import TopMenu from '../../components/common/Menubar';
-import Footer from '../../components/common/Footer';
-import LatestEditionImageOnly from '../home/components/LatestEditionImageOnly';
-import HomeBanner from '../home/components/HomeBanner';
-import HomeAdvertisement from '../home/components/HomeAdvertisement';
+
 import MainLayout from '../../MainLayout';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
+import { getPosts } from '../article/api/posts';
+import { getYears } from '../magazines/api/years';
+import { getAuthor } from '../author/api/author';
+import { getMenu } from '../../services/category.service';
 // import { useTheme } from '../../hooks/useTheme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+// const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function ArchiveScreen() {
   const route = useRoute<any>();
@@ -135,21 +127,21 @@ export default function ArchiveScreen() {
     fetchArticles();
   }, [fetchArticles]);
 
-  const handleApplyFilters = () => {
-    navigation.setParams({
-      mode: 'filter',
-      year: selectedYear,
-      category_id: selectedCategory,
-      author_id: selectedAuthor,
-      search: '',
-      page: 1,
-    });
-    setIsFilterModalVisible(false);
-  };
+  // const handleApplyFilters = () => {
+  //   navigation.setParams({
+  //     mode: 'filter',
+  //     year: selectedYear,
+  //     category_id: selectedCategory,
+  //     author_id: selectedAuthor,
+  //     search: '',
+  //     page: 1,
+  //   });
+  //   setIsFilterModalVisible(false);
+  // };
 
   const handleSearchSubmit = () => {
-    navigation.setParams({ 
-      search: localSearch, 
+    navigation.setParams({
+      search: localSearch,
       page: 1,
       year: '',
       category_id: '',
@@ -192,18 +184,18 @@ export default function ArchiveScreen() {
     setIsFilterModalVisible(false);
   };
 
-  const isSearchMode = routeParams?.mode === 'search' || !!routeParams?.search;
+  // const isSearchMode = routeParams?.mode === 'search' || !!routeParams?.search;
 
   // BACK BUTTON HANDLER
   const handleBack = () => {
     navigation.goBack();
   };
-  
-   const statusBarColor = '#c9060a';
+
+  const statusBarColor = '#c9060a';
   const statusBarStyle = 'light-content';
   return (
-    <MainLayout 
-      title="Archive" 
+    <MainLayout
+      title="Archive"
       routeName="Archive"
       showHeader={true}
       showTopMenu={false}
@@ -222,15 +214,29 @@ export default function ArchiveScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Modern Filter Bar */}
-          <View style={[styles.filterBar, { 
-            backgroundColor: colors.card,
-            borderBottomColor: colors.border 
-          }]}>
+          <View
+            style={[
+              styles.filterBar,
+              {
+                backgroundColor: colors.card,
+                borderBottomColor: colors.border,
+              },
+            ]}
+          >
             {/* Search Input */}
-            <View style={[styles.searchWrapper, { 
-              backgroundColor: isDark ? colors.border : '#f5f5f5' 
-            }]}>
-              <Ionicons name="search-outline" size={20} color={colors.textMuted} />
+            <View
+              style={[
+                styles.searchWrapper,
+                {
+                  backgroundColor: isDark ? colors.border : '#f5f5f5',
+                },
+              ]}
+            >
+              <Ionicons
+                name="search-outline"
+                size={20}
+                color={colors.textMuted}
+              />
               <TextInput
                 style={[styles.searchInput, { color: colors.text }]}
                 value={localSearch}
@@ -242,26 +248,41 @@ export default function ArchiveScreen() {
               />
               {localSearch.length > 0 && (
                 <TouchableOpacity onPress={() => setLocalSearch('')}>
-                  <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+                  <Ionicons
+                    name="close-circle"
+                    size={18}
+                    color={colors.textMuted}
+                  />
                 </TouchableOpacity>
               )}
             </View>
 
             {/* Filter Button with Badge */}
-            <TouchableOpacity 
-              style={[styles.filterButton, { 
-                borderColor: colors.primary,
-                backgroundColor: colors.card 
-              }]}
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.card,
+                },
+              ]}
               onPress={openFilterModal}
             >
-              <Ionicons name="filter-outline" size={20} color={colors.primary} />
-              <Text style={[styles.filterButtonText, { color: colors.primary }]}>
+              <Ionicons
+                name="filter-outline"
+                size={20}
+                color={colors.primary}
+              />
+              <Text
+                style={[styles.filterButtonText, { color: colors.primary }]}
+              >
                 Filter
               </Text>
               {activeFiltersCount > 0 && (
                 <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+                  <Text style={styles.filterBadgeText}>
+                    {activeFiltersCount}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -269,76 +290,132 @@ export default function ArchiveScreen() {
 
           {/* Active Filters Chips */}
           {activeFiltersCount > 0 && (
-            <View style={[styles.activeFiltersContainer, { 
-              backgroundColor: colors.card,
-              borderBottomColor: colors.border 
-            }]}>
+            <View
+              style={[
+                styles.activeFiltersContainer,
+                {
+                  backgroundColor: colors.card,
+                  borderBottomColor: colors.border,
+                },
+              ]}
+            >
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.chipsWrapper}>
                   {selectedYear && (
-                    <TouchableOpacity 
-                      style={[styles.filterChip, { backgroundColor: colors.background }]}
+                    <TouchableOpacity
+                      style={[
+                        styles.filterChip,
+                        { backgroundColor: colors.background },
+                      ]}
                       onPress={() => {
                         setSelectedYear('');
                         navigation.setParams({ year: '', page: 1 });
                       }}
                     >
-                      <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
                         Year: {selectedYear}
                       </Text>
                       <Ionicons name="close" size={14} color={colors.primary} />
                     </TouchableOpacity>
                   )}
                   {selectedCategory && (
-                    <TouchableOpacity 
-                      style={[styles.filterChip, { backgroundColor: colors.background }]}
+                    <TouchableOpacity
+                      style={[
+                        styles.filterChip,
+                        { backgroundColor: colors.background },
+                      ]}
                       onPress={() => {
                         setSelectedCategory('');
                         navigation.setParams({ category_id: '', page: 1 });
                       }}
                     >
-                      <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>
-                        Category: {categories.find(c => c.id.toString() === selectedCategory)?.name}
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        Category:{' '}
+                        {
+                          categories.find(
+                            c => c.id.toString() === selectedCategory,
+                          )?.name
+                        }
                       </Text>
                       <Ionicons name="close" size={14} color={colors.primary} />
                     </TouchableOpacity>
                   )}
                   {selectedAuthor && (
-                    <TouchableOpacity 
-                      style={[styles.filterChip, { backgroundColor: colors.background }]}
+                    <TouchableOpacity
+                      style={[
+                        styles.filterChip,
+                        { backgroundColor: colors.background },
+                      ]}
                       onPress={() => {
                         setSelectedAuthor('');
                         navigation.setParams({ author_id: '', page: 1 });
                       }}
                     >
-                      <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>
-                        Author: {authors.find(a => a.id.toString() === selectedAuthor)?.name}
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        Author:{' '}
+                        {
+                          authors.find(a => a.id.toString() === selectedAuthor)
+                            ?.name
+                        }
                       </Text>
                       <Ionicons name="close" size={14} color={colors.primary} />
                     </TouchableOpacity>
                   )}
                   {routeParams?.search && (
-                    <TouchableOpacity 
-                      style={[styles.filterChip, { backgroundColor: colors.background }]}
+                    <TouchableOpacity
+                      style={[
+                        styles.filterChip,
+                        { backgroundColor: colors.background },
+                      ]}
                       onPress={() => {
                         setLocalSearch('');
                         navigation.setParams({ search: '', page: 1 });
                       }}
                     >
-                      <Text style={[styles.filterChipText, { color: colors.textSecondary }]}>
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
                         Search: {routeParams.search}
                       </Text>
                       <Ionicons name="close" size={14} color={colors.primary} />
                     </TouchableOpacity>
                   )}
-                  <TouchableOpacity 
-                    style={[styles.filterChip, styles.clearAllChip, { 
-                      backgroundColor: colors.card,
-                      borderColor: colors.border 
-                    }]}
+                  <TouchableOpacity
+                    style={[
+                      styles.filterChip,
+                      styles.clearAllChip,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.border,
+                      },
+                    ]}
                     onPress={clearAllFilters}
                   >
-                    <Text style={[styles.filterChipText, styles.clearAllText, { color: colors.primary }]}>
+                    <Text
+                      style={[
+                        styles.filterChipText,
+                        styles.clearAllText,
+                        { color: colors.primary },
+                      ]}
+                    >
                       Clear All
                     </Text>
                   </TouchableOpacity>
@@ -382,15 +459,25 @@ export default function ArchiveScreen() {
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.modalOverlay}>
-              <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+              <View
+                style={[styles.modalContent, { backgroundColor: colors.card }]}
+              >
                 {/* Modal Header */}
-                <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.modalHeader,
+                    { borderBottomColor: colors.border },
+                  ]}
+                >
                   <Text style={[styles.modalTitle, { color: colors.text }]}>
                     Filter Articles
                   </Text>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => setIsFilterModalVisible(false)}
-                    style={[styles.modalCloseButton, { backgroundColor: colors.background }]}
+                    style={[
+                      styles.modalCloseButton,
+                      { backgroundColor: colors.background },
+                    ]}
                   >
                     <Ionicons name="close" size={24} color={colors.text} />
                   </TouchableOpacity>
@@ -399,12 +486,26 @@ export default function ArchiveScreen() {
                 {/* Filter Options */}
                 <ScrollView showsVerticalScrollIndicator={false}>
                   {/* Year Filter */}
-                  <View style={[styles.modalFilterGroup, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.modalFilterLabel, { color: colors.text }]}>Year</Text>
-                    <View style={[styles.modalPickerContainer, { 
-                      borderColor: colors.border,
-                      backgroundColor: colors.background 
-                    }]}>
+                  <View
+                    style={[
+                      styles.modalFilterGroup,
+                      { borderBottomColor: colors.border },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.modalFilterLabel, { color: colors.text }]}
+                    >
+                      Year
+                    </Text>
+                    <View
+                      style={[
+                        styles.modalPickerContainer,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.background,
+                        },
+                      ]}
+                    >
                       <Picker
                         selectedValue={tempYear}
                         onValueChange={setTempYear}
@@ -425,12 +526,26 @@ export default function ArchiveScreen() {
                   </View>
 
                   {/* Category Filter */}
-                  <View style={[styles.modalFilterGroup, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.modalFilterLabel, { color: colors.text }]}>Category</Text>
-                    <View style={[styles.modalPickerContainer, { 
-                      borderColor: colors.border,
-                      backgroundColor: colors.background 
-                    }]}>
+                  <View
+                    style={[
+                      styles.modalFilterGroup,
+                      { borderBottomColor: colors.border },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.modalFilterLabel, { color: colors.text }]}
+                    >
+                      Category
+                    </Text>
+                    <View
+                      style={[
+                        styles.modalPickerContainer,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.background,
+                        },
+                      ]}
+                    >
                       <Picker
                         selectedValue={tempCategory}
                         onValueChange={setTempCategory}
@@ -451,12 +566,26 @@ export default function ArchiveScreen() {
                   </View>
 
                   {/* Author Filter */}
-                  <View style={[styles.modalFilterGroup, { borderBottomColor: colors.border }]}>
-                    <Text style={[styles.modalFilterLabel, { color: colors.text }]}>Author</Text>
-                    <View style={[styles.modalPickerContainer, { 
-                      borderColor: colors.border,
-                      backgroundColor: colors.background 
-                    }]}>
+                  <View
+                    style={[
+                      styles.modalFilterGroup,
+                      { borderBottomColor: colors.border },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.modalFilterLabel, { color: colors.text }]}
+                    >
+                      Author
+                    </Text>
+                    <View
+                      style={[
+                        styles.modalPickerContainer,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.background,
+                        },
+                      ]}
+                    >
                       <Picker
                         selectedValue={tempAuthor}
                         onValueChange={setTempAuthor}
@@ -478,24 +607,40 @@ export default function ArchiveScreen() {
                 </ScrollView>
 
                 {/* Modal Actions */}
-                <View style={[styles.modalActions, { 
-                  borderTopColor: colors.border,
-                  backgroundColor: colors.card 
-                }]}>
-                  <TouchableOpacity 
-                    style={[styles.modalResetButton, { backgroundColor: colors.background }]}
+                <View
+                  style={[
+                    styles.modalActions,
+                    {
+                      borderTopColor: colors.border,
+                      backgroundColor: colors.card,
+                    },
+                  ]}
+                >
+                  <TouchableOpacity
+                    style={[
+                      styles.modalResetButton,
+                      { backgroundColor: colors.background },
+                    ]}
                     onPress={() => {
                       setTempYear('');
                       setTempCategory('');
                       setTempAuthor('');
                     }}
                   >
-                    <Text style={[styles.modalResetText, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.modalResetText,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Reset
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.modalApplyButton, { backgroundColor: colors.primary }]}
+                  <TouchableOpacity
+                    style={[
+                      styles.modalApplyButton,
+                      { backgroundColor: colors.primary },
+                    ]}
                     onPress={applyModalFilters}
                   >
                     <Text style={styles.modalApplyText}>Apply Filters</Text>
@@ -511,13 +656,13 @@ export default function ArchiveScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { 
-    flex: 1
-  },
-  container: { 
+  safeArea: {
     flex: 1,
   },
-  
+  container: {
+    flex: 1,
+  },
+
   // Modern Filter Bar
   filterBar: {
     flexDirection: 'row',
@@ -554,7 +699,7 @@ const styles = StyleSheet.create({
   },
   filterButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   filterBadge: {
     position: 'absolute',
@@ -573,7 +718,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-  
+
   // Active Filters Chips
   activeFiltersContainer: {
     paddingVertical: 12,
@@ -599,13 +744,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   clearAllText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
-  
+
   divider: {
     height: 8,
   },
-  
+
   // Results Info
   resultsInfo: {
     paddingHorizontal: 16,
@@ -614,7 +759,7 @@ const styles = StyleSheet.create({
   resultsText: {
     fontSize: 13,
   },
-  
+
   // Modal Styles
   modalOverlay: {
     flex: 1,
@@ -652,7 +797,7 @@ const styles = StyleSheet.create({
   },
   modalFilterLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginBottom: 8,
   },
   modalPickerContainer: {
@@ -679,7 +824,7 @@ const styles = StyleSheet.create({
   },
   modalResetText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   modalApplyButton: {
     flex: 1,
@@ -694,10 +839,10 @@ const styles = StyleSheet.create({
   modalApplyText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
-  
-  footerContainer: { 
+
+  footerContainer: {
     marginTop: 20,
   },
 });

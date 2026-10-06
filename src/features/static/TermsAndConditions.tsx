@@ -9,10 +9,13 @@ import {
   Platform,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,7 +39,7 @@ const moderateScale = (size: number, factor = 0.5) => {
 const isTablet = width >= 768;
 
 const TermsAndConditions = ({ navigation }: any) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -60,7 +63,7 @@ const TermsAndConditions = ({ navigation }: any) => {
             paddingBottom: verticalScale(20),
             borderBottomLeftRadius: scale(30),
             borderBottomRightRadius: scale(30),
-          }
+          },
         ]}
       >
         <View style={styles.header}>
@@ -73,17 +76,19 @@ const TermsAndConditions = ({ navigation }: any) => {
                 width: scale(40),
                 height: scale(40),
                 borderRadius: scale(30),
-              }
+              },
             ]}
           >
             <Icon name="arrow-left" size={moderateScale(22)} color="#fff" />
           </TouchableOpacity>
-          <Text style={[
-            styles.headerTitle,
-            {
-              fontSize: moderateScale(isTablet ? 22 : 18),
-            }
-          ]}>
+          <Text
+            style={[
+              styles.headerTitle,
+              {
+                fontSize: moderateScale(isTablet ? 22 : 18),
+              },
+            ]}
+          >
             Terms & Conditions
           </Text>
           <View style={{ width: scale(40) }} />
@@ -97,253 +102,298 @@ const TermsAndConditions = ({ navigation }: any) => {
         <ScrollView
           contentContainerStyle={[
             styles.content,
-            { paddingBottom: verticalScale(40) }
+            { paddingBottom: verticalScale(40) },
           ]}
           showsVerticalScrollIndicator={false}
         >
           {/* HERO */}
-          <View style={[
-            styles.hero,
-            {
-              marginBottom: verticalScale(24),
-              marginTop: verticalScale(8),
-            }
-          ]}>
-            <Text style={[
-              styles.title,
+          <View
+            style={[
+              styles.hero,
               {
-                color: colors.primary,
-                fontSize: moderateScale(isTablet ? 32 : 28),
-              }
-            ]}>
+                marginBottom: verticalScale(24),
+                marginTop: verticalScale(8),
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: colors.primary,
+                  fontSize: moderateScale(isTablet ? 32 : 28),
+                },
+              ]}
+            >
               Terms & Conditions
             </Text>
-            <Text style={[
-              styles.subtitle,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginTop: verticalScale(4),
-              }
-            ]}>
+            <Text
+              style={[
+                styles.subtitle,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginTop: verticalScale(4),
+                },
+              ]}
+            >
               Please read these terms carefully before using our app.
             </Text>
           </View>
 
           {/* SECTION 1 */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
-            <Text style={[
-              styles.sectionTitle,
+          <View
+            style={[
+              styles.card,
               {
-                color: colors.text,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginBottom: verticalScale(6),
-              }
-            ]}>
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: colors.text,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginBottom: verticalScale(6),
+                },
+              ]}
+            >
               1. Acceptance of Terms
             </Text>
-            <Text style={[
-              styles.text,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 15 : 13),
-                lineHeight: verticalScale(22),
-              }
-            ]}>
-              By using this application, you agree to comply with and be bound by these terms and conditions.
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 15 : 13),
+                  lineHeight: verticalScale(22),
+                },
+              ]}
+            >
+              By using this application, you agree to comply with and be bound
+              by these terms and conditions.
             </Text>
           </View>
 
           {/* SECTION 2 */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
-            <Text style={[
-              styles.sectionTitle,
+          <View
+            style={[
+              styles.card,
               {
-                color: colors.text,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginBottom: verticalScale(6),
-              }
-            ]}>
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: colors.text,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginBottom: verticalScale(6),
+                },
+              ]}
+            >
               2. Use of Service
             </Text>
-            <Text style={[
-              styles.text,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 15 : 13),
-                lineHeight: verticalScale(22),
-              }
-            ]}>
-              You agree to use this app only for lawful purposes and in a way that does not infringe on others' rights.
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 15 : 13),
+                  lineHeight: verticalScale(22),
+                },
+              ]}
+            >
+              You agree to use this app only for lawful purposes and in a way
+              that does not infringe on others' rights.
             </Text>
           </View>
 
           {/* SECTION 3 */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
-            <Text style={[
-              styles.sectionTitle,
+          <View
+            style={[
+              styles.card,
               {
-                color: colors.text,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginBottom: verticalScale(6),
-              }
-            ]}>
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: colors.text,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginBottom: verticalScale(6),
+                },
+              ]}
+            >
               3. Content Disclaimer
             </Text>
-            <Text style={[
-              styles.text,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 15 : 13),
-                lineHeight: verticalScale(22),
-              }
-            ]}>
-              All content provided is for informational purposes only and may change without prior notice.
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 15 : 13),
+                  lineHeight: verticalScale(22),
+                },
+              ]}
+            >
+              All content provided is for informational purposes only and may
+              change without prior notice.
             </Text>
           </View>
 
           {/* SECTION 4 */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
-            <Text style={[
-              styles.sectionTitle,
+          <View
+            style={[
+              styles.card,
               {
-                color: colors.text,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginBottom: verticalScale(6),
-              }
-            ]}>
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: colors.text,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginBottom: verticalScale(6),
+                },
+              ]}
+            >
               4. User Responsibilities
             </Text>
-            <Text style={[
-              styles.text,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 15 : 13),
-                lineHeight: verticalScale(22),
-              }
-            ]}>
-              Users are responsible for maintaining the confidentiality of their account and activities.
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 15 : 13),
+                  lineHeight: verticalScale(22),
+                },
+              ]}
+            >
+              Users are responsible for maintaining the confidentiality of their
+              account and activities.
             </Text>
           </View>
 
           {/* SECTION 5 */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
-            <Text style={[
-              styles.sectionTitle,
+          <View
+            style={[
+              styles.card,
               {
-                color: colors.text,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginBottom: verticalScale(6),
-              }
-            ]}>
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.sectionTitle,
+                {
+                  color: colors.text,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginBottom: verticalScale(6),
+                },
+              ]}
+            >
               5. Modifications
             </Text>
-            <Text style={[
-              styles.text,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 15 : 13),
-                lineHeight: verticalScale(22),
-              }
-            ]}>
-              We reserve the right to modify these terms at any time without prior notice.
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 15 : 13),
+                  lineHeight: verticalScale(22),
+                },
+              ]}
+            >
+              We reserve the right to modify these terms at any time without
+              prior notice.
             </Text>
           </View>
 
           {/* FOOTER */}
-          <Text style={[
-            styles.footer,
-            {
-              color: colors.textMuted,
-              marginTop: verticalScale(24),
-              fontSize: moderateScale(12),
-              textAlign: 'center',
-            }
-          ]}>
+          <Text
+            style={[
+              styles.footer,
+              {
+                color: colors.textMuted,
+                marginTop: verticalScale(24),
+                fontSize: moderateScale(12),
+                textAlign: 'center',
+              },
+            ]}
+          >
             Last updated: May 2026
           </Text>
 
           {/* VERSION INFO */}
           <View style={styles.versionContainer}>
-            <Text style={[
-              styles.versionText,
-              {
-                color: colors.textMuted,
-                fontSize: moderateScale(isTablet ? 14 : 11),
-                fontWeight: '500',
-                opacity: 0.6,
-              }
-            ]}>
+            <Text
+              style={[
+                styles.versionText,
+                {
+                  color: colors.textMuted,
+                  fontSize: moderateScale(isTablet ? 14 : 11),
+                  fontWeight: '500',
+                  opacity: 0.6,
+                },
+              ]}
+            >
               Version 1.0.0
             </Text>
           </View>
@@ -377,7 +427,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#fff',
   },
 
@@ -391,7 +441,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
 
   subtitle: {
@@ -404,7 +454,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   text: {

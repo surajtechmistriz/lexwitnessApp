@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { useTheme } from '../../../redux/hooks/useTheme';
+import { useTheme } from '../../../store/hooks/useTheme';
 
 type TextAlignment = 'left' | 'right' | 'center';
 
@@ -15,7 +15,7 @@ interface TestimonialProps {
 
 export default function TestimonialCard({ data }: TestimonialProps) {
   const { colors, isDark } = useTheme();
-  
+
   if (!data) return null;
 
   const alignment = data.text_alignment ?? 'left';
@@ -28,22 +28,22 @@ export default function TestimonialCard({ data }: TestimonialProps) {
       : 'center';
 
   const textAlignText =
-    alignment === 'left'
-      ? 'left'
-      : alignment === 'right'
-      ? 'right'
-      : 'center';
+    alignment === 'left' ? 'left' : alignment === 'right' ? 'right' : 'center';
 
   return (
-    <View style={[styles.card, { 
-      backgroundColor: isDark ? colors.card : '#f3f4f6',
-      shadowColor: isDark ? '#000' : '#000',
-    }]}>
-      
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? colors.card : '#f3f4f6',
+          shadowColor: isDark ? '#000' : '#000',
+        },
+      ]}
+    >
       {/* Left Quote */}
       <View style={styles.leftQuote}>
         <Image
-          source={require('../../../assets/quote-left.png')}
+          source={require('../../../assets/icons/quote-left.png')}
           style={styles.quoteIcon}
           resizeMode="contain"
         />
@@ -52,7 +52,7 @@ export default function TestimonialCard({ data }: TestimonialProps) {
       {/* Right Quote */}
       <View style={styles.rightQuote}>
         <Image
-          source={require('../../../assets/quote-right.png')}
+          source={require('../../../assets/icons/quote-right.png')}
           style={[styles.quoteIcon, { transform: [{ rotate: '180deg' }] }]}
           resizeMode="contain"
         />
@@ -60,33 +60,47 @@ export default function TestimonialCard({ data }: TestimonialProps) {
 
       {/* Feedback */}
       <View style={[styles.contentWrapper, { alignItems: textAlignStyle }]}>
-        <Text style={[styles.feedbackText, { 
-          textAlign: textAlignText,
-          color: colors.textSecondary,
-        }]}>
+        <Text
+          style={[
+            styles.feedbackText,
+            {
+              textAlign: textAlignText,
+              color: colors.textSecondary,
+            },
+          ]}
+        >
           {data.reader_feedback || ''}
         </Text>
 
         {/* Author */}
-      <View
-  style={{
-    alignItems: textAlignStyle,
-    marginTop: 8,
-  }}>
-
-    
-          <Text style={[styles.name, { 
-            textAlign: textAlignText,
-            color: colors.text,
-          }]}>
+        <View
+          style={{
+            alignItems: textAlignStyle,
+            marginTop: 8,
+          }}
+        >
+          <Text
+            style={[
+              styles.name,
+              {
+                textAlign: textAlignText,
+                color: colors.text,
+              },
+            ]}
+          >
             {data.reader_name || ''}
           </Text>
 
           {data.reader_designation ? (
-            <Text style={[styles.designation, { 
-              textAlign: textAlignText,
-              color: colors.textMuted,
-            }]}>
+            <Text
+              style={[
+                styles.designation,
+                {
+                  textAlign: textAlignText,
+                  color: colors.textMuted,
+                },
+              ]}
+            >
               {data.reader_designation}
             </Text>
           ) : null}
@@ -149,12 +163,12 @@ const styles = StyleSheet.create({
     lineHeight: 25,
     fontStyle: 'italic',
     marginBottom: 18,
-    marginLeft:2
+    marginLeft: 2,
   },
 
   name: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   designation: {

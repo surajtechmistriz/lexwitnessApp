@@ -10,14 +10,16 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { formatMonthYear } from '../../utils/helper/dateHelper';
-import { useTheme } from '../../redux/hooks/useTheme';
+// import { formatMonthYear } from '../../utils/helper/dateHelper';
+import { useTheme } from '../../store/hooks/useTheme';
+import { formatMonthYear } from '../../utils/helpers/dateHelper';
 
 interface PostListProps {
   posts: any[];
   postBaseUrl?: string;
   loading?: boolean;
   emptyMessage?: string;
+  fallbackAuthorName?: any;
 }
 
 //  DEFINE TYPE LOCALLY
@@ -108,7 +110,7 @@ export default function PostList({
           >
             {article.image ? (
               <Image
-                source={{ uri: getImageUrl(article.image) }}
+                source={{ uri: getImageUrl(article.image) ?? undefined }}
                 style={styles.image}
                 resizeMode="cover"
               />
@@ -249,7 +251,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 18,
   },
   metaRow: {
@@ -259,7 +261,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   authorText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
     fontSize: 12,
   },
   dot: {
@@ -277,7 +279,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },

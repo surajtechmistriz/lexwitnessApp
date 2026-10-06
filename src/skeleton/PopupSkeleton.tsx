@@ -1,33 +1,45 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../store/hooks/useTheme';
 
 const PopupSkeleton = () => {
   const { colors, isDark } = useTheme();
 
+  const skeletonColor = isDark ? colors.border : '#e8e8e8';
+
+  const themedStyles = StyleSheet.create({
+    skeleton: {
+      backgroundColor: skeletonColor,
+    },
+  });
+
   return (
-    <View style={{ borderRadius: 8 }}>
+    <View style={styles.wrapper}>
       <View style={styles.container}>
         {/* Magazine Cover */}
-        <View style={[styles.image, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+        <View style={[styles.image, themedStyles.skeleton]} />
 
         {/* Content Section */}
-        <View style={{ paddingHorizontal: 5 }}>
-          <View style={[styles.label, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
-          <View style={[styles.title, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
-          <View style={[styles.promo, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+        <View style={styles.content}>
+          <View style={[styles.label, themedStyles.skeleton]} />
+
+          <View style={[styles.title, themedStyles.skeleton]} />
+
+          <View style={[styles.promo, themedStyles.skeleton]} />
 
           {/* Feature Row */}
           <View style={styles.featureRow}>
-            <View style={[styles.circle, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+            <View style={[styles.circle, themedStyles.skeleton]} />
+
             <View>
-              <View style={[styles.featureText, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
-              <View style={[styles.subText, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+              <View style={[styles.featureText, themedStyles.skeleton]} />
+
+              <View style={[styles.subText, themedStyles.skeleton]} />
             </View>
           </View>
 
           {/* Button */}
-          <View style={[styles.button, { backgroundColor: isDark ? colors.border : '#e8e8e8' }]} />
+          <View style={[styles.button, themedStyles.skeleton]} />
         </View>
       </View>
     </View>
@@ -35,50 +47,67 @@ const PopupSkeleton = () => {
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    borderRadius: 8,
+  },
+
   container: {
     width: '100%',
   },
+
   image: {
     width: '100%',
     height: 250,
     borderRadius: 12,
     marginBottom: 20,
   },
+
+  content: {
+    paddingHorizontal: 5,
+  },
+
   label: {
     width: 100,
     height: 14,
     marginBottom: 10,
   },
+
   title: {
     width: '90%',
     height: 20,
     marginBottom: 8,
   },
+
   promo: {
     width: '70%',
     height: 24,
     marginBottom: 25,
   },
+
   featureRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 25,
   },
+
   circle: {
     width: 22,
     height: 22,
     borderRadius: 11,
     marginRight: 12,
   },
+
   featureText: {
     width: 180,
     height: 14,
     marginBottom: 6,
   },
+
   subText: {
     width: 120,
     height: 12,
   },
+
   button: {
     width: '100%',
     height: 50,

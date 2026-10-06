@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-import { getMenu } from '../../services/api/category';
+// import { getMenu } from '../../services/api/category';
 import { getCache, setCache } from '../../utils/cache';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
+import { getMenu } from '../../services/category.service';
 
 type MenuItem = {
   id: number;
@@ -44,7 +45,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     try {
       setLoading(true);
 
-      //   LOAD CACHE FIRST
+      // LOAD CACHE FIRST
       const cached = await getCache(CACHE_KEY);
 
       if (cached?.data?.length) {
@@ -52,19 +53,19 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
         setLoading(false);
       }
 
-      //   CALL API
+      // CALL API
       const data = await getMenu();
 
       if (data?.length) {
         setMenuItems(data);
 
-        //   SAVE CACHE PROPERLY
+        // SAVE CACHE PROPERLY
         await setCache(CACHE_KEY, data);
       }
     } catch (error) {
       console.log('Menu error:', error);
 
-      //   FALLBACK CACHE
+      // FALLBACK CACHE
       const cached = await getCache(CACHE_KEY);
       if (cached?.data?.length) {
         setMenuItems(cached.data);
@@ -81,6 +82,24 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     }, [fetchMenu]),
   );
 
+  // ---------------- CENTER SCROLL ----------------
+  const scrollToCenter = useCallback(
+    (slug: string) => {
+      if (!slug) return;
+
+      const layout = itemLayouts.current[slug];
+      if (!layout) return;
+
+      const scrollX = layout.x - screenWidth / 2 + layout.width / 2;
+
+      scrollRef.current?.scrollTo({
+        x: Math.max(0, scrollX),
+        animated: true,
+      });
+    },
+    [screenWidth],
+  );
+
   // ---------------- AUTO SCROLL ACTIVE ITEM ----------------
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -88,7 +107,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     }, 200);
 
     return () => clearTimeout(timer);
-  }, [currentSlug, menuItems]);
+  }, [currentSlug, menuItems, scrollToCenter]);
 
   // ---------------- LAYOUT STORE ----------------
   const handleLayout = (slug: string, event: LayoutChangeEvent) => {
@@ -96,23 +115,7 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
     itemLayouts.current[slug] = { x, width };
   };
 
-  // ---------------- CENTER SCROLL ----------------
-  const scrollToCenter = (slug: string) => {
-    if (!slug) return;
-
-    const layout = itemLayouts.current[slug];
-    if (!layout) return;
-
-    const scrollX = layout.x - screenWidth / 2 + layout.width / 2;
-
-    scrollRef.current?.scrollTo({
-      x: Math.max(0, scrollX),
-      animated: true,
-    });
-  };
-
   // ------ FIXED NAVIGATION ------
-
   const handlePress = (slug: string) => {
     navigation.navigate('Category', { slug });
     scrollToCenter(slug);
@@ -165,9 +168,11 @@ const TopMenu = ({ activeSlug }: { activeSlug?: string }) => {
                   style={[
                     styles.menuText,
                     {
-                       fontSize: screenWidth >= 768 ? 15 : 11,
+                      fontSize: screenWidth >= 768 ? 15 : 11,
                     },
-                    { color: isActive ? colors.primary : colors.textSecondary },
+                    {
+                      color: isActive ? colors.primary : colors.textSecondary,
+                    },
                     isActive && styles.activeText,
                   ]}
                 >
@@ -204,6 +209,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
   },
+
   menuText: {
     fontWeight: '500',
   },
@@ -212,9 +218,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
 
-
   activeText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   skeletonItem: {

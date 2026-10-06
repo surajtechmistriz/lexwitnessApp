@@ -10,12 +10,15 @@ import {
   Linking,
   Dimensions,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const { width, height } = Dimensions.get('window');
 
@@ -36,7 +39,6 @@ const moderateScale = (size: number, factor = 0.5) => {
   return size + (scale(size) - size) * factor;
 };
 
-const isSmallDevice = width < 375;
 const isTablet = width >= 768;
 
 const ContactUs = ({ navigation }: any) => {
@@ -116,7 +118,7 @@ const ContactUs = ({ navigation }: any) => {
             paddingBottom: verticalScale(20),
             borderBottomLeftRadius: scale(30),
             borderBottomRightRadius: scale(30),
-          }
+          },
         ]}
       >
         <View style={styles.header}>
@@ -129,17 +131,19 @@ const ContactUs = ({ navigation }: any) => {
                 width: scale(40),
                 height: scale(40),
                 borderRadius: scale(30),
-              }
+              },
             ]}
           >
             <Icon name="arrow-left" size={moderateScale(22)} color="#fff" />
           </TouchableOpacity>
-          <Text style={[
-            styles.headerTitle,
-            {
-              fontSize: moderateScale(isTablet ? 22 : 18),
-            }
-          ]}>
+          <Text
+            style={[
+              styles.headerTitle,
+              {
+                fontSize: moderateScale(isTablet ? 22 : 18),
+              },
+            ]}
+          >
             Contact Us
           </Text>
           <View style={{ width: scale(40) }} />
@@ -153,90 +157,110 @@ const ContactUs = ({ navigation }: any) => {
         <ScrollView
           contentContainerStyle={[
             styles.content,
-            { paddingBottom: verticalScale(40) }
+            { paddingBottom: verticalScale(40) },
           ]}
           showsVerticalScrollIndicator={false}
         >
           {/* HERO */}
-          <View style={[
-            styles.hero,
-            {
-              marginBottom: verticalScale(24),
-              marginTop: verticalScale(8),
-            }
-          ]}>
-            <Text style={[
-              styles.title,
+          <View
+            style={[
+              styles.hero,
               {
-                color: colors.primary,
-                fontSize: moderateScale(isTablet ? 32 : 28),
-              }
-            ]}>
+                marginBottom: verticalScale(24),
+                marginTop: verticalScale(8),
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: colors.primary,
+                  fontSize: moderateScale(isTablet ? 32 : 28),
+                },
+              ]}
+            >
               Get in Touch
             </Text>
-            <Text style={[
-              styles.subtitle,
-              {
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 16 : 14),
-                marginTop: verticalScale(4),
-              }
-            ]}>
+            <Text
+              style={[
+                styles.subtitle,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 16 : 14),
+                  marginTop: verticalScale(4),
+                },
+              ]}
+            >
               We're here to help you anytime
             </Text>
           </View>
 
           {/* EMAIL - Updated to match PrivacyPolicy card style */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
             <View style={styles.row}>
-              <View style={[
-                styles.iconWrap,
-                {
-                  backgroundColor: isDark ? colors.primaryBackground : '#fff1f1',
-                  width: scale(44),
-                  height: scale(44),
-                  borderRadius: scale(12),
-                  marginRight: scale(14),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }
-              ]}>
-                <Icon name="mail" size={moderateScale(20)} color={colors.primary} />
+              <View
+                style={[
+                  styles.iconWrap,
+                  {
+                    backgroundColor: isDark
+                      ? colors.primaryBackground
+                      : '#fff1f1',
+                    width: scale(44),
+                    height: scale(44),
+                    borderRadius: scale(12),
+                    marginRight: scale(14),
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <Icon
+                  name="mail"
+                  size={moderateScale(20)}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.contactInfo}>
-                <Text style={[
-                  styles.label,
-                  {
-                    color: colors.textMuted,
-                    fontSize: moderateScale(12),
-                    fontWeight: '500',
-                    marginBottom: verticalScale(2),
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.label,
+                    {
+                      color: colors.textMuted,
+                      fontSize: moderateScale(12),
+                      fontWeight: '500',
+                      marginBottom: verticalScale(2),
+                    },
+                  ]}
+                >
                   Email
                 </Text>
-                <Text style={[
-                  styles.value,
-                  {
-                    color: colors.text,
-                    fontSize: moderateScale(isTablet ? 16 : 15),
-                    fontWeight: '600',
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.value,
+                    {
+                      color: colors.text,
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                      fontWeight: '600' as const,
+                    },
+                  ]}
+                >
                   support@lexwitness.com
                 </Text>
               </View>
@@ -244,56 +268,70 @@ const ContactUs = ({ navigation }: any) => {
           </View>
 
           {/* PHONE - Updated to match PrivacyPolicy card style */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
             <View style={styles.row}>
-              <View style={[
-                styles.iconWrap,
-                {
-                  backgroundColor: isDark ? colors.primaryBackground : '#fff1f1',
-                  width: scale(44),
-                  height: scale(44),
-                  borderRadius: scale(12),
-                  marginRight: scale(14),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }
-              ]}>
-                <Icon name="phone" size={moderateScale(20)} color={colors.primary} />
+              <View
+                style={[
+                  styles.iconWrap,
+                  {
+                    backgroundColor: isDark
+                      ? colors.primaryBackground
+                      : '#fff1f1',
+                    width: scale(44),
+                    height: scale(44),
+                    borderRadius: scale(12),
+                    marginRight: scale(14),
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <Icon
+                  name="phone"
+                  size={moderateScale(20)}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.contactInfo}>
-                <Text style={[
-                  styles.label,
-                  {
-                    color: colors.textMuted,
-                    fontSize: moderateScale(12),
-                    fontWeight: '500',
-                    marginBottom: verticalScale(2),
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.label,
+                    {
+                      color: colors.textMuted,
+                      fontSize: moderateScale(12),
+                      fontWeight: '500',
+                      marginBottom: verticalScale(2),
+                    },
+                  ]}
+                >
                   Phone
                 </Text>
-                <Text style={[
-                  styles.value,
-                  {
-                    color: colors.text,
-                    fontSize: moderateScale(isTablet ? 16 : 15),
-                    fontWeight: '600',
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.value,
+                    {
+                      color: colors.text,
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                      fontWeight: '600' as const,
+                    },
+                  ]}
+                >
                   +91 79827 71770
                 </Text>
               </View>
@@ -301,56 +339,70 @@ const ContactUs = ({ navigation }: any) => {
           </View>
 
           {/* ADDRESS - Updated to match PrivacyPolicy card style */}
-          <View style={[
-            styles.card,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              borderRadius: scale(14),
-              padding: scale(16),
-              marginBottom: verticalScale(12),
-              // shadowColor: isDark ? '#000' : '#000',
-              // shadowOffset: { width: 0, height: 2 },
-              // shadowOpacity: 0.05,
-              // shadowRadius: 4,
-              // elevation: 2,
-            }
-          ]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                borderRadius: scale(14),
+                padding: scale(16),
+                marginBottom: verticalScale(12),
+                // shadowColor: isDark ? '#000' : '#000',
+                // shadowOffset: { width: 0, height: 2 },
+                // shadowOpacity: 0.05,
+                // shadowRadius: 4,
+                // elevation: 2,
+              },
+            ]}
+          >
             <View style={styles.row}>
-              <View style={[
-                styles.iconWrap,
-                {
-                  backgroundColor: isDark ? colors.primaryBackground : '#fff1f1',
-                  width: scale(44),
-                  height: scale(44),
-                  borderRadius: scale(12),
-                  marginRight: scale(14),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }
-              ]}>
-                <Icon name="map-pin" size={moderateScale(20)} color={colors.primary} />
+              <View
+                style={[
+                  styles.iconWrap,
+                  {
+                    backgroundColor: isDark
+                      ? colors.primaryBackground
+                      : '#fff1f1',
+                    width: scale(44),
+                    height: scale(44),
+                    borderRadius: scale(12),
+                    marginRight: scale(14),
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <Icon
+                  name="map-pin"
+                  size={moderateScale(20)}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.contactInfo}>
-                <Text style={[
-                  styles.label,
-                  {
-                    color: colors.textMuted,
-                    fontSize: moderateScale(12),
-                    fontWeight: '500',
-                    marginBottom: verticalScale(2),
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.label,
+                    {
+                      color: colors.textMuted,
+                      fontSize: moderateScale(12),
+                      fontWeight: '500',
+                      marginBottom: verticalScale(2),
+                    },
+                  ]}
+                >
                   Address
                 </Text>
-                <Text style={[
-                  styles.value,
-                  {
-                    color: colors.text,
-                    fontSize: moderateScale(isTablet ? 16 : 15),
-                    fontWeight: '600',
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.value,
+                    {
+                      color: colors.text,
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                      fontWeight: '600' as const,
+                    },
+                  ]}
+                >
                   Delhi, India
                 </Text>
               </View>
@@ -358,44 +410,54 @@ const ContactUs = ({ navigation }: any) => {
           </View>
 
           {/* SOCIAL MEDIA SECTION */}
-          <View style={[
-            styles.socialSection,
-            {
-              marginTop: verticalScale(16),
-              marginBottom: verticalScale(8),
-            }
-          ]}>
+          <View
+            style={[
+              styles.socialSection,
+              {
+                marginTop: verticalScale(16),
+                marginBottom: verticalScale(8),
+              },
+            ]}
+          >
             <View style={styles.socialDividerContainer}>
-              <View style={[
-                styles.socialDivider,
-                { backgroundColor: colors.border }
-              ]} />
-              <Text style={[
-                styles.socialDividerText,
-                {
-                  color: colors.textMuted,
-                  fontSize: moderateScale(12),
-                  paddingHorizontal: scale(16),
-                  fontWeight: '600',
-                  letterSpacing: 0.5,
-                }
-              ]}>
+              <View
+                style={[
+                  styles.socialDivider,
+                  { backgroundColor: colors.border },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.socialDividerText,
+                  {
+                    color: colors.textMuted,
+                    fontSize: moderateScale(12),
+                    paddingHorizontal: scale(16),
+                    fontWeight: '600' as const,
+                    letterSpacing: 0.5,
+                  },
+                ]}
+              >
                 Connect With Us
               </Text>
-              <View style={[
-                styles.socialDivider,
-                { backgroundColor: colors.border }
-              ]} />
+              <View
+                style={[
+                  styles.socialDivider,
+                  { backgroundColor: colors.border },
+                ]}
+              />
             </View>
 
             {/* Liquid Glass Icons */}
-            <View style={[
-              styles.socialIconsContainer,
-              {
-                gap: scale(isTablet ? 20 : 12),
-                marginTop: verticalScale(isTablet ? 16 : 12),
-              }
-            ]}>
+            <View
+              style={[
+                styles.socialIconsContainer,
+                {
+                  gap: scale(isTablet ? 20 : 12),
+                  marginTop: verticalScale(isTablet ? 16 : 12),
+                },
+              ]}
+            >
               {/* WhatsApp */}
               <TouchableOpacity
                 style={[
@@ -404,21 +466,29 @@ const ContactUs = ({ navigation }: any) => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark
+                      ? 'rgba(255,255,255,0.15)'
+                      : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
-                  }
+                  },
                 ]}
                 onPress={handleWhatsApp}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  colors={
+                    isDark
+                      ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                      : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                  }
                   style={[
                     styles.glassGradient,
                     {
                       borderRadius: scale(glassIconSize / 2),
-                    }
+                    },
                   ]}
                 >
                   <FontAwesome
@@ -437,21 +507,29 @@ const ContactUs = ({ navigation }: any) => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark
+                      ? 'rgba(255,255,255,0.15)'
+                      : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
-                  }
+                  },
                 ]}
                 onPress={handlePhone}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  colors={
+                    isDark
+                      ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                      : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                  }
                   style={[
                     styles.glassGradient,
                     {
                       borderRadius: scale(glassIconSize / 2),
-                    }
+                    },
                   ]}
                 >
                   <Icon
@@ -470,21 +548,29 @@ const ContactUs = ({ navigation }: any) => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark
+                      ? 'rgba(255,255,255,0.15)'
+                      : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
-                  }
+                  },
                 ]}
                 onPress={handleLinkedIn}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  colors={
+                    isDark
+                      ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                      : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                  }
                   style={[
                     styles.glassGradient,
                     {
                       borderRadius: scale(glassIconSize / 2),
-                    }
+                    },
                   ]}
                 >
                   <FontAwesome
@@ -503,21 +589,29 @@ const ContactUs = ({ navigation }: any) => {
                     width: scale(glassIconSize),
                     height: scale(glassIconSize),
                     borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                    backgroundColor: isDark
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(223, 216, 216, 0.5)',
+                    borderColor: isDark
+                      ? 'rgba(255,255,255,0.15)'
+                      : 'rgba(255,255,255,0.6)',
                     borderWidth: 1,
-                  }
+                  },
                 ]}
                 onPress={handleEmail}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
+                  colors={
+                    isDark
+                      ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                      : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                  }
                   style={[
                     styles.glassGradient,
                     {
                       borderRadius: scale(glassIconSize / 2),
-                    }
+                    },
                   ]}
                 >
                   <Icon
@@ -544,46 +638,52 @@ const ContactUs = ({ navigation }: any) => {
                 shadowOpacity: 0.3,
                 shadowRadius: 8,
                 elevation: 5,
-              }
+              },
             ]}
           >
-            <Text style={[
-              styles.buttonText,
-              {
-                color: '#fff',
-                fontSize: moderateScale(isTablet ? 17 : 16),
-                fontWeight: '700',
-              }
-            ]}>
+            <Text
+              style={[
+                styles.buttonText,
+                {
+                  color: '#fff',
+                  fontSize: moderateScale(isTablet ? 17 : 16),
+                  fontWeight: '600',
+                },
+              ]}
+            >
               Send Message
             </Text>
           </TouchableOpacity>
 
           {/* FOOTER */}
-          <Text style={[
-            styles.footer,
-            {
-              color: colors.textMuted,
-              marginTop: verticalScale(20),
-              fontSize: moderateScale(12),
-              textAlign: 'center',
-              fontStyle: 'italic',
-            }
-          ]}>
+          <Text
+            style={[
+              styles.footer,
+              {
+                color: colors.textMuted,
+                marginTop: verticalScale(20),
+                fontSize: moderateScale(12),
+                textAlign: 'center',
+                fontStyle: 'italic',
+              },
+            ]}
+          >
             We'll respond within 24 hours
           </Text>
 
           {/* VERSION INFO */}
           <View style={styles.versionContainer}>
-            <Text style={[
-              styles.versionText,
-              {
-                color: colors.textMuted,
-                fontSize: moderateScale(isTablet ? 14 : 11),
-                fontWeight: '500',
-                opacity: 0.6,
-              }
-            ]}>
+            <Text
+              style={[
+                styles.versionText,
+                {
+                  color: colors.textMuted,
+                  fontSize: moderateScale(isTablet ? 14 : 11),
+                  fontWeight: '500',
+                  opacity: 0.6,
+                },
+              ]}
+            >
               Version 1.0.0
             </Text>
           </View>
@@ -617,7 +717,7 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#fff',
   },
 
@@ -631,7 +731,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
 
   subtitle: {
@@ -662,7 +762,7 @@ const styles = StyleSheet.create({
   },
 
   value: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   /* SOCIAL SECTION */
@@ -683,7 +783,7 @@ const styles = StyleSheet.create({
   },
 
   socialDividerText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
     letterSpacing: 0.5,
   },
 
@@ -715,7 +815,7 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   /* FOOTER */

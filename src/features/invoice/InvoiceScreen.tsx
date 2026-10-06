@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,12 @@ import {
   RefreshControl,
   TouchableOpacity,
   StyleSheet,
-} from "react-native";
-import { useNavigation } from "@react-navigation/native";
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getUserInvoices, Invoice } from "./invoice";
-import InvoiceCard from "../home/components/InvoiceCard";
-import { useTheme } from "../../redux/hooks/useTheme";
+import { getUserInvoices, Invoice } from './invoice';
+import InvoiceCard from '../home/components/InvoiceCard';
+import { useTheme } from '../../store/hooks/useTheme';
 
 export default function InvoiceScreen() {
   const navigation = useNavigation<any>();
@@ -53,18 +53,25 @@ export default function InvoiceScreen() {
   //  Empty State
   if (!loading && invoices.length === 0) {
     return (
-      <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
-        <TouchableOpacity 
-          style={[styles.emptyBackButton, { 
-            backgroundColor: colors.card,
-            shadowColor: isDark ? '#000' : '#000',
-          }]} 
+      <View
+        style={[styles.emptyContainer, { backgroundColor: colors.background }]}
+      >
+        <TouchableOpacity
+          style={[
+            styles.emptyBackButton,
+            {
+              backgroundColor: colors.card,
+              shadowColor: isDark ? '#000' : '#000',
+            },
+          ]}
           onPress={handleBack}
         >
           <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.emptyIcon}>📄</Text>
-        <Text style={[styles.emptyTitle, { color: colors.text }]}>No Invoices</Text>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>
+          No Invoices
+        </Text>
         <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
           You haven't made any purchases yet.
         </Text>
@@ -74,7 +81,9 @@ export default function InvoiceScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loaderContainer, { backgroundColor: colors.background }]}>
+      <View
+        style={[styles.loaderContainer, { backgroundColor: colors.background }]}
+      >
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.loaderText, { color: colors.textSecondary }]}>
           Fetching your billing history...
@@ -86,11 +95,14 @@ export default function InvoiceScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/*  BACK BUTTON */}
-      <TouchableOpacity 
-        style={[styles.backButton, { 
-          backgroundColor: colors.card,
-          shadowColor: isDark ? '#000' : '#000',
-        }]} 
+      <TouchableOpacity
+        style={[
+          styles.backButton,
+          {
+            backgroundColor: colors.card,
+            shadowColor: isDark ? '#000' : '#000',
+          },
+        ]}
         onPress={handleBack}
         activeOpacity={0.7}
       >
@@ -98,13 +110,15 @@ export default function InvoiceScreen() {
       </TouchableOpacity>
 
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Invoices</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          Invoices
+        </Text>
       </View>
 
       <FlatList
         data={invoices}
         contentContainerStyle={styles.listContent}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={item => item.id.toString()}
         renderItem={({ item }) => <InvoiceCard item={item} />}
         refreshControl={
           <RefreshControl
@@ -149,7 +163,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: 22,
-    fontWeight: "800",
+    fontWeight: '800' as const,
   },
 
   listContent: {
@@ -158,18 +172,18 @@ const styles = StyleSheet.create({
 
   loaderContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
 
   loaderText: {
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 10,
   },
 
   emptyContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 30,
   },
 
@@ -196,12 +210,12 @@ const styles = StyleSheet.create({
 
   emptyTitle: {
     fontSize: 22,
-    fontWeight: "800",
+    fontWeight: '800' as const,
     marginBottom: 8,
   },
 
   emptySubtitle: {
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

@@ -1,4 +1,4 @@
-import api from "../axios"; // adjust path for RN project
+import api from '../../../network/client';
 
 // Types
 export interface GetPostsParams {
@@ -6,7 +6,7 @@ export interface GetPostsParams {
   category_id?: number;
   year?: number;
   author_id?: number;
-   tag_id?: number;
+  tag_id?: number;
   magazine_id?: number;
   page?: number;
   per_page?: number;
@@ -38,13 +38,13 @@ export const getPosts = async ({
 
     // console.log("API PARAMS =>", params);
 
-    const response = await api.get("/posts", { params });
+    const response = await api.get('/posts', { params });
 
     // console.log("API RESPONSE =>", response.data);
 
     return response.data;
   } catch (error) {
-    console.error("getPosts error:", error);
+    console.error('getPosts error:', error);
     throw error;
   }
 };
@@ -60,7 +60,7 @@ export const getArticleBySlug = async (slug: string) => {
 
     return data;
   } catch (error) {
-    console.error("getArticleBySlug error:", error);
+    console.error('getArticleBySlug error:', error);
     return null;
   }
 };
@@ -76,7 +76,7 @@ export const getRelatedPosts = async ({
   magazine_id?: number;
 }) => {
   try {
-    const response = await api.get("/posts", {
+    const response = await api.get('/posts', {
       params: {
         category_id,
         author_id,
@@ -87,7 +87,7 @@ export const getRelatedPosts = async ({
 
     return response.data?.data || [];
   } catch (error) {
-    console.error("getRelatedPosts error:", error);
+    console.error('getRelatedPosts error:', error);
     return [];
   }
 };
@@ -101,7 +101,7 @@ export const getEditorPicksPosts = async ({
   limit?: number;
 } = {}) => {
   try {
-    const response = await api.get("/posts", {
+    const response = await api.get('/posts', {
       params: {
         category_id,
         per_page: limit,
@@ -111,7 +111,7 @@ export const getEditorPicksPosts = async ({
 
     return response.data?.data || [];
   } catch (error) {
-    console.error("getEditorPicksPosts error:", error);
+    console.error('getEditorPicksPosts error:', error);
     return [];
   }
 };

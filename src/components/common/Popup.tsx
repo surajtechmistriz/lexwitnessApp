@@ -10,11 +10,14 @@ import {
   Pressable,
 } from 'react-native';
 
-import { latesteEdition } from '../services/api/latestedition';
+// import { latesteEdition } from '../../services/api/latestedition';
 import Config from 'react-native-config';
-import PopupSkeleton from '../skeleton/PopupSkeleton';
+// import PopupSkeleton from '..skeleton/PopupSkeleton';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
+import PopupSkeleton from '../../skeleton/PopupSkeleton';
+import { latesteEdition } from '../../services/home.service';
+// import { useTheme } from '../store/hooks/useTheme';
 
 // --- Types ---
 type Magazine = {
@@ -233,13 +236,13 @@ const styles = StyleSheet.create({
   },
   contentSection: {},
   label: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
     fontSize: 12,
     marginBottom: 5,
   },
   headline: {
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '800' as const,
     marginBottom: 15,
   },
   promoText: {

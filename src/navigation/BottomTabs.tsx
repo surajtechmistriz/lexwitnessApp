@@ -3,25 +3,20 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Animatable from 'react-native-animatable';
-import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform, View, StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 
-import { getTabScreenOptions } from './navigationConfig';
-import { useTheme } from '../redux/hooks/useTheme';
 import { useResponsive } from '../hooks/useResponsive';
 
 // Screens
-import HomeScreen from '../screens/home/HomeScreen';
 import CategoryList from '../components/common/CategoryList';
-import MagazinesScreen from '../screens/magazines/MagazinesScreen';
-import DashboardScreen from '../screens/dashboard/DashboardScreen';
-import SignIn from '../screens/auth/screens/SignIn';
+import MagazinesScreen from '../features/magazines/MagazinesScreen';
+import HomeScreen from '../features/home/HomeScreen';
+import { useTheme } from '../store/hooks/useTheme';
 
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabs() {
-  const { isLoggedIn } = useSelector((state: any) => state.auth);
   const { colors, isDark } = useTheme();
   const { isTablet } = useResponsive();
   const insets = useSafeAreaInsets();
@@ -35,7 +30,7 @@ export default function BottomTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        
+
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: isDark ? colors.textMuted : '#999',
 
@@ -51,7 +46,7 @@ export default function BottomTabs() {
           borderTopWidth: 0,
           elevation: 10,
           backgroundColor: colors.card,
-          
+
           // Shadow
           shadowColor: '#000',
           shadowOffset: {
@@ -64,7 +59,7 @@ export default function BottomTabs() {
 
         tabBarLabelStyle: {
           fontSize: isTablet ? 12 : 10,
-          fontWeight: '600',
+          fontWeight: '600' as const,
           marginBottom: 2,
           color: isDark ? colors.text : undefined,
         },

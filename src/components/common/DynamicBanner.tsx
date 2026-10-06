@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,72 +8,73 @@ import {
   Animated,
   ScrollView,
   Dimensions,
+  Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
-import { Modal } from 'react-native';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Type definitions
-interface FilterState {
+// ---------- Types ----------
+
+export interface FilterState {
   [key: string]: any;
 }
 
-interface BannerProps {
+export interface BannerProps {
   title: string;
+  showFilter?: boolean;
+  showBackButton?: boolean;
+  onBackPress?: () => void;
+  /** Called when user taps the filter button. If provided, Banner will NOT open its own modal — the parent handles it. */
+  onFilterPress?: () => void;
+  /** Optional: override the internal modal entirely */
   renderFilter?: (
     close: () => void,
     onApply: (filters: FilterState) => void,
     onReset: () => void,
   ) => React.ReactNode;
-  onToggleFilter?: (open: boolean) => void;
-  showFilter?: boolean;
   onFilterApply?: (filters: FilterState) => void;
   initialFilters?: FilterState;
-  showBackButton?: boolean;
-  onBackPress?: () => void;
   useRedBackground?: boolean;
 }
 
-/**
- * Banner Component
- * A reusable header banner with optional filter functionality
- * Supports both red background and image background variants
- */
+// ---------- Component ----------
+
 export default function Banner({
   title,
-  renderFilter,
   showFilter = true,
-  onFilterApply,
-  initialFilters = {},
   showBackButton = false,
   onBackPress,
+  onFilterPress,
+  renderFilter,
+  onFilterApply,
+  initialFilters = {},
   useRedBackground = true,
 }: BannerProps) {
-  // Theme and state management
   const { colors } = useTheme();
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(initialFilters);
   const [tempFilters, setTempFilters] = useState<FilterState>(initialFilters);
 
-  // Animation references
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Helper functions
-  const capitalizeAll = (str: string) => str?.toUpperCase() || '';
   const imageUrl = Config.BANNER_BASE_URL;
 
-  // Check if any filters are active
-  const hasActiveFilters = Object.keys(appliedFilters).length > 0;
+  const hasActiveFilters = useMemo(
+    () => Object.keys(appliedFilters).length > 0,
+    [appliedFilters],
+  );
 
+  // ---------- Animations ----------
 
-  //------ Animate the filter button with a spring effect------
-  const animateButton = () => {
+  const animateButton = useCallback(() => {
     Animated.sequence([
       Animated.spring(scaleAnim, {
         toValue: 0.95,
@@ -88,11 +89,9 @@ export default function Banner({
         useNativeDriver: true,
       }),
     ]).start();
-  };
+  }, [scaleAnim]);
 
-  //------ Open the filter modal with animations------
-  const handleFilterPress = () => {
-    animateButton();
+  const openModal = useCallback(() => {
     setTempFilters({ ...appliedFilters });
     setIsFilterOpen(true);
     Animated.parallel([
@@ -108,10 +107,9 @@ export default function Banner({
         useNativeDriver: true,
       }),
     ]).start();
-  };
+  }, [appliedFilters, fadeAnim, slideAnim]);
 
-  //------ Close the filter modal with animations------
-  const handleCloseFilter = () => {
+  const closeModal = useCallback(() => {
     Animated.parallel([
       Animated.timing(slideAnim, {
         toValue: SCREEN_HEIGHT,
@@ -123,31 +121,68 @@ export default function Banner({
         duration: 200,
         useNativeDriver: true,
       }),
-    ]).start(() => {
-      setIsFilterOpen(false);
-    });
-  };
+    ]).start(() => setIsFilterOpen(false));
+  }, [fadeAnim, slideAnim]);
 
+  // ---------- Handlers ----------
 
+  const handleFilterPress = useCallback(() => {
+    animateButton();
+    // If parent controls filtering, delegate and bail out.
+    if (onFilterPress) {
+      onFilterPress();
+      return;
+    }
+    // Otherwise use built-in modal (only if renderFilter was supplied).
+    if (renderFilter) {
+      openModal();
+    }
+  }, [animateButton, onFilterPress, openModal, renderFilter]);
 
-  //------ Reset filters within the modal------
-  const handleResetInModal = () => {
+  const handleReset = useCallback(() => {
     setTempFilters({});
-  };
+  }, []);
 
-  //------ Handle back button press------
-  const handleBackPress = () => {
-    if (onBackPress) {
-      onBackPress();
-    }
-  };
+  const handleApply = useCallback(
+    (filters: FilterState) => {
+      setAppliedFilters(filters);
+      onFilterApply?.(filters);
+    },
+    [onFilterApply],
+  );
 
-  //------ Render filter button with active state indicators------
+  const handleBackPress = useCallback(() => {
+    onBackPress?.();
+  }, [onBackPress]);
+
+  // ---------- Render helpers ----------
+
+  const renderBackButton = () =>
+    showBackButton ? (
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={handleBackPress}
+        activeOpacity={0.7}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons name="arrow-back" size={22} color="#fff" />
+      </TouchableOpacity>
+    ) : null;
+
+  const renderTitle = () => (
+    <View style={[styles.titleWrapper, showBackButton && styles.titleWrapperWithBack]}>
+      <Text
+        style={[styles.mainTitle, title === 'Magazines' && styles.magazineTitle]}
+        numberOfLines={1}
+      >
+        {title?.toUpperCase() || ''}
+      </Text>
+      {hasActiveFilters && <View style={styles.activeIndicator} />}
+    </View>
+  );
+
   const renderFilterButton = () => {
-    // Only render if showFilter is true
-    if (!showFilter) {
-      return null;
-    }
+    if (!showFilter) return null;
 
     return (
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
@@ -180,43 +215,6 @@ export default function Banner({
     );
   };
 
-  //------ Render back button------
-  const renderBackButton = () => {
-    if (!showBackButton) {
-      return null;
-    }
-
-    return (
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={handleBackPress}
-        activeOpacity={0.7}
-      >
-        <Ionicons name="arrow-back" size={22} color="#fff" />
-      </TouchableOpacity>
-    );
-  };
-
-  //------ Render title with active indicator------
-  const renderTitle = () => (
-    <View style={[
-      styles.titleWrapper,
-      showBackButton && styles.titleWrapperWithBack
-    ]}>
-      <Text
-        style={[
-          styles.mainTitle,
-          title === 'Magazines' && styles.magazineTitle,
-        ]}
-        numberOfLines={1}
-      >
-        {capitalizeAll(title)}
-      </Text>
-      {hasActiveFilters && <View style={styles.activeIndicator} />}
-    </View>
-  );
-
-  // ------ Render main content area------
   const renderContent = () => (
     <View style={styles.content}>
       {renderBackButton()}
@@ -225,120 +223,108 @@ export default function Banner({
     </View>
   );
 
-  //-----  Render banner with either red background or image background ------
   const renderBannerContent = () => {
     if (useRedBackground) {
       return (
         <View style={[styles.bannerContainer, styles.redBackground]}>
-          <View style={styles.overlay}>
-            {renderContent()}
-          </View>
+          <View style={styles.overlay}>{renderContent()}</View>
         </View>
       );
     }
-
     return (
       <ImageBackground
         source={{ uri: imageUrl }}
         style={styles.bannerContainer}
         resizeMode="cover"
       >
-        <View style={styles.overlay}>
-          {renderContent()}
-        </View>
+        <View style={styles.overlay}>{renderContent()}</View>
       </ImageBackground>
     );
   };
 
+  // ---------- Main render ----------
+
   return (
     <>
-      <View style={styles.outerContainer}>
-        {renderBannerContent()}
-      </View>
+      <View style={styles.outerContainer}>{renderBannerContent()}</View>
 
-      {/* Filter Modal */}
-      <Modal
-        visible={isFilterOpen}
-        transparent={true}
-        animationType="none"
-        onRequestClose={handleCloseFilter}
-        statusBarTranslucent={true}
-      >
-        <View style={styles.modalContainer}>
-          {/* Backdrop */}
-          <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
-            <TouchableOpacity
-              style={styles.backdropTouchable}
-              activeOpacity={1}
-              onPress={handleCloseFilter}
-            />
-          </Animated.View>
+      {/* Built-in modal — only used when parent does NOT pass onFilterPress */}
+      {renderFilter && (
+        <Modal
+          visible={isFilterOpen}
+          transparent
+          animationType="none"
+          onRequestClose={closeModal}
+          statusBarTranslucent
+        >
+          <View style={styles.modalContainer}>
+            <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
+              <TouchableOpacity
+                style={styles.backdropTouchable}
+                activeOpacity={1}
+                onPress={closeModal}
+              />
+            </Animated.View>
 
-          {/* Bottom Sheet */}
-          <Animated.View
-            style={[
-              styles.bottomSheet,
-              { transform: [{ translateY: slideAnim }] },
-            ]}
-          >
-            <SafeAreaView style={styles.safeArea}>
-              {/* Drag Handle */}
-              <View style={[styles.dragHandleContainer, { backgroundColor: colors.card }]}>
-                <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
-              </View>
-
-              {/* Modal Header */}
-              <View style={[styles.filterHeader, {
-                backgroundColor: colors.card,
-                borderBottomColor: colors.border
-              }]}>
-                <Text style={[styles.filterHeaderTitle, { color: colors.text }]}>
-                  Filter
-                </Text>
-                <TouchableOpacity
-                  onPress={handleCloseFilter}
-                  style={[styles.closeButton, { backgroundColor: colors.background }]}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            <Animated.View
+              style={[styles.bottomSheet, { transform: [{ translateY: slideAnim }] }]}
+            >
+              <SafeAreaView style={styles.safeArea}>
+                <View
+                  style={[styles.dragHandleContainer, { backgroundColor: colors.card }]}
                 >
-                  <Ionicons name="close" size={24} color={colors.text} />
-                </TouchableOpacity>
-              </View>
+                  <View
+                    style={[styles.dragHandle, { backgroundColor: colors.border }]}
+                  />
+                </View>
 
-              {/* Filter Content */}
-              <ScrollView
-                style={[styles.filterContent, { backgroundColor: colors.card }]}
-                showsVerticalScrollIndicator={false}
-                bounces={true}
-                contentContainerStyle={[styles.filterContentContainer, { backgroundColor: colors.card }]}
-              >
-                {renderFilter ? (
-                  renderFilter(
-                    handleCloseFilter,
+                <View
+                  style={[
+                    styles.filterHeader,
+                    { backgroundColor: colors.card, borderBottomColor: colors.border },
+                  ]}
+                >
+                  <Text style={[styles.filterHeaderTitle, { color: colors.text }]}>
+                    Filter
+                  </Text>
+                  <TouchableOpacity
+                    onPress={closeModal}
+                    style={[styles.closeButton, { backgroundColor: colors.background }]}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons name="close" size={24} color={colors.text} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                  style={[styles.filterContent, { backgroundColor: colors.card }]}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={[
+                    styles.filterContentContainer,
+                    { backgroundColor: colors.card },
+                  ]}
+                >
+                  {renderFilter(
+                    closeModal,
                     (filters: FilterState) => {
                       setTempFilters(filters);
+                      handleApply(filters);
                     },
-                    handleResetInModal,
-                  )
-                ) : (
-                  <View style={styles.defaultFilter}>
-                    <Text style={[styles.defaultFilterText, { color: colors.textMuted }]}>
-                      No filter options available
-                    </Text>
-                  </View>
-                )}
-              </ScrollView>
-
-             
-            </SafeAreaView>
-          </Animated.View>
-        </View>
-      </Modal>
+                    handleReset,
+                  )}
+                </ScrollView>
+              </SafeAreaView>
+            </Animated.View>
+          </View>
+        </Modal>
+      )}
     </>
   );
 }
 
+// ---------- Styles ----------
+
 const styles = StyleSheet.create({
-  // Container styles
   outerContainer: {
     zIndex: 1000,
     elevation: 10,
@@ -347,12 +333,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: Math.max(65, SCREEN_HEIGHT * 0.08),
   },
-
   redBackground: {
     backgroundColor: '#c9060a',
   },
-
-  // Overlay and content styles
   overlay: {
     flex: 1,
     backgroundColor: '#c9060a',
@@ -364,20 +347,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 12,
   },
-
-  // Back button styles
   backButton: {
     width: 36,
     height: 36,
-    // borderRadius: 18,
-    // backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    // borderWidth: 1,
-    // borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-
-  // Title styles
   titleWrapper: {
     flex: 1,
     flexDirection: 'row',
@@ -391,11 +366,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: Math.min(20, SCREEN_WIDTH * 0.045),
     fontWeight: 'bold',
-
     letterSpacing: 0.5,
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  magazineTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginLeft: 10,
   },
   activeIndicator: {
     width: 8,
@@ -404,8 +384,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#4caf50',
     marginLeft: 8,
   },
-
-  // Filter button styles
   filterIconButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,8 +414,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-
-  // Active badge styles
   activeBadge: {
     position: 'absolute',
     top: -6,
@@ -457,19 +433,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-
-  // Modal styles
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'transparent',
   },
   backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   backdropTouchable: {
@@ -489,8 +459,6 @@ const styles = StyleSheet.create({
     elevation: 25,
     maxHeight: SCREEN_HEIGHT * 0.25,
   },
-
-  // Modal content styles
   safeArea: {
     flex: 1,
   },
@@ -532,55 +500,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: 32,
-  },
-
-  // Filter action buttons (currently disabled)
-  filterActions: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-  },
-  resetButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  resetButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  applyButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#c9060a',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  applyButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  // Default/fallback styles
-  defaultFilter: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  defaultFilterText: {
-    fontSize: 14,
-  },
-  magazineTitle: {
-    fontSize: 18, // or 30 if you want it even bigger
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginLeft: 10
   },
 });

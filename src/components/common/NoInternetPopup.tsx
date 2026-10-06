@@ -10,16 +10,15 @@ import {
   Dimensions,
   Platform,
   Linking,
-  StatusBar,
 } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import Icon from 'react-native-vector-icons/Feather';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 const NoInternetPopup = () => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
   const [connectionState, setConnectionState] = useState('checking');
   const [retryCount, setRetryCount] = useState(0);
@@ -27,12 +26,11 @@ const NoInternetPopup = () => {
 
   const wasConnected = useRef(true);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(height)).current; // Start off-screen
+  const slideAnim = useRef(new Animated.Value(height)).current;
   const progressWidth = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  const unsubscribeRef = useRef(null);
-  const progressAnimationRef = useRef(null);
+  const progressAnimationRef = useRef<Animated.CompositeAnimation | null>(null);
 
   const openDeviceSettings = useCallback(() => {
     if (Platform.OS === 'ios') {
@@ -43,9 +41,7 @@ const NoInternetPopup = () => {
   }, []);
 
   const closePopupWithAnimation = useCallback(() => {
-    if (progressAnimationRef.current) {
-      progressAnimationRef.current.stop();
-    }
+    progressAnimationRef.current?.stop();
 
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -65,7 +61,7 @@ const NoInternetPopup = () => {
       setShowTips(false);
       progressWidth.setValue(0);
     });
-  }, [fadeAnim, slideAnim]);
+  }, [fadeAnim, progressWidth, slideAnim]);
 
   const showConnectedAndAutoClose = useCallback(() => {
     progressWidth.setValue(0);
@@ -79,44 +75,46 @@ const NoInternetPopup = () => {
     });
 
     progressAnimationRef.current.start(({ finished }) => {
-      if (finished) closePopupWithAnimation();
+      if (finished) {
+        closePopupWithAnimation();
+      }
     });
-  }, [progressWidth, closePopupWithAnimation]);
+  }, [closePopupWithAnimation, progressWidth]);
 
   useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          friction: 9,
-          tension: 40,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    if (!visible) return;
 
-      if (connectionState === 'disconnected') {
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(pulseAnim, {
-              toValue: 1.05,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-            Animated.timing(pulseAnim, {
-              toValue: 1,
-              duration: 800,
-              useNativeDriver: true,
-            }),
-          ]),
-        ).start();
-      }
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        friction: 9,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (connectionState === 'disconnected') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.05,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
     }
-  }, [visible, connectionState]);
+  }, [connectionState, fadeAnim, pulseAnim, slideAnim, visible]);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
@@ -144,11 +142,15 @@ const NoInternetPopup = () => {
 
     setTimeout(async () => {
       const state = await NetInfo.fetch();
+
       if (state.isConnected) {
         showConnectedAndAutoClose();
       } else {
         setConnectionState('disconnected');
-        if (retryCount >= 2) setShowTips(true);
+
+        if (retryCount >= 2) {
+          setShowTips(true);
+        }
       }
     }, 1200);
   }, [retryCount, showConnectedAndAutoClose]);
@@ -156,11 +158,25 @@ const NoInternetPopup = () => {
   const getTheme = () => {
     switch (connectionState) {
       case 'connected':
-        return { color: '#00C853', icon: 'wifi', label: 'Back Online' };
+        return {
+          color: '#00C853',
+          icon: 'wifi',
+          label: 'Back Online',
+        };
+
       case 'checking':
-        return { color: colors.textSecondary, icon: 'loader', label: 'Checking...' };
+        return {
+          color: colors.textSecondary,
+          icon: 'loader',
+          label: 'Checking...',
+        };
+
       default:
-        return { color: colors.primary, icon: 'wifi-off', label: 'No Connection' };
+        return {
+          color: colors.primary,
+          icon: 'wifi-off',
+          label: 'No Connection',
+        };
     }
   };
 
@@ -179,18 +195,20 @@ const NoInternetPopup = () => {
             activeOpacity={1}
             style={{ flex: 1 }}
             onPress={
-              connectionState === 'connected' ? null : closePopupWithAnimation
+              connectionState === 'connected'
+                ? undefined
+                : closePopupWithAnimation
             }
           />
         </Animated.View>
 
         <Animated.View
           style={[
-            styles.sheet, 
-            { 
+            styles.sheet,
+            {
               backgroundColor: colors.card,
-              shadowColor: isDark ? '#000' : '#000',
-            }
+              shadowColor: '#000',
+            },
           ]}
         >
           <View style={[styles.handle, { backgroundColor: colors.border }]} />
@@ -215,6 +233,7 @@ const NoInternetPopup = () => {
             <Text style={[styles.title, { color: colors.text }]}>
               {theme.label}
             </Text>
+
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               {connectionState === 'disconnected'
                 ? "We can't reach our servers. Please check your data or Wi-Fi."
@@ -224,7 +243,9 @@ const NoInternetPopup = () => {
             </Text>
 
             {showTips && connectionState === 'disconnected' && (
-              <View style={[styles.tipsBox, { backgroundColor: colors.background }]}>
+              <View
+                style={[styles.tipsBox, { backgroundColor: colors.background }]}
+              >
                 <Tip item="Check Airplane Mode" icon="send" />
                 <Tip item="Restart Wi-Fi Router" icon="refresh-cw" />
               </View>
@@ -241,18 +262,29 @@ const NoInternetPopup = () => {
                       {retryCount > 0 ? `Retry (${retryCount})` : 'Try Again'}
                     </Text>
                   </TouchableOpacity>
+
                   <TouchableOpacity
-                    style={[styles.secondaryBtn, { borderColor: colors.border }]}
+                    style={[
+                      styles.secondaryBtn,
+                      { borderColor: colors.border },
+                    ]}
                     onPress={openDeviceSettings}
                   >
-                    <Text style={[styles.secondaryBtnText, { color: colors.textSecondary }]}>
+                    <Text
+                      style={[
+                        styles.secondaryBtnText,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
                       Network Settings
                     </Text>
                   </TouchableOpacity>
                 </>
               ) : connectionState === 'connected' ? (
                 <View style={styles.progressWrapper}>
-                  <View style={[styles.track, { backgroundColor: colors.border }]}>
+                  <View
+                    style={[styles.track, { backgroundColor: colors.border }]}
+                  >
                     <Animated.View
                       style={[
                         styles.fill,
@@ -276,8 +308,14 @@ const NoInternetPopup = () => {
   );
 };
 
-const Tip = ({ item, icon }) => {
+type TipProps = {
+  item: string;
+  icon: string;
+};
+
+const Tip = ({ item, icon }: TipProps) => {
   const { colors } = useTheme();
+
   return (
     <View style={styles.tipRow}>
       <Icon name={icon} size={14} color={colors.textSecondary} />
@@ -287,7 +325,10 @@ const Tip = ({ item, icon }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'flex-end' },
+  container: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.6)',
@@ -311,7 +352,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 24,
   },
-  content: { width: '100%', alignItems: 'center' },
+  content: {
+    width: '100%',
+    alignItems: 'center',
+  },
   iconCircle: {
     width: 72,
     height: 72,
@@ -322,7 +366,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 8,
   },
   subtitle: {
@@ -338,9 +382,20 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 24,
   },
-  tipRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  tipText: { marginLeft: 10, fontSize: 14, fontWeight: '500' },
-  footer: { width: '100%', gap: 12 },
+  tipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  tipText: {
+    marginLeft: 10,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  footer: {
+    width: '100%',
+    gap: 12,
+  },
   mainBtn: {
     width: '100%',
     height: 56,
@@ -349,7 +404,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
   },
-  mainBtnText: { color: '#FFF', fontSize: 16, fontWeight: '600' },
+  mainBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
   secondaryBtn: {
     width: '100%',
     height: 56,
@@ -359,15 +418,23 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginTop: 4,
   },
-  secondaryBtnText: { fontSize: 15, fontWeight: '500' },
-  progressWrapper: { width: '100%', paddingVertical: 20 },
+  secondaryBtnText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  progressWrapper: {
+    width: '100%',
+    paddingVertical: 20,
+  },
   track: {
     width: '100%',
     height: 6,
     borderRadius: 3,
     overflow: 'hidden',
   },
-  fill: { height: '100%' },
+  fill: {
+    height: '100%',
+  },
 });
 
 export default NoInternetPopup;

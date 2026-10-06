@@ -1,12 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+} from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const AboutUs = ({ navigation }: any) => {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
@@ -16,7 +26,7 @@ const AboutUs = ({ navigation }: any) => {
         backgroundColor={colors.primary}
         barStyle="light-content"
       />
-      
+
       {/* Header with Gradient - Matching EditProfileScreen style */}
       <LinearGradient
         colors={[colors.primary, colors.primaryDark || '#c9060a']}
@@ -26,13 +36,16 @@ const AboutUs = ({ navigation }: any) => {
             paddingTop: insets.top + 12,
             paddingHorizontal: 20,
             paddingBottom: 16,
-          }
+          },
         ]}
       >
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
-            style={[styles.backBtn, { backgroundColor: 'rgba(255,255,255,0.15)' }]}
+            style={[
+              styles.backBtn,
+              { backgroundColor: 'rgba(255,255,255,0.15)' },
+            ]}
           >
             <Icon name="arrow-left" size={22} color="#fff" />
           </TouchableOpacity>
@@ -41,64 +54,97 @@ const AboutUs = ({ navigation }: any) => {
         </View>
       </LinearGradient>
 
-      <SafeAreaView 
+      <SafeAreaView
         style={[styles.container, { backgroundColor: colors.background }]}
         edges={['left', 'right', 'bottom']}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
           {/* HERO SECTION */}
           <View style={styles.hero}>
-            <Text style={[styles.title, { color: colors.primary }]}>Lex Witness</Text>
+            <Text style={[styles.title, { color: colors.primary }]}>
+              Lex Witness
+            </Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Modern Legal-Tech Platform for Trusted Insights
             </Text>
           </View>
 
           {/* CONTENT CARDS */}
-          <View style={[styles.card, {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Who We Are</Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              Who We Are
+            </Text>
             <Text style={[styles.text, { color: colors.textSecondary }]}>
-              Lex Witness is a digital legal-tech platform designed to simplify complex legal information and make it accessible to everyone — from students to professionals.
+              Lex Witness is a digital legal-tech platform designed to simplify
+              complex legal information and make it accessible to everyone —
+              from students to professionals.
             </Text>
           </View>
 
-          <View style={[styles.card, {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Our Mission</Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              Our Mission
+            </Text>
             <Text style={[styles.text, { color: colors.textSecondary }]}>
-              We aim to bridge the gap between law and people by delivering clear, reliable, and easy-to-understand legal news, updates, and insights.
+              We aim to bridge the gap between law and people by delivering
+              clear, reliable, and easy-to-understand legal news, updates, and
+              insights.
             </Text>
           </View>
 
-          <View style={[styles.card, {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>What We Offer</Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              What We Offer
+            </Text>
             <Text style={[styles.text, { color: colors.textSecondary }]}>
-              • Legal news & updates{"\n"}
-              • Case analysis & insights{"\n"}
-              • Expert opinions{"\n"}
-              • Simplified legal explanations{"\n"}
-              • Daily legal awareness content
+              • Legal news & updates{'\n'}• Case analysis & insights{'\n'}•
+              Expert opinions{'\n'}• Simplified legal explanations{'\n'}• Daily
+              legal awareness content
             </Text>
           </View>
 
-          <View style={[styles.card, {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          }]}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Our Vision</Text>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              Our Vision
+            </Text>
             <Text style={[styles.text, { color: colors.textSecondary }]}>
-              To become India’s most trusted and user-friendly legal information platform, empowering people with knowledge of law.
+              To become India’s most trusted and user-friendly legal information
+              platform, empowering people with knowledge of law.
             </Text>
           </View>
 
@@ -140,7 +186,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#fff',
   },
 
@@ -157,7 +203,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
 
   subtitle: {
@@ -181,7 +227,7 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 8,
   },
 

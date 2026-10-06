@@ -2,7 +2,7 @@
 
 // export const useResponsive = () => {
 //   const { width, height } = useWindowDimensions();
-  
+
 //   // Device detection
 //   const isTablet = width >= 768;
 //   const isSmallDevice = width < 375;

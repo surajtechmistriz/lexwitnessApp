@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import HeroCard from '../components/HeroCard';
-import { Article } from '../types/types';
-import { useTheme } from '../../../redux/hooks/useTheme';
-
+import { useTheme } from '../../../store/hooks/useTheme';
+import { Article } from '../../../types/home.types';
 type HeroSectionProps = {
   firstCard: Article | null;
   nextTwoCards: Article[];
@@ -17,13 +16,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   formatDate,
   getImage,
 }) => {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
 
   if (!firstCard) return null;
 
   return (
     <View style={styles.container}>
-      
       {/*  Main Hero (Top Layer) */}
       <View style={styles.mainCard}>
         <HeroCard
@@ -60,7 +58,6 @@ const HeroSection: React.FC<HeroSectionProps> = ({
           </View>
         ))}
       </View>
-
     </View>
   );
 };

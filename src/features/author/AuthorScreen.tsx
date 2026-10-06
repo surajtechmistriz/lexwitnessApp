@@ -5,30 +5,26 @@ import {
   StyleSheet,
   RefreshControl,
   Dimensions,
-  TouchableOpacity,
-  Text,
   Platform,
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 
-// API Services
-import { getPosts } from '../../services/api/posts';
-import { getYears } from '../../services/api/years';
 // Components
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 import Banner from '../../components/common/DynamicBanner';
-import TopMenu from '../../components/common/Menubar';
 import { getAuthorBySlug } from './api/authorarticle';
 
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
+import { getPosts } from '../article/api/posts';
+import { getYears } from '../magazines/api/years';
+import TopMenu from '../../components/layout/Menubar';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -37,17 +33,7 @@ export default function Author() {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
   const { colors, isDark } = useTheme();
-  const { 
-    isTablet, 
-    isSmallDevice, 
-    spacing, 
-    font, 
-    sizes, 
-    moderateScale,
-    wp,
-    hp,
-    pixelRatio 
-  } = useResponsive();
+  const { isTablet, isSmallDevice, spacing } = useResponsive();
 
   const slug = route.params?.slug || '';
   const postBaseUrl = Config.POSTS_BASE_URL;
@@ -61,13 +47,10 @@ export default function Author() {
   const [appliedYear, setAppliedYear] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   const isAndroid = Platform.OS === 'android';
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
+  /* ---------------- FETCH POSTS ---------------- */
 
   const fetchAuthorPosts = useCallback(
     async (authorId: number, year: number | null, page: number) => {
@@ -93,7 +76,11 @@ export default function Author() {
     [],
   );
 
+  /* ---------------- INITIAL LOAD ---------------- */
+
   useEffect(() => {
+    let alive = true;
+
     const init = async () => {
       if (!slug) {
         setLoading(false);
@@ -105,6 +92,8 @@ export default function Author() {
           getAuthorBySlug(slug),
           getYears(),
         ]);
+
+        if (!alive) return;
 
         const authorData = authorRes?.data || authorRes;
         setAuthor(authorData);
@@ -118,12 +107,17 @@ export default function Author() {
       } catch (err) {
         console.error('Initial Load Error:', err);
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     };
 
     init();
+    return () => {
+      alive = false;
+    };
   }, [slug, fetchAuthorPosts]);
+
+  /* ---------------- REFETCH ON YEAR CHANGE ---------------- */
 
   useEffect(() => {
     if (author?.id) {
@@ -131,101 +125,102 @@ export default function Author() {
     }
   }, [appliedYear, author?.id, fetchAuthorPosts]);
 
-  const onRefresh = () => {
+  /* ---------------- HANDLERS ---------------- */
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     if (author?.id) {
       fetchAuthorPosts(author.id, appliedYear, currentPage);
     }
-  };
+  }, [author?.id, appliedYear, currentPage, fetchAuthorPosts]);
 
-  const handleApplyFilter = () => {
-    setAppliedYear(selectedYear);
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
-    setIsFilterVisible(false);
-  };
+  /**
+   * Called by Banner's `onFilterApply` when the user taps Apply.
+   * Banner handles modal close internally.
+   */
+  const handleFilterApply = useCallback(
+    (filters: { [key: string]: any }) => {
+      const year = (filters?.year as number | null | undefined) ?? null;
+      setAppliedYear(year);
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+    },
+    [],
+  );
 
-  const handlePageChange = (page: number) => {
-    scrollRef.current?.scrollTo({ y: 0, animated: true });
-    if (author?.id) {
-      fetchAuthorPosts(author.id, appliedYear, page);
-    }
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+      if (author?.id) {
+        fetchAuthorPosts(author.id, appliedYear, page);
+      }
+    },
+    [author?.id, appliedYear, fetchAuthorPosts],
+  );
 
-  const getAuthorTitle = () => {
+  const getAuthorTitle = useCallback(() => {
     if (author?.name) return author.name;
-    return slug?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  };
+    return (
+      slug
+        ?.replace(/-/g, ' ')
+        .replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Author'
+    );
+  }, [author?.name, slug]);
 
-  const contentPaddingTop = isAndroid ? (isSmallDevice ? 6 : isTablet ? 16 : 10) : (isTablet ? 16 : 10);
+  /* ---------------- LAYOUT VALUES ---------------- */
+
+  const contentPaddingTop = isAndroid
+    ? isSmallDevice
+      ? 6
+      : isTablet
+      ? 16
+      : 10
+    : isTablet
+    ? 16
+    : 10;
   const minHeight = isAndroid ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.6;
   const skeletonCount = isTablet ? 5 : isSmallDevice ? 3 : 4;
 
-  // Handle filter toggle
-  const toggleFilter = () => {
-    setIsFilterVisible(!isFilterVisible);
-  };
+  /* ---------------- RENDER ---------------- */
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Status Bar */}
-      <StatusBar 
+      <StatusBar
         barStyle="light-content"
         backgroundColor="#c9060a"
         translucent={false}
       />
 
-      {/* SafeAreaView for notch handling */}
-      <SafeAreaView 
+      <SafeAreaView
         style={[styles.safeArea, { backgroundColor: '#c9060a' }]}
         edges={['top']}
       />
 
-      {/* Banner with Back Button */}
+      {/* Banner owns the filter modal */}
       <Banner
         title={getAuthorTitle()}
-        showBackButton={true}
+        showBackButton
         onBackPress={handleBack}
-        showFilter={true}
-        onFilterPress={toggleFilter}
-        renderFilter={close => (
+        showFilter
+        initialFilters={appliedYear ? { year: appliedYear } : {}}
+        onFilterApply={handleFilterApply}
+        renderFilter={(close, onApply) => (
           <YearFilter
             years={years}
             selectedYear={selectedYear}
-            onSelect={setSelectedYear}
+            onSelect={(year) => setSelectedYear(year)}
             onApply={() => {
-              handleApplyFilter();
+              onApply({ year: selectedYear });
               close();
             }}
+            inModal
           />
         )}
       />
 
-      {/* Filter Modal - Direct render when visible */}
-      {isFilterVisible && (
-        <View style={styles.filterModalOverlay}>
-          <View style={[styles.filterModalContent, { backgroundColor: colors.card }]}>
-            <View style={[styles.filterModalHeader, { borderBottomColor: colors.border }]}>
-              <Text style={[styles.filterModalTitle, { color: colors.text }]}>
-                Filter by Year
-              </Text>
-              <TouchableOpacity onPress={() => setIsFilterVisible(false)}>
-                <Icon name="close" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            <YearFilter
-              years={years}
-              selectedYear={selectedYear}
-              onSelect={setSelectedYear}
-              onApply={() => {
-                handleApplyFilter();
-              }}
-              inModal={true}
-            />
-          </View>
-        </View>
-      )}
-
-      {/* Top Menu */}
       <TopMenu activeSlug={slug} />
 
       <ScrollView
@@ -233,10 +228,10 @@ export default function Author() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { 
+          {
             paddingBottom: isAndroid ? spacing.lg : spacing.md,
             paddingTop: isAndroid ? spacing.xs : 0,
-          }
+          },
         ]}
         refreshControl={
           <RefreshControl
@@ -248,21 +243,23 @@ export default function Author() {
           />
         }
       >
-        <View style={[
-          styles.content, 
-          { 
-            backgroundColor: colors.background,
-            paddingTop: contentPaddingTop,
-            minHeight: minHeight,
-          }
-        ]}>
-      
-
+        <View
+          style={[
+            styles.content,
+            {
+              backgroundColor: colors.background,
+              paddingTop: contentPaddingTop,
+              minHeight,
+            },
+          ]}
+        >
           {loading && !refreshing ? (
-            <View style={[
-              styles.skeletonWrapper,
-              { marginTop: isAndroid ? spacing.xs : spacing.sm }
-            ]}>
+            <View
+              style={[
+                styles.skeletonWrapper,
+                { marginTop: isAndroid ? spacing.xs : spacing.sm },
+              ]}
+            >
               {[...Array(skeletonCount)].map((_, i) => (
                 <ArticleSkeleton key={i} />
               ))}
@@ -283,14 +280,16 @@ export default function Author() {
           )}
 
           {!loading && posts.length > 0 && (
-            <View style={[
-              styles.paginationWrapper,
-              {
-                paddingVertical: isAndroid ? spacing.md : spacing.lg,
-                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-                marginTop: isAndroid ? spacing.xs : 0,
-              }
-            ]}>
+            <View
+              style={[
+                styles.paginationWrapper,
+                {
+                  paddingVertical: isAndroid ? spacing.md : spacing.lg,
+                  paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                  marginTop: isAndroid ? spacing.xs : 0,
+                },
+              ]}
+            >
               <Pagination
                 currentPage={currentPage}
                 lastPage={lastPage}
@@ -306,62 +305,13 @@ export default function Author() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 0,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  safeArea: { flex: 0 },
+  scrollContent: { flexGrow: 1 },
+  content: { flex: 1 },
   skeletonWrapper: {},
-  activeFilterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  activeFilterText: {
-    fontWeight: '500',
-  },
   paginationWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  filterModalOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  filterModalContent: {
-    width: '85%',
-    maxHeight: '80%',
-    borderRadius: 16,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  filterModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-  },
-  filterModalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
   },
 });

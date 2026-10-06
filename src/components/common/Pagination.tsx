@@ -1,6 +1,12 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { useTheme } from '../../redux/hooks/useTheme';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+} from 'react-native';
+import { useTheme } from '../../store/hooks/useTheme';
 
 interface PaginationProps {
   currentPage: number;
@@ -15,8 +21,8 @@ export default function Pagination({
   loading = false,
   onPageChange,
 }: PaginationProps) {
-  const { colors, isDark } = useTheme();
-  
+  const { colors } = useTheme();
+
   if (lastPage <= 1) return null;
 
   const getPages = () => {
@@ -25,13 +31,13 @@ export default function Pagination({
     const end = Math.min(lastPage, currentPage + 1);
 
     if (start > 1) pages.push(1);
-    if (start > 2) pages.push("...");
+    if (start > 2) pages.push('...');
 
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
 
-    if (end < lastPage - 1) pages.push("...");
+    if (end < lastPage - 1) pages.push('...');
     if (end < lastPage) pages.push(lastPage);
 
     return pages;
@@ -48,41 +54,52 @@ export default function Pagination({
         style={[
           styles.arrowBox,
           { backgroundColor: colors.card },
-          currentPage === 1 && styles.disabledArrow
+          currentPage === 1 && styles.disabledArrow,
         ]}
       >
-        <View style={[
-          styles.chevron, 
-          styles.chevronLeft, 
-          { borderColor: currentPage === 1 ? colors.textMuted : colors.text },
-          currentPage === 1 && styles.disabledChevron
-        ]} />
+        <View
+          style={[
+            styles.chevron,
+            styles.chevronLeft,
+            { borderColor: currentPage === 1 ? colors.textMuted : colors.text },
+            currentPage === 1 && styles.disabledChevron,
+          ]}
+        />
       </TouchableOpacity>
 
       {/* Page Numbers */}
       <View style={styles.pagesRow}>
         {pages.map((page, index) => (
           <View key={index}>
-            {page === "..." ? (
-              <Text style={[styles.ellipsis, { color: colors.textMuted }]}>...</Text>
+            {page === '...' ? (
+              <Text style={[styles.ellipsis, { color: colors.textMuted }]}>
+                ...
+              </Text>
             ) : (
               <TouchableOpacity
                 disabled={loading}
                 onPress={() => onPageChange(page as number)}
                 style={[
                   styles.pageBtn,
-                  { 
-                    backgroundColor: currentPage === page ? colors.primary : colors.card,
-                    borderColor: currentPage === page ? colors.primary : colors.border,
+                  {
+                    backgroundColor:
+                      currentPage === page ? colors.primary : colors.card,
+                    borderColor:
+                      currentPage === page ? colors.primary : colors.border,
                   },
-                  currentPage === page && styles.activePageBtn
+                  currentPage === page && styles.activePageBtn,
                 ]}
               >
-                <Text style={[
-                  styles.pageText,
-                  { color: currentPage === page ? '#fff' : colors.textSecondary },
-                  currentPage === page && styles.activePageText
-                ]}>
+                <Text
+                  style={[
+                    styles.pageText,
+                    {
+                      color:
+                        currentPage === page ? '#fff' : colors.textSecondary,
+                    },
+                    currentPage === page && styles.activePageText,
+                  ]}
+                >
                   {page}
                 </Text>
               </TouchableOpacity>
@@ -98,15 +115,20 @@ export default function Pagination({
         style={[
           styles.arrowBox,
           { backgroundColor: colors.card },
-          currentPage === lastPage && styles.disabledArrow
+          currentPage === lastPage && styles.disabledArrow,
         ]}
       >
-        <View style={[
-          styles.chevron, 
-          styles.chevronRight, 
-          { borderColor: currentPage === lastPage ? colors.textMuted : colors.text },
-          currentPage === lastPage && styles.disabledChevron
-        ]} />
+        <View
+          style={[
+            styles.chevron,
+            styles.chevronRight,
+            {
+              borderColor:
+                currentPage === lastPage ? colors.textMuted : colors.text,
+            },
+            currentPage === lastPage && styles.disabledChevron,
+          ]}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -149,7 +171,7 @@ const styles = StyleSheet.create({
   },
   pageText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   activePageText: {
     color: '#fff',
@@ -184,5 +206,5 @@ const styles = StyleSheet.create({
   },
   disabledChevron: {
     opacity: 0.3,
-  }
+  },
 });

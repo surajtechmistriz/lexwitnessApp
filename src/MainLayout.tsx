@@ -1,14 +1,23 @@
 import React from 'react';
-import { StyleSheet, View, StatusBar, Platform, ScrollView } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  StyleSheet,
+  View,
+  StatusBar,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 import Banner from './components/common/DynamicBanner';
-import TopMenu from './components/common/Menubar';
-import Header from './components/common/Header';
 import SearchOverlay from './components/common/SearchOverlay';
-import { useTheme } from './redux/hooks/useTheme';
 import { useResponsive } from './hooks/useResponsive';
+import Header from './components/layout/Header';
+import TopMenu from './components/layout/Menubar';
+import { useTheme } from './store/hooks/useTheme';
 
 type Props = {
   children: React.ReactNode;
@@ -46,16 +55,12 @@ const MainLayout = ({
   contentPadding = true,
 }: Props) => {
   const navigation = useNavigation<any>();
-  const route = useRoute<any>();
+  // const route = useRoute<any>();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   // Use your responsive hook
-  const {
-    wp, hp, spacing, font, sizes,
-    isTablet, isSmallDevice, isLandscape,
-    moderateScale
-  } = useResponsive();
+  const { spacing, isTablet, isSmallDevice } = useResponsive();
 
   const [isSearchVisible, setIsSearchVisible] = React.useState(false);
 
@@ -109,7 +114,8 @@ const MainLayout = ({
     'EditorialDetail',
   ];
 
-  const shouldShowBackButton = showBackButton || backButtonScreens.includes(routeName || '');
+  const shouldShowBackButton =
+    showBackButton || backButtonScreens.includes(routeName || '');
 
   const handleBackPress = () => {
     if (onBackPress) {
@@ -120,10 +126,9 @@ const MainLayout = ({
   };
 
   // Dynamic status bar color
-  const isHome = routeName === 'Home';
+  // const isHome = routeName === 'Home';
 
-  const resolvedStatusBg =
-    statusBarColor ?? (isDark ? '#c9060a' : '#ffffff');
+  const resolvedStatusBg = statusBarColor ?? (isDark ? '#c9060a' : '#ffffff');
 
   const resolvedBarStyle =
     statusBarStyle ?? (isDark ? 'light-content' : 'dark-content');
@@ -154,15 +159,17 @@ const MainLayout = ({
     ];
 
     const ContentWrapper = scrollable ? ScrollView : View;
-    const contentProps = scrollable ? {
-      showsVerticalScrollIndicator: false,
-      contentContainerStyle: {
-        paddingBottom: spacing.xs,
-        paddingHorizontal: contentPadding ? spacing.md : 0,
-        ...(isTablet && { paddingHorizontal: spacing.lg }),
-        ...(isSmallDevice && { paddingHorizontal: spacing.sm }),
-      }
-    } : {};
+    const contentProps = scrollable
+      ? {
+          showsVerticalScrollIndicator: false,
+          contentContainerStyle: {
+            paddingBottom: spacing.xs,
+            paddingHorizontal: contentPadding ? spacing.md : 0,
+            ...(isTablet && { paddingHorizontal: spacing.lg }),
+            ...(isSmallDevice && { paddingHorizontal: spacing.sm }),
+          },
+        }
+      : {};
 
     return (
       <ContentWrapper style={contentStyles} {...contentProps}>
@@ -180,8 +187,8 @@ const MainLayout = ({
             styles.iosStatusBarPlaceholder,
             {
               height: insets.top,
-              backgroundColor: resolvedStatusBg
-            }
+              backgroundColor: resolvedStatusBg,
+            },
           ]}
         />
       )}
@@ -201,7 +208,6 @@ const MainLayout = ({
         ]}
         edges={['top']}
       >
-
         <View
           style={{
             flex: 1,
@@ -210,7 +216,7 @@ const MainLayout = ({
         >
           {/* HEADER with responsive styling */}
           {!hiddenHeader.includes(routeName || '') && showHeader && (
-            <View >
+            <View>
               <Header
                 navigation={navigation}
                 onSearchPress={() => setIsSearchVisible(true)}
@@ -220,7 +226,7 @@ const MainLayout = ({
 
           {/* BANNER with responsive sizing */}
           {!hiddenBanner.includes(routeName || '') && showBanner && (
-            <View >
+            <View>
               <Banner
                 title={title}
                 renderFilter={renderFilter}
@@ -233,10 +239,12 @@ const MainLayout = ({
 
           {/* TOP MENU with responsive styling */}
           {!hiddenTopMenu.includes(routeName || '') && showTopMenu && (
-            <View style={{
-              paddingHorizontal: isTablet ? spacing.lg : spacing.md,
-              marginBottom: spacing.xs,
-            }}>
+            <View
+              style={{
+                paddingHorizontal: isTablet ? spacing.lg : spacing.md,
+                marginBottom: spacing.xs,
+              }}
+            >
               <TopMenu activeSlug={activeSlug} />
             </View>
           )}

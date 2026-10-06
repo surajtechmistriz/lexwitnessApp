@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../store/hooks/useTheme';
 
 const HeroSkeleton = () => {
   const { colors, isDark } = useTheme();

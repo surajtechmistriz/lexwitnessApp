@@ -12,19 +12,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Config from 'react-native-config';
 
-import { getPosts } from '../../services/api/posts';
-import { getYears } from '../../services/api/years';
-import { getCategoryBySlug } from '../../services/api/category';
-
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 
-import TopMenu from '../../components/common/Menubar';
 import Banner from '../../components/common/DynamicBanner';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
+import { getCategoryBySlug } from '../../services/category.service';
+import { getPosts } from '../article/api/posts';
+import { getYears } from '../magazines/api/years';
+import TopMenu from '../../components/layout/Menubar';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -33,11 +32,7 @@ export default function Category() {
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
   const { colors, isDark } = useTheme();
-  const {
-    isTablet,
-    isSmallDevice,
-    spacing,
-  } = useResponsive();
+  const { isTablet, isSmallDevice, spacing } = useResponsive();
 
   const slug = route.params?.slug ?? '';
   const postBaseUrl = Config.POSTS_BASE_URL;
@@ -121,11 +116,21 @@ export default function Category() {
 
   const getCategoryTitle = () => {
     if (category?.name) return category.name;
-    return slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return slug
+      .replace(/-/g, ' ')
+      .replace(/\b\w/g, (l: string) => l.toUpperCase());
   };
 
   // Responsive values
-  const contentPaddingTop = isAndroid ? (isSmallDevice ? 6 : isTablet ? 16 : 10) : (isTablet ? 16 : 10);
+  const contentPaddingTop = isAndroid
+    ? isSmallDevice
+      ? 6
+      : isTablet
+      ? 16
+      : 10
+    : isTablet
+    ? 16
+    : 10;
   const minHeight = isAndroid ? SCREEN_HEIGHT * 0.55 : SCREEN_HEIGHT * 0.6;
   const skeletonCount = isTablet ? 4 : isSmallDevice ? 2 : 3;
 
@@ -143,8 +148,8 @@ export default function Category() {
         style={[
           styles.safeArea,
           {
-            backgroundColor: colors.primary
-          }
+            backgroundColor: colors.primary,
+          },
         ]}
         edges={['top']}
       />
@@ -189,19 +194,19 @@ export default function Category() {
             {
               paddingBottom: isAndroid ? spacing.lg : spacing.md,
               paddingTop: isAndroid ? spacing.xs : 0,
-            }
+            },
           ]}
         >
-          <View style={[
-            styles.content,
-            {
-              backgroundColor: colors.background,
-              paddingTop: contentPaddingTop,
-              minHeight: minHeight,
-            }
-          ]}>
-
-
+          <View
+            style={[
+              styles.content,
+              {
+                backgroundColor: colors.background,
+                paddingTop: contentPaddingTop,
+                minHeight: minHeight,
+              },
+            ]}
+          >
             {loading ? (
               <View>
                 {[...Array(skeletonCount)].map((_, i) => (
@@ -221,14 +226,16 @@ export default function Category() {
             )}
 
             {!loading && posts.length > 0 && category?.id && (
-              <View style={[
-                styles.paginationWrapper,
-                {
-                  paddingVertical: isAndroid ? spacing.md : spacing.lg,
-                  paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-                  marginTop: isAndroid ? spacing.xs : 0,
-                }
-              ]}>
+              <View
+                style={[
+                  styles.paginationWrapper,
+                  {
+                    paddingVertical: isAndroid ? spacing.md : spacing.lg,
+                    paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                    marginTop: isAndroid ? spacing.xs : 0,
+                  },
+                ]}
+              >
                 <Pagination
                   currentPage={currentPage}
                   lastPage={lastPage}

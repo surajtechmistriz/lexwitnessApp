@@ -1,9 +1,9 @@
 // src/hooks/useResponsive.ts
-import { useWindowDimensions, PixelRatio, Platform } from 'react-native';
+import { useWindowDimensions, PixelRatio } from 'react-native';
 
 export const useResponsive = () => {
   const { width, height } = useWindowDimensions();
-  
+
   // Device detection
   const isTablet = width >= 768;
   const isSmallDevice = width < 375;
@@ -92,7 +92,7 @@ export const useResponsive = () => {
 
     getGridItemSize: (columns: number) => {
       const gap = isSmallDevice ? 8 : isTablet ? 20 : 12;
-      return (width - (gap * (columns + 1))) / columns;
+      return (width - gap * (columns + 1)) / columns;
     },
   };
 };

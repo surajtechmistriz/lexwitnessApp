@@ -13,10 +13,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getMenu } from '../../services/api/category';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
+import { getMenu } from '../../services/category.service';
 
 const { width } = Dimensions.get('window');
+
+interface Category {
+  id?: number | string;
+  slug?: string;
+  name?: string;
+  title?: string;
+  articles_count?: number;
+  count?: number;
+}
 
 // ------ Optimized design mapping for Lex Witness ------
 const getDesign = (index: number) => {
@@ -66,7 +75,7 @@ const getDesign = (index: number) => {
 const CategoryList = () => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,13 +100,13 @@ const CategoryList = () => {
     navigation.goBack();
   };
 
-  const handleCategoryPress = (item: any) => {
+  const handleCategoryPress = (item: Category) => {
     navigation.navigate('Category', {
       slug: item.slug,
     });
   };
 
-  const renderItem = ({ item, index }: any) => {
+  const renderItem = ({ item, index }: { item: Category; index: number }) => {
     const design = getDesign(index);
     const categoryName = item.name || item.title;
     const articleCount = item.articles_count || item.count;
@@ -171,52 +180,53 @@ const CategoryList = () => {
         barStyle={isDark ? 'light-content' : 'light-content'}
         backgroundColor={isDark ? '#121212' : '#c9060a'}
       />
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: colors.primary }]}
-      edges={['top', 'left', 'right', ]} // Removed 'bottom' from edges
-    >
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.primary }]}
+        edges={['top', 'left', 'right']} // Removed 'bottom' from edges
+      >
+        {/* Header with Back Button */}
+        <View style={[styles.header, { backgroundColor: colors.background }]}>
+          <TouchableOpacity
+            style={[
+              styles.backButton,
+              { backgroundColor: isDark ? colors.border : 'rgba(0,0,0,0.05)' },
+            ]}
+            onPress={handleBack}
+            activeOpacity={0.7}
+          >
+            <Icon name="arrow-back" size={24} color="#c9060a" />
+          </TouchableOpacity>
 
-      {/* Header with Back Button */}
-      <View style={[styles.header, { backgroundColor: colors.background }]}>
-        <TouchableOpacity
-          style={[
-            styles.backButton,
-            { backgroundColor: isDark ? colors.border : 'rgba(0,0,0,0.05)' },
-          ]}
-          onPress={handleBack}
-          activeOpacity={0.7}
-        >
-          <Icon name="arrow-back" size={24} color="#c9060a" />
-        </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              All Categories
+            </Text>
+            <Text style={[styles.headerSub, { color: colors.primary }]}>
+              Lex Witness Insights
+            </Text>
+          </View>
 
-        <View style={styles.headerContent}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-           All Categories
-          </Text>
-          <Text style={[styles.headerSub, { color: colors.primary }]}>
-            Lex Witness Insights
-          </Text>
+          <View style={styles.headerRight} />
         </View>
 
-        <View style={styles.headerRight} />
-      </View>
-
-      <FlatList
-        data={categories}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => item.id?.toString() || index.toString()}
-        numColumns={2}
-        contentContainerStyle={[
-          styles.listContent,
-          { 
-            backgroundColor: colors.background,
-            paddingBottom: 20, // Added explicit bottom padding
-          },
-        ]}
-        columnWrapperStyle={styles.row}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+        <FlatList
+          data={categories}
+          renderItem={renderItem}
+          keyExtractor={(item, index) =>
+            item.id?.toString() || index.toString()
+          }
+          numColumns={2}
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              backgroundColor: colors.background,
+              paddingBottom: 20, // Added explicit bottom padding
+            },
+          ]}
+          columnWrapperStyle={styles.row}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
     </>
   );
 };
@@ -224,7 +234,7 @@ const CategoryList = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    paddingBottom:40
+    paddingBottom: 40,
   },
 
   header: {
@@ -251,7 +261,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '800' as const,
     marginLeft: 6,
     marginTop: 6,
     letterSpacing: -0.6,
@@ -259,7 +269,7 @@ const styles = StyleSheet.create({
 
   headerSub: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     textTransform: 'uppercase',
     marginTop: 2,
     letterSpacing: 0.8,
@@ -268,11 +278,11 @@ const styles = StyleSheet.create({
   headerRight: {
     width: 40,
   },
-  
+
   listContent: {
     paddingHorizontal: 16,
     // paddingBottom: 20, // Moved to inline style for dynamic control
-    paddingVertical:20
+    paddingVertical: 20,
   },
 
   row: {
@@ -314,7 +324,7 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 22,
     marginBottom: 10,
   },
@@ -337,7 +347,7 @@ const styles = StyleSheet.create({
 
   cardCount: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },

@@ -13,17 +13,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Feather';
 import { useSelector, useDispatch } from 'react-redux';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
-import { RootState } from '../../redux/store';
-import { logout } from '../../redux/slices/authSlice';
-import { toggleTheme } from '../../redux/slices/themeSlice';
-import { LightColors, DarkColors } from '../../constants/colors';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { RootState } from '../../store/store';
+import { logout } from '../../store/slices/authSlice';
+import { toggleTheme } from '../../store/slices/themeSlice';
+// import { LightColors, DarkColors } from '../../constants/colors';
+import { useTheme } from '../../store/hooks/useTheme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ConfirmationModal from './ConfirmationModal';
-import { logoutApi } from '../../screens/auth/api/auth';
+import ConfirmationModal from '../common/ConfirmationModal';
+import { logoutApi } from '../../features/auth/api/auth';
 
 const CustomDrawer = ({ navigation }: any) => {
   const dispatch = useDispatch();
@@ -116,14 +116,10 @@ const CustomDrawer = ({ navigation }: any) => {
         navigation.dispatch(
           CommonActions.reset({
             index: 1,
-            routes: [
-              { name: 'MainApp' },
-              { name: 'SignIn' },
-            ],
+            routes: [{ name: 'MainApp' }, { name: 'SignIn' }],
           }),
         );
       }, 250);
-
     } catch (err) {
       console.log(err);
     } finally {
@@ -146,8 +142,9 @@ const CustomDrawer = ({ navigation }: any) => {
   // ------Computed values------
   const initials = React.useMemo(() => {
     return (
-      `${user?.first_name?.[0] ?? ''}${user?.last_name?.[0] ?? ''
-        }`.toUpperCase() || 'G'
+      `${user?.first_name?.[0] ?? ''}${
+        user?.last_name?.[0] ?? ''
+      }`.toUpperCase() || 'G'
     );
   }, [user?.first_name, user?.last_name]);
 
@@ -157,33 +154,33 @@ const CustomDrawer = ({ navigation }: any) => {
       title: 'MAIN',
       items: isLoggedIn
         ? [
-          {
-            id: 'dashboard',
-            label: 'Dashboard',
-            icon: 'grid',
-            onPress: goToDashboard,
-          },
-          {
-            id: 'subscribe',
-            label: 'Subscribe',
-            icon: 'shopping-bag',
-            onPress: goToSubscription,
-          },
-        ]
+            {
+              id: 'dashboard',
+              label: 'Dashboard',
+              icon: 'grid',
+              onPress: goToDashboard,
+            },
+            {
+              id: 'subscribe',
+              label: 'Subscribe',
+              icon: 'shopping-bag',
+              onPress: goToSubscription,
+            },
+          ]
         : [
-          {
-            id: 'signin',
-            label: 'Sign In',
-            icon: 'arrow-right',
-            onPress: goToSignIn,
-          },
-          {
-            id: 'subscribe',
-            label: 'Subscribe',
-            icon: 'shopping-bag',
-            onPress: goToSubscription,
-          },
-        ],
+            {
+              id: 'signin',
+              label: 'Sign In',
+              icon: 'arrow-right',
+              onPress: goToSignIn,
+            },
+            {
+              id: 'subscribe',
+              label: 'Subscribe',
+              icon: 'shopping-bag',
+              onPress: goToSubscription,
+            },
+          ],
     },
     {
       title: 'LEGAL',
@@ -253,7 +250,9 @@ const CustomDrawer = ({ navigation }: any) => {
         <Text style={[styles.label, { color: colors.text }]}>Dark Mode</Text>
         <Switch
           value={isDark}
-          onValueChange={() => dispatch(toggleTheme())}
+          onValueChange={(_value: boolean) => {
+            dispatch(toggleTheme());
+          }}
           trackColor={{ false: colors.border, true: colors.primary }}
           thumbColor={isDark ? '#fff' : '#f4f3f4'}
         />
@@ -311,8 +310,9 @@ const CustomDrawer = ({ navigation }: any) => {
               <View style={styles.profileInfo}>
                 <Text style={styles.welcomeText}>Welcome back</Text>
                 <Text style={[styles.fullName, { color: colors.text }]}>
-                  {`${user?.first_name || ''} ${user?.last_name || ''
-                    }`.trim() || 'User'}
+                  {`${user?.first_name || ''} ${
+                    user?.last_name || ''
+                  }`.trim() || 'User'}
                 </Text>
                 <View style={styles.emailContainer}>
                   <Icon name="mail" size={12} color={colors.textMuted} />
@@ -495,7 +495,6 @@ const CustomDrawer = ({ navigation }: any) => {
   </View>
 </View> */}
 
-
         {/* Footer */}
         <View style={styles.footerSection}>
           <Text style={[styles.copyright, { color: colors.textMuted }]}>
@@ -571,7 +570,7 @@ const createStyles = (colors: any) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    initials: { fontSize: 24, fontWeight: '700', color: '#ffffff' },
+    initials: { fontSize: 24, fontWeight: '600', color: '#ffffff' },
     profileInfo: { marginLeft: 16, flex: 1 },
     welcomeText: {
       fontSize: 12,
@@ -580,7 +579,7 @@ const createStyles = (colors: any) =>
       letterSpacing: 0.5,
       marginBottom: 2,
     },
-    fullName: { fontSize: 18, fontWeight: '700', marginBottom: 4 },
+    fullName: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
     emailContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     emailText: { fontSize: 12, color: colors.textMuted, flex: 1 },
 
@@ -597,14 +596,14 @@ const createStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border,
     },
-    guestTitle: { fontSize: 20, fontWeight: '700', marginBottom: 6 },
+    guestTitle: { fontSize: 20, fontWeight: '600', marginBottom: 6 },
     guestSubtitle: { fontSize: 13, textAlign: 'center', marginBottom: 16 },
 
     // Menu
     menuSection: { paddingHorizontal: 20, marginTop: 8 },
     sectionLabel: {
       fontSize: 11,
-      fontWeight: '700',
+      fontWeight: '600',
       letterSpacing: 1,
       marginBottom: 8,
       marginLeft: 4,
@@ -624,11 +623,15 @@ const createStyles = (colors: any) =>
       alignItems: 'center',
       marginRight: 10,
     },
-    menuLabel: { flex: 1, fontSize: 14, fontWeight: '600' },
+    menuLabel: { flex: 1, fontSize: 14, fontWeight: '600' as const },
 
     // Quick Actions
     quickActionsArea: { paddingHorizontal: 20, marginBottom: 4 },
-    quickTitle: { fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+    quickTitle: {
+      fontSize: 12,
+      fontWeight: '600' as const,
+      letterSpacing: 0.5,
+    },
     quickItem: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -656,7 +659,12 @@ const createStyles = (colors: any) =>
       borderBottomColor: colors.border,
     },
     lastRow: { borderBottomWidth: 0 },
-    label: { flex: 1, marginLeft: 10, fontSize: 14, fontWeight: '600' },
+    label: {
+      flex: 1,
+      marginLeft: 10,
+      fontSize: 14,
+      fontWeight: '600' as const,
+    },
     themeIndicator: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -704,7 +712,7 @@ const createStyles = (colors: any) =>
       marginRight: 14,
       borderWidth: 1,
     },
-    logoutLabel: { fontSize: 15, fontWeight: '600' },
+    logoutLabel: { fontSize: 15, fontWeight: '600' as const },
 
     //socail icons
 
@@ -716,7 +724,7 @@ const createStyles = (colors: any) =>
 
     // socialTitle: {
     //   fontSize: 12,
-    //   fontWeight: '600',
+    //   fontWeight: '600' as const,
     //   marginBottom: 12,
     // },
 

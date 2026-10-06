@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Dimensions,
   StatusBar,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Config from 'react-native-config';
@@ -17,12 +16,16 @@ import LinearGradient from 'react-native-linear-gradient';
 
 import Icon from 'react-native-vector-icons/Ionicons';
 
-import PricingCard from '../../../components/common/PricingCard';
-import { latesteEdition } from '../../../services/api/latestedition';
-import MainLayout from '../../../MainLayout';
+// import PricingCard from '../../../components/common/PricingCard';
+// import { latesteEdition } from '../../../services/api/latestedition';
+// import MainLayout from '../../../MainLayout';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/hooks/useTheme';
+// import { useTheme } from '../../../store/hooks/useTheme';
 import { useSelector } from 'react-redux';
+import PricingCard from '../../components/common/PricingCard';
+import MainLayout from '../../MainLayout';
+import { useTheme } from '../../store/hooks/useTheme';
+import { latesteEdition } from '../../services/home.service';
 
 type Magazine = {
   id: number;
@@ -52,7 +55,7 @@ const moderateScale = (size: number, factor = 0.5) => {
 
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
-const isLargeTablet = width >= 1024;
+// const isLargeTablet = width >= 1024;
 
 export default function SubscriptionPage() {
   const navigation = useNavigation<any>();
@@ -111,9 +114,8 @@ export default function SubscriptionPage() {
   const heroTitleSize = moderateScale(isTablet ? 44 : 38);
   const heroSubSize = moderateScale(isTablet ? 18 : 16);
   const sectionTitleSize = moderateScale(isTablet ? 28 : 24);
-  const benefitTitleSize = moderateScale(isTablet ? 19 : 17);
 
-   const statusBarColor = '#c9060a';
+  const statusBarColor = '#c9060a';
   const statusBarStyle = 'light-content';
   return (
     <MainLayout
@@ -148,59 +150,70 @@ export default function SubscriptionPage() {
             ]}
           >
             <View style={styles.heroContent}>
-              <Text style={[
-                styles.premiumBadge,
-                { 
-                  fontSize: moderateScale(isSmallDevice ? 10 : 12),
-                  paddingHorizontal: scale(isSmallDevice ? 10 : 12),
-                  paddingVertical: scale(isSmallDevice ? 3 : 4),
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.premiumBadge,
+                  {
+                    fontSize: moderateScale(isSmallDevice ? 10 : 12),
+                    paddingHorizontal: scale(isSmallDevice ? 10 : 12),
+                    paddingVertical: scale(isSmallDevice ? 3 : 4),
+                  },
+                ]}
+              >
                 PREMIUM ACCESS
               </Text>
 
-              <Text style={[
-                styles.heroTitle,
-                { 
-                  fontSize: heroTitleSize,
-                  lineHeight: heroTitleSize * 1.15,
-                  marginBottom: verticalScale(isSmallDevice ? 10 : 15),
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.heroTitle,
+                  {
+                    fontSize: heroTitleSize,
+                    lineHeight: heroTitleSize * 1.15,
+                    marginBottom: verticalScale(isSmallDevice ? 10 : 15),
+                  },
+                ]}
+              >
                 Making Sense{'\n'}of India
               </Text>
 
-              <Text style={[
-                styles.heroSub,
-                {
-                  fontSize: heroSubSize,
-                  lineHeight: heroSubSize * 1.5,
-                  marginBottom: verticalScale(isSmallDevice ? 20 : 30),
-                  paddingHorizontal: isTablet ? scale(40) : 0,
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.heroSub,
+                  {
+                    fontSize: heroSubSize,
+                    lineHeight: heroSubSize * 1.5,
+                    marginBottom: verticalScale(isSmallDevice ? 20 : 30),
+                    paddingHorizontal: isTablet ? scale(40) : 0,
+                  },
+                ]}
+              >
                 Unbiased journalism, deep-dive analysis, and the stories that
                 define our nation.
               </Text>
 
               {/* IMAGE */}
-              <View style={[
-                styles.imageWrapper,
-                { marginBottom: verticalScale(isSmallDevice ? 25 : 35) }
-              ]}>
+              <View
+                style={[
+                  styles.imageWrapper,
+                  { marginBottom: verticalScale(isSmallDevice ? 25 : 35) },
+                ]}
+              >
                 <View
                   style={[
                     styles.imageContainer,
-                    { 
+                    {
                       backgroundColor: '#222',
                       width: imageSize.width,
                       height: imageSize.height,
                       borderRadius: scale(isTablet ? 16 : 14),
-                    }
+                    },
                   ]}
                 >
                   {loading ? (
-                    <ActivityIndicator color="#fff" size={isSmallDevice ? 'small' : 'large'} />
+                    <ActivityIndicator
+                      color="#fff"
+                      size={isSmallDevice ? 'small' : 'large'}
+                    />
                   ) : (
                     <Image
                       source={{ uri: imageUrl }}
@@ -212,22 +225,24 @@ export default function SubscriptionPage() {
               </View>
 
               {/* BUTTONS */}
-              <View style={[
-                styles.buttonContainer,
-                {
-                  maxWidth: isTablet ? 500 : '100%',
-                  gap: verticalScale(isSmallDevice ? 12 : 15),
-                }
-              ]}>
+              <View
+                style={[
+                  styles.buttonContainer,
+                  {
+                    maxWidth: isTablet ? 500 : '100%',
+                    gap: verticalScale(isSmallDevice ? 12 : 15),
+                  },
+                ]}
+              >
                 {!user && (
                   <TouchableOpacity
                     style={[
                       styles.primaryBtn,
-                      { 
+                      {
                         backgroundColor: '#fff',
                         paddingVertical: verticalScale(isSmallDevice ? 14 : 18),
                         borderRadius: scale(isTablet ? 14 : 12),
-                      }
+                      },
                     ]}
                     activeOpacity={0.9}
                     onPress={() =>
@@ -239,10 +254,10 @@ export default function SubscriptionPage() {
                     <Text
                       style={[
                         styles.primaryBtnText,
-                        { 
+                        {
                           color: colors.primary,
                           fontSize: moderateScale(isSmallDevice ? 14 : 16),
-                        }
+                        },
                       ]}
                     >
                       Your First Year is on Us
@@ -253,22 +268,24 @@ export default function SubscriptionPage() {
                 <TouchableOpacity
                   style={[
                     styles.secondaryBtn,
-                    { 
+                    {
                       borderColor: 'rgba(255,255,255,0.5)',
                       paddingVertical: verticalScale(isSmallDevice ? 14 : 16),
                       borderRadius: scale(isTablet ? 14 : 12),
-                    }
+                    },
                   ]}
                   activeOpacity={0.7}
                   onPress={scrollToPricing}
                 >
-                  <Text style={[
-                    styles.secondaryBtnText,
-                    { 
-                      color: '#fff',
-                      fontSize: moderateScale(isSmallDevice ? 13 : 15),
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.secondaryBtnText,
+                      {
+                        color: '#fff',
+                        fontSize: moderateScale(isSmallDevice ? 13 : 15),
+                      },
+                    ]}
+                  >
                     Choose your Subscription Plan
                   </Text>
                 </TouchableOpacity>
@@ -290,56 +307,64 @@ export default function SubscriptionPage() {
               },
             ]}
           >
-            <Text style={[
-              styles.trustText,
-              { 
-                color: colors.textSecondary,
-                fontSize: moderateScale(isTablet ? 14 : 12),
-              }
-            ]}>
+            <Text
+              style={[
+                styles.trustText,
+                {
+                  color: colors.textSecondary,
+                  fontSize: moderateScale(isTablet ? 14 : 12),
+                },
+              ]}
+            >
               Join 100,000+ Premium Readers
             </Text>
           </View>
 
           {/* --- BENEFITS --- */}
-          <View style={[
-            styles.benefitsSection,
-            {
-              paddingHorizontal: scale(isTablet ? 40 : 24),
-              marginTop: verticalScale(isTablet ? 50 : 40),
-            }
-          ]}>
+          <View
+            style={[
+              styles.benefitsSection,
+              {
+                paddingHorizontal: scale(isTablet ? 40 : 24),
+                marginTop: verticalScale(isTablet ? 50 : 40),
+              },
+            ]}
+          >
             <View style={styles.sectionHeader}>
-              <Text style={[
-                styles.sectionTitle,
-                { 
-                  color: colors.text,
-                  fontSize: sectionTitleSize,
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  {
+                    color: colors.text,
+                    fontSize: sectionTitleSize,
+                  },
+                ]}
+              >
                 Subscription Benefits
               </Text>
               <View
                 style={[
                   styles.titleUnderline,
-                  { 
+                  {
                     backgroundColor: colors.primary,
                     width: scale(isTablet ? 50 : 40),
                     height: scale(isTablet ? 5 : 4),
                     marginTop: scale(isTablet ? 10 : 8),
-                  }
+                  },
                 ]}
               />
             </View>
 
-            <View style={[
-              styles.benefitsGrid,
-              {
-                gap: verticalScale(isTablet ? 24 : 20),
-                flexDirection: isTablet ? 'row' : 'column',
-                flexWrap: isTablet ? 'wrap' : 'nowrap',
-              }
-            ]}>
+            <View
+              style={[
+                styles.benefitsGrid,
+                {
+                  gap: verticalScale(isTablet ? 24 : 20),
+                  flexDirection: isTablet ? 'row' : 'column',
+                  flexWrap: isTablet ? 'wrap' : 'nowrap',
+                },
+              ]}
+            >
               <BenefitItem
                 icon="book-outline"
                 title="Unlimited Digital Reading"
@@ -390,7 +415,6 @@ export default function SubscriptionPage() {
                 isDark={isDark}
                 isTablet={isTablet}
               />
-
             </View>
           </View>
 
@@ -401,7 +425,7 @@ export default function SubscriptionPage() {
               {
                 marginTop: verticalScale(isTablet ? 30 : 20),
                 paddingHorizontal: scale(isTablet ? 24 : 16),
-              }
+              },
             ]}
             onLayout={event => {
               pricingY.current = event.nativeEvent.layout.y;
@@ -421,8 +445,6 @@ const BenefitItem = ({
   title,
   text,
   colors,
-  isDark,
-  isTablet,
 }: {
   icon: string;
   title: string;
@@ -431,8 +453,8 @@ const BenefitItem = ({
   isDark: boolean;
   isTablet: boolean;
 }) => {
-  const { width } = Dimensions.get('window');
-  
+  // const { width } = Dimensions.get('window');
+
   return (
     <View
       style={[
@@ -443,7 +465,7 @@ const BenefitItem = ({
           padding: scale(isTablet ? 20 : 16),
           borderRadius: scale(isTablet ? 20 : 16),
           flex: isTablet ? 1 : undefined,
-          minWidth: isTablet ? (width / 3) - 40 : '100%',
+          minWidth: isTablet ? width / 3 - 40 : '100%',
           borderWidth: 1,
         },
       ]}
@@ -456,24 +478,28 @@ const BenefitItem = ({
       />
 
       <View style={styles.benefitContent}>
-        <Text style={[
-          styles.benefitTitle,
-          { 
-            color: colors.text,
-            fontSize: moderateScale(isTablet ? 19 : 17),
-            marginBottom: scale(isTablet ? 6 : 4),
-          }
-        ]}>
+        <Text
+          style={[
+            styles.benefitTitle,
+            {
+              color: colors.text,
+              fontSize: moderateScale(isTablet ? 19 : 17),
+              marginBottom: scale(isTablet ? 6 : 4),
+            },
+          ]}
+        >
           {title}
         </Text>
-        <Text style={[
-          styles.benefitText,
-          { 
-            color: colors.textSecondary,
-            fontSize: moderateScale(isTablet ? 15 : 14),
-            lineHeight: moderateScale(isTablet ? 22 : 20),
-          }
-        ]}>
+        <Text
+          style={[
+            styles.benefitText,
+            {
+              color: colors.textSecondary,
+              fontSize: moderateScale(isTablet ? 15 : 14),
+              lineHeight: moderateScale(isTablet ? 22 : 20),
+            },
+          ]}
+        >
           {text}
         </Text>
       </View>
@@ -484,7 +510,7 @@ const BenefitItem = ({
 /* -------------------- STYLES -------------------- */
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  scrollContent: { 
+  scrollContent: {
     paddingBottom: verticalScale(10),
     flexGrow: 1,
   },
@@ -500,7 +526,7 @@ const styles = StyleSheet.create({
   },
   premiumBadge: {
     color: '#FFD700',
-    fontWeight: '800',
+    fontWeight: '800' as const,
     letterSpacing: 2,
     backgroundColor: 'rgba(255,215,0,0.15)',
     borderRadius: scale(20),
@@ -544,7 +570,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   secondaryBtnText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   /* TRUST */
@@ -553,7 +579,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   trustText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   /* BENEFITS */
@@ -563,7 +589,7 @@ const styles = StyleSheet.create({
     marginBottom: verticalScale(30),
   },
   sectionTitle: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
   titleUnderline: {
     borderRadius: 2,
@@ -582,7 +608,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   benefitTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
   benefitText: {},
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { useTheme } from '../redux/hooks/useTheme';
+import { useTheme } from '../store/hooks/useTheme';
 
 const { height } = Dimensions.get('window');
 
@@ -13,41 +13,20 @@ const ListSkeleton = () => {
     <View style={styles.container}>
       {Array.from({ length: 8 }).map((_, index) => (
         <View key={index} style={styles.card}>
-          <View
-            style={[
-              styles.image,
-              { backgroundColor: skeletonColor },
-            ]}
-          />
+          <View style={[styles.image, { backgroundColor: skeletonColor }]} />
 
           <View style={styles.content}>
             <View
-              style={[
-                styles.category,
-                { backgroundColor: skeletonColor },
-              ]}
+              style={[styles.category, { backgroundColor: skeletonColor }]}
             />
 
-            <View
-              style={[
-                styles.title,
-                { backgroundColor: skeletonColor },
-              ]}
-            />
+            <View style={[styles.title, { backgroundColor: skeletonColor }]} />
 
             <View
-              style={[
-                styles.titleSmall,
-                { backgroundColor: skeletonColor },
-              ]}
+              style={[styles.titleSmall, { backgroundColor: skeletonColor }]}
             />
 
-            <View
-              style={[
-                styles.date,
-                { backgroundColor: skeletonColor },
-              ]}
-            />
+            <View style={[styles.date, { backgroundColor: skeletonColor }]} />
           </View>
         </View>
       ))}

@@ -12,7 +12,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
-  Image,
   Linking,
   StatusBar,
 } from 'react-native';
@@ -25,12 +24,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
-
-import { setProfile } from '../../../redux/slices/authSlice';
-import { loginApi } from '../api/auth';
-import { getProfile } from '../../dashboard/api';
-import { useTheme } from '../../../redux/hooks/useTheme';
-import { useResponsive } from '../../../hooks/useResponsive';
+import { useTheme } from '../../store/hooks/useTheme';
+import { loginApi } from './api/auth';
+import { getProfile } from '../dashboard/api/dashboard.api';
+import { setProfile } from '../../store/slices/authSlice';
 
 const { height, width } = Dimensions.get('window');
 
@@ -53,7 +50,6 @@ const moderateScale = (size: number, factor = 0.5) => {
 
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
-const isLargeTablet = width >= 1024;
 
 const BRAND = {
   primary: '#c9060a',
@@ -107,7 +103,7 @@ const SignInScreen = () => {
               },
             },
           ],
-        })
+        }),
       );
     }
   };
@@ -242,612 +238,736 @@ const SignInScreen = () => {
   };
 
   // Responsive values
-  const headerPaddingTop = verticalScale(isSmallDevice ? 30 : isTablet ? 60 : 40);
-  const headerPaddingBottom = verticalScale(isSmallDevice ? 30 : isTablet ? 60 : 40);
+  const headerPaddingTop = verticalScale(
+    isSmallDevice ? 30 : isTablet ? 60 : 40,
+  );
+  const headerPaddingBottom = verticalScale(
+    isSmallDevice ? 30 : isTablet ? 60 : 40,
+  );
   const formMarginTop = verticalScale(isTablet ? -30 : -20);
   const formPaddingHorizontal = scale(isTablet ? 32 : 24);
   const formPaddingVertical = verticalScale(isTablet ? 32 : 28);
   const logoSize = isTablet ? 100 : 80;
   const logoIconSize = isTablet ? 50 : 40;
-  
+
   // Compact glass icon sizes - slightly smaller
   const glassIconSize = isTablet ? 42 : 36;
   const glassIconInner = isTablet ? 18 : 18;
 
   return (
     <>
-     <StatusBar
-            barStyle="light-content"
-            backgroundColor={colors.primary}
-            translucent={false}
-          />
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.card }]}
-      edges={['left', 'right', 'bottom']}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.flex}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={colors.primary}
+        translucent={false}
+      />
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.card }]}
+        edges={['left', 'right', 'bottom']}
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.scrollContent,
-            { paddingBottom: verticalScale(isTablet ? 30 : 20) }
-          ]}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.flex}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          {/* BACK BUTTON */}
-          <TouchableOpacity
-            style={[
-              styles.backButton,
-              {
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                top: verticalScale(isSmallDevice ? 16 : 30),
-                left: scale(isSmallDevice ? 12 : 16),
-                width: scale(isTablet ? 52 : 44),
-                height: scale(isTablet ? 52 : 44),
-                borderRadius: scale(isTablet ? 35 : 30),
-              }
+          <ScrollView
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: verticalScale(isTablet ? 30 : 20) },
             ]}
-            onPress={handleBack}
-            activeOpacity={0.7}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <Ionicons
-              name="arrow-back"
-              size={moderateScale(isTablet ? 28 : 24)}
-              color={BRAND.white}
-            />
-          </TouchableOpacity>
-
-          {/* HEADER */}
-          <LinearGradient
-            colors={BRAND.primaryGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[
-              styles.gradientHeader,
-              {
-                paddingTop: headerPaddingTop,
-                paddingBottom: headerPaddingBottom,
-                paddingHorizontal: scale(isTablet ? 40 : 24),
-                borderBottomLeftRadius: scale(isTablet ? 40 : 30),
-                borderBottomRightRadius: scale(isTablet ? 40 : 30),
-              }
-            ]}
-          >
-            <View style={[
-              styles.logoContainer,
-              { marginBottom: verticalScale(isTablet ? 24 : 16) }
-            ]}>
-              <View style={[
-                styles.logoCircle,
+            {/* BACK BUTTON */}
+            <TouchableOpacity
+              style={[
+                styles.backButton,
                 {
-                  backgroundColor: BRAND.white,
-                  width: scale(logoSize),
-                  height: scale(logoSize),
-                  borderRadius: scale(logoSize / 2),
-                }
-              ]}>
-                <Ionicons
-                  name="newspaper-outline"
-                  size={scale(logoIconSize)}
-                  color={BRAND.primary}
-                />
-              </View>
-            </View>
-            <Text style={[
-              styles.header,
-              {
-                fontSize: moderateScale(isTablet ? 36 : 28),
-                marginBottom: verticalScale(isTablet ? 8 : 6),
-              }
-            ]}>
-              Welcome Back!
-            </Text>
-            <Text style={[
-              styles.subText,
-              {
-                color: 'rgba(255,255,255,0.85)',
-                fontSize: moderateScale(isTablet ? 17 : 15),
-              }
-            ]}>
-              Sign in to continue reading
-            </Text>
-          </LinearGradient>
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  top: verticalScale(isSmallDevice ? 16 : 30),
+                  left: scale(isSmallDevice ? 12 : 16),
+                  width: scale(isTablet ? 52 : 44),
+                  height: scale(isTablet ? 52 : 44),
+                  borderRadius: scale(isTablet ? 35 : 30),
+                },
+              ]}
+              onPress={handleBack}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="arrow-back"
+                size={moderateScale(isTablet ? 28 : 24)}
+                color={BRAND.white}
+              />
+            </TouchableOpacity>
 
-          {/* FORM */}
-          <View style={[
-            styles.formContainer,
-            {
-              backgroundColor: colors.card,
-              shadowColor: isDark ? '#000' : '#000',
-              marginTop: formMarginTop,
-              marginHorizontal: scale(isTablet ? 40 : 20),
-              borderRadius: scale(isTablet ? 35 : 30),
-              paddingHorizontal: formPaddingHorizontal,
-              paddingTop: formPaddingVertical,
-              paddingBottom: formPaddingVertical,
-              maxWidth: isTablet ? 600 : undefined,
-              alignSelf: isTablet ? 'center' : 'stretch',
-              width: isTablet ? '90%' : undefined,
-            }
-          ]}>
-            {/* Error */}
-            {error ? (
-              <View style={[
-                styles.errorContainer,
+            {/* HEADER */}
+            <LinearGradient
+              colors={BRAND.primaryGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[
+                styles.gradientHeader,
                 {
-                  backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
-                  borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
-                  padding: verticalScale(isTablet ? 16 : 14),
-                  borderRadius: scale(isTablet ? 16 : 14),
-                  marginBottom: verticalScale(isTablet ? 24 : 20),
-                }
-              ]}>
-                <Ionicons name="alert-circle" size={moderateScale(isTablet ? 20 : 18)} color={BRAND.error} />
-                <Text style={[
-                  styles.errorText,
-                  {
-                    color: BRAND.error,
-                    fontSize: moderateScale(isTablet ? 15 : 14),
-                    marginLeft: scale(isTablet ? 12 : 10),
-                  }
-                ]}>
-                  {error}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Email */}
-            <View style={[
-              styles.inputGroup,
-              { marginBottom: verticalScale(isTablet ? 22 : 18) }
-            ]}>
-              <Text style={[
-                styles.label,
-                {
-                  color: colors.text,
-                  fontSize: moderateScale(isTablet ? 15 : 14),
-                  marginBottom: verticalScale(isTablet ? 8 : 6),
-                  marginLeft: scale(isTablet ? 6 : 4),
-                }
-              ]}>
-                Email Address
-              </Text>
+                  paddingTop: headerPaddingTop,
+                  paddingBottom: headerPaddingBottom,
+                  paddingHorizontal: scale(isTablet ? 40 : 24),
+                  borderBottomLeftRadius: scale(isTablet ? 40 : 30),
+                  borderBottomRightRadius: scale(isTablet ? 40 : 30),
+                },
+              ]}
+            >
               <View
                 style={[
-                  styles.inputWrapper,
-                  {
-                    backgroundColor: isDark ? colors.background : BRAND.lightGray,
-                    borderColor: email ? BRAND.primary : (isDark ? colors.border : BRAND.border),
-                    borderWidth: 1.5,
-                    borderRadius: scale(isTablet ? 16 : 14),
-                    paddingHorizontal: scale(isTablet ? 18 : 16),
-                    paddingVertical: isTablet ? 4 : 0,
-                  },
-                  email && styles.inputWrapperFilled,
+                  styles.logoContainer,
+                  { marginBottom: verticalScale(isTablet ? 24 : 16) },
                 ]}
               >
-                <Ionicons
-                  name="mail-outline"
-                  size={moderateScale(isTablet ? 22 : 20)}
-                  color={email ? BRAND.primary : colors.textMuted}
-                  style={[styles.inputIcon, { marginRight: scale(isTablet ? 14 : 12) }]}
-                />
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  editable={!loading}
+                <View
                   style={[
-                    styles.input,
+                    styles.logoCircle,
                     {
-                      color: colors.text,
-                      paddingVertical: verticalScale(isTablet ? 16 : 14),
-                      fontSize: moderateScale(isTablet ? 16 : 15),
-                    }
+                      backgroundColor: BRAND.white,
+                      width: scale(logoSize),
+                      height: scale(logoSize),
+                      borderRadius: scale(logoSize / 2),
+                    },
                   ]}
-                  placeholder="Enter your email"
-                  placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
-                />
-                {email !== '' && !loading && (
-                  <TouchableOpacity onPress={() => setEmail('')}>
-                    <Ionicons name="close-circle" size={moderateScale(isTablet ? 20 : 18)} color={colors.textMuted} />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            {/* Password */}
-            <View style={[
-              styles.inputGroup,
-              { marginBottom: verticalScale(isTablet ? 22 : 18) }
-            ]}>
-              <Text style={[
-                styles.label,
-                {
-                  color: colors.text,
-                  fontSize: moderateScale(isTablet ? 15 : 14),
-                  marginBottom: verticalScale(isTablet ? 8 : 6),
-                  marginLeft: scale(isTablet ? 6 : 4),
-                }
-              ]}>
-                Password
-              </Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  {
-                    backgroundColor: isDark ? colors.background : BRAND.lightGray,
-                    borderColor: password ? BRAND.primary : (isDark ? colors.border : BRAND.border),
-                    borderWidth: 1.5,
-                    borderRadius: scale(isTablet ? 16 : 14),
-                    paddingHorizontal: scale(isTablet ? 18 : 16),
-                    paddingVertical: isTablet ? 4 : 0,
-                  },
-                  password && styles.inputWrapperFilled,
-                ]}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={moderateScale(isTablet ? 22 : 20)}
-                  color={password ? BRAND.primary : colors.textMuted}
-                  style={[styles.inputIcon, { marginRight: scale(isTablet ? 14 : 12) }]}
-                />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  editable={!loading}
-                  style={[
-                    styles.input,
-                    {
-                      color: colors.text,
-                      paddingVertical: verticalScale(isTablet ? 16 : 14),
-                      fontSize: moderateScale(isTablet ? 16 : 15),
-                    }
-                  ]}
-                  placeholder="Enter your password"
-                  placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(prev => !prev)}
                 >
                   <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    size={moderateScale(isTablet ? 22 : 20)}
-                    color={colors.textMuted}
+                    name="newspaper-outline"
+                    size={scale(logoIconSize)}
+                    color={BRAND.primary}
                   />
+                </View>
+              </View>
+              <Text
+                style={[
+                  styles.header,
+                  {
+                    fontSize: moderateScale(isTablet ? 36 : 28),
+                    marginBottom: verticalScale(isTablet ? 8 : 6),
+                  },
+                ]}
+              >
+                Welcome Back!
+              </Text>
+              <Text
+                style={[
+                  styles.subText,
+                  {
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: moderateScale(isTablet ? 17 : 15),
+                  },
+                ]}
+              >
+                Sign in to continue reading
+              </Text>
+            </LinearGradient>
+
+            {/* FORM */}
+            <View
+              style={[
+                styles.formContainer,
+                {
+                  backgroundColor: colors.card,
+                  shadowColor: isDark ? '#000' : '#000',
+                  marginTop: formMarginTop,
+                  marginHorizontal: scale(isTablet ? 40 : 20),
+                  borderRadius: scale(isTablet ? 35 : 30),
+                  paddingHorizontal: formPaddingHorizontal,
+                  paddingTop: formPaddingVertical,
+                  paddingBottom: formPaddingVertical,
+                  maxWidth: isTablet ? 600 : undefined,
+                  alignSelf: isTablet ? 'center' : 'stretch',
+                  width: isTablet ? '90%' : undefined,
+                },
+              ]}
+            >
+              {/* Error */}
+              {error ? (
+                <View
+                  style={[
+                    styles.errorContainer,
+                    {
+                      backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
+                      borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
+                      padding: verticalScale(isTablet ? 16 : 14),
+                      borderRadius: scale(isTablet ? 16 : 14),
+                      marginBottom: verticalScale(isTablet ? 24 : 20),
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="alert-circle"
+                    size={moderateScale(isTablet ? 20 : 18)}
+                    color={BRAND.error}
+                  />
+                  <Text
+                    style={[
+                      styles.errorText,
+                      {
+                        color: BRAND.error,
+                        fontSize: moderateScale(isTablet ? 15 : 14),
+                        marginLeft: scale(isTablet ? 12 : 10),
+                      },
+                    ]}
+                  >
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Email */}
+              <View
+                style={[
+                  styles.inputGroup,
+                  { marginBottom: verticalScale(isTablet ? 22 : 18) },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.label,
+                    {
+                      color: colors.text,
+                      fontSize: moderateScale(isTablet ? 15 : 14),
+                      marginBottom: verticalScale(isTablet ? 8 : 6),
+                      marginLeft: scale(isTablet ? 6 : 4),
+                    },
+                  ]}
+                >
+                  Email Address
+                </Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: isDark
+                        ? colors.background
+                        : BRAND.lightGray,
+                      borderColor: email
+                        ? BRAND.primary
+                        : isDark
+                        ? colors.border
+                        : BRAND.border,
+                      borderWidth: 1.5,
+                      borderRadius: scale(isTablet ? 16 : 14),
+                      paddingHorizontal: scale(isTablet ? 18 : 16),
+                      paddingVertical: isTablet ? 4 : 0,
+                    },
+                    email && styles.inputWrapperFilled,
+                  ]}
+                >
+                  <Ionicons
+                    name="mail-outline"
+                    size={moderateScale(isTablet ? 22 : 20)}
+                    color={email ? BRAND.primary : colors.textMuted}
+                    style={[
+                      styles.inputIcon,
+                      { marginRight: scale(isTablet ? 14 : 12) },
+                    ]}
+                  />
+                  <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!loading}
+                    style={[
+                      styles.input,
+                      {
+                        color: colors.text,
+                        paddingVertical: verticalScale(isTablet ? 16 : 14),
+                        fontSize: moderateScale(isTablet ? 16 : 15),
+                      },
+                    ]}
+                    placeholder="Enter your email"
+                    placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
+                  />
+                  {email !== '' && !loading && (
+                    <TouchableOpacity onPress={() => setEmail('')}>
+                      <Ionicons
+                        name="close-circle"
+                        size={moderateScale(isTablet ? 20 : 18)}
+                        color={colors.textMuted}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Password */}
+              <View
+                style={[
+                  styles.inputGroup,
+                  { marginBottom: verticalScale(isTablet ? 22 : 18) },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.label,
+                    {
+                      color: colors.text,
+                      fontSize: moderateScale(isTablet ? 15 : 14),
+                      marginBottom: verticalScale(isTablet ? 8 : 6),
+                      marginLeft: scale(isTablet ? 6 : 4),
+                    },
+                  ]}
+                >
+                  Password
+                </Text>
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    {
+                      backgroundColor: isDark
+                        ? colors.background
+                        : BRAND.lightGray,
+                      borderColor: password
+                        ? BRAND.primary
+                        : isDark
+                        ? colors.border
+                        : BRAND.border,
+                      borderWidth: 1.5,
+                      borderRadius: scale(isTablet ? 16 : 14),
+                      paddingHorizontal: scale(isTablet ? 18 : 16),
+                      paddingVertical: isTablet ? 4 : 0,
+                    },
+                    password && styles.inputWrapperFilled,
+                  ]}
+                >
+                  <Ionicons
+                    name="lock-closed-outline"
+                    size={moderateScale(isTablet ? 22 : 20)}
+                    color={password ? BRAND.primary : colors.textMuted}
+                    style={[
+                      styles.inputIcon,
+                      { marginRight: scale(isTablet ? 14 : 12) },
+                    ]}
+                  />
+                  <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    editable={!loading}
+                    style={[
+                      styles.input,
+                      {
+                        color: colors.text,
+                        paddingVertical: verticalScale(isTablet ? 16 : 14),
+                        fontSize: moderateScale(isTablet ? 16 : 15),
+                      },
+                    ]}
+                    placeholder="Enter your password"
+                    placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(prev => !prev)}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={moderateScale(isTablet ? 22 : 20)}
+                      color={colors.textMuted}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Actions */}
+              <View
+                style={[
+                  styles.actionRow,
+                  {
+                    marginBottom: verticalScale(isTablet ? 28 : 24),
+                    marginTop: verticalScale(isTablet ? 6 : 4),
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.checkboxRow,
+                    { gap: scale(isTablet ? 12 : 10) },
+                  ]}
+                  onPress={() => setRememberMe(!rememberMe)}
+                  disabled={loading}
+                  activeOpacity={0.7}
+                >
+                  <View
+                    style={[
+                      styles.checkbox,
+                      {
+                        borderColor: rememberMe
+                          ? BRAND.primary
+                          : isDark
+                          ? colors.border
+                          : '#D1D5DB',
+                        backgroundColor: rememberMe ? BRAND.primary : '#fff',
+                        width: scale(isTablet ? 24 : 20),
+                        height: scale(isTablet ? 24 : 20),
+                        borderWidth: scale(isTablet ? 2.5 : 2),
+                        borderRadius: scale(isTablet ? 8 : 6),
+                      },
+                      rememberMe && styles.checkboxActive,
+                    ]}
+                  >
+                    {rememberMe && (
+                      <Ionicons
+                        name="checkmark"
+                        size={scale(isTablet ? 14 : 12)}
+                        color={BRAND.white}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={[
+                      styles.checkboxText,
+                      {
+                        color: colors.text,
+                        fontSize: moderateScale(isTablet ? 15 : 14),
+                      },
+                    ]}
+                  >
+                    Remember me
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('ForgetPassword')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.forgotText,
+                      {
+                        color: colors.primary,
+                        fontSize: moderateScale(isTablet ? 15 : 14),
+                      },
+                    ]}
+                  >
+                    Forgot Password?
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Login Button */}
+              <TouchableOpacity
+                style={[
+                  styles.loginBtn,
+                  loading && styles.disabledBtn,
+                  {
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    shadowOffset: {
+                      width: 0,
+                      height: verticalScale(isTablet ? 6 : 4),
+                    },
+                    shadowOpacity: 0.3,
+                    shadowRadius: scale(isTablet ? 12 : 8),
+                    elevation: isTablet ? 6 : 4,
+                  },
+                ]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={BRAND.primaryGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[
+                    styles.loginGradient,
+                    {
+                      paddingVertical: verticalScale(isTablet ? 18 : 16),
+                      borderRadius: scale(isTablet ? 16 : 14),
+                    },
+                  ]}
+                >
+                  {loading ? (
+                    <ActivityIndicator
+                      color={BRAND.white}
+                      size={isSmallDevice ? 'small' : 'large'}
+                    />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.loginBtnText,
+                        {
+                          fontSize: moderateScale(isTablet ? 18 : 16),
+                          letterSpacing: 0.5,
+                        },
+                      ]}
+                    >
+                      Sign In
+                    </Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Sign Up Link */}
+              <View
+                style={[
+                  styles.footerLinks,
+                  {
+                    marginTop: verticalScale(isTablet ? 24 : 20),
+                    gap: scale(isTablet ? 8 : 6),
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.noAccountText,
+                    {
+                      color: colors.textSecondary,
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                    },
+                  ]}
+                >
+                  Don't have an account?
+                </Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Register')}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.registerLink,
+                      {
+                        color: colors.primary,
+                        fontSize: moderateScale(isTablet ? 16 : 15),
+                      },
+                    ]}
+                  >
+                    Sign Up
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Actions */}
-            <View style={[
-              styles.actionRow,
-              {
-                marginBottom: verticalScale(isTablet ? 28 : 24),
-                marginTop: verticalScale(isTablet ? 6 : 4),
-              }
-            ]}>
-              <TouchableOpacity
-                style={[
-                  styles.checkboxRow,
-                  { gap: scale(isTablet ? 12 : 10) }
-                ]}
-                onPress={() => setRememberMe(!rememberMe)}
-                disabled={loading}
-                activeOpacity={0.7}
-              >
+            {/* SOCIAL ICONS - LIQUID GLASS STYLE (No Labels) */}
+            <View
+              style={[
+                styles.socialSection,
+                {
+                  marginTop: verticalScale(isTablet ? 24 : 16),
+                  marginBottom: verticalScale(isTablet ? 12 : 8),
+                },
+              ]}
+            >
+              <View style={styles.socialDividerContainer}>
                 <View
                   style={[
-                    styles.checkbox,
+                    styles.socialDivider,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.socialDividerText,
+                    { color: colors.textMuted },
+                  ]}
+                >
+                  Connect With Us
+                </Text>
+                <View
+                  style={[
+                    styles.socialDivider,
+                    { backgroundColor: colors.border },
+                  ]}
+                />
+              </View>
+
+              {/* Liquid Glass Icons - No Labels */}
+              <View
+                style={[
+                  styles.socialIconsContainer,
+                  {
+                    gap: scale(isTablet ? 20 : 8),
+                    marginTop: verticalScale(isTablet ? 16 : 12),
+                  },
+                ]}
+              >
+                {/* WhatsApp */}
+                <TouchableOpacity
+                  style={[
+                    styles.glassIconWrapper,
                     {
-                      borderColor: rememberMe ? BRAND.primary : (isDark ? colors.border : '#D1D5DB'),
-                      backgroundColor: rememberMe ? BRAND.primary : '#fff',
-                      width: scale(isTablet ? 24 : 20),
-                      height: scale(isTablet ? 24 : 20),
-                      borderWidth: scale(isTablet ? 2.5 : 2),
-                      borderRadius: scale(isTablet ? 8 : 6),
+                      width: scale(glassIconSize),
+                      height: scale(glassIconSize),
+                      borderRadius: scale(glassIconSize / 2),
+                      backgroundColor: isDark
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(223, 216, 216, 0.5)',
+                      borderColor: isDark
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'rgba(255,255,255,0.6)',
+                      borderWidth: 1,
                     },
-                    rememberMe && styles.checkboxActive
                   ]}
+                  onPress={handleWhatsApp}
+                  activeOpacity={0.8}
                 >
-                  {rememberMe && (
-                    <Ionicons name="checkmark" size={scale(isTablet ? 14 : 12)} color={BRAND.white} />
-                  )}
-                </View>
-                <Text style={[
-                  styles.checkboxText,
-                  {
-                    color: colors.text,
-                    fontSize: moderateScale(isTablet ? 15 : 14),
-                  }
-                ]}>
-                  Remember me
-                </Text>
-              </TouchableOpacity>
+                  <LinearGradient
+                    colors={
+                      isDark
+                        ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                        : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                    }
+                    style={[
+                      styles.glassGradient,
+                      {
+                        borderRadius: scale(glassIconSize / 2),
+                      },
+                    ]}
+                  >
+                    <FontAwesome
+                      name="whatsapp"
+                      size={scale(glassIconInner)}
+                      color={isDark ? '#25D366' : '#25D366'}
+                    />
+                  </LinearGradient>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => navigation.navigate('ForgetPassword')}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.forgotText,
-                  {
-                    color: colors.primary,
-                    fontSize: moderateScale(isTablet ? 15 : 14),
-                  }
-                ]}>
-                  Forgot Password?
-                </Text>
-              </TouchableOpacity>
+                {/* Phone */}
+                <TouchableOpacity
+                  style={[
+                    styles.glassIconWrapper,
+                    {
+                      width: scale(glassIconSize),
+                      height: scale(glassIconSize),
+                      borderRadius: scale(glassIconSize / 2),
+                      backgroundColor: isDark
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(223, 216, 216, 0.5)',
+                      borderColor: isDark
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'rgba(255,255,255,0.6)',
+                      borderWidth: 1,
+                    },
+                  ]}
+                  onPress={handlePhone}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={
+                      isDark
+                        ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                        : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                    }
+                    style={[
+                      styles.glassGradient,
+                      {
+                        borderRadius: scale(glassIconSize / 2),
+                      },
+                    ]}
+                  >
+                    <Feather
+                      name="phone"
+                      size={scale(glassIconInner)}
+                      color={isDark ? '#4CAF50' : '#4CAF50'}
+                    />
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                {/* LinkedIn */}
+                <TouchableOpacity
+                  style={[
+                    styles.glassIconWrapper,
+                    {
+                      width: scale(glassIconSize),
+                      height: scale(glassIconSize),
+                      borderRadius: scale(glassIconSize / 2),
+                      backgroundColor: isDark
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(223, 216, 216, 0.5)',
+                      borderColor: isDark
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'rgba(255,255,255,0.6)',
+                      borderWidth: 1,
+                    },
+                  ]}
+                  onPress={handleLinkedIn}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={
+                      isDark
+                        ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                        : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                    }
+                    style={[
+                      styles.glassGradient,
+                      {
+                        borderRadius: scale(glassIconSize / 2),
+                      },
+                    ]}
+                  >
+                    <FontAwesome
+                      name="linkedin"
+                      size={scale(glassIconInner)}
+                      color={isDark ? '#0A66C2' : '#0A66C2'}
+                    />
+                  </LinearGradient>
+                </TouchableOpacity>
+
+                {/* Email */}
+                <TouchableOpacity
+                  style={[
+                    styles.glassIconWrapper,
+                    {
+                      width: scale(glassIconSize),
+                      height: scale(glassIconSize),
+                      borderRadius: scale(glassIconSize / 2),
+                      backgroundColor: isDark
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(223, 216, 216, 0.5)',
+                      borderColor: isDark
+                        ? 'rgba(255,255,255,0.15)'
+                        : 'rgba(255,255,255,0.6)',
+                      borderWidth: 1,
+                    },
+                  ]}
+                  onPress={handleEmail}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={
+                      isDark
+                        ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)']
+                        : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']
+                    }
+                    style={[
+                      styles.glassGradient,
+                      {
+                        borderRadius: scale(glassIconSize / 2),
+                      },
+                    ]}
+                  >
+                    <Feather
+                      name="mail"
+                      size={scale(glassIconInner)}
+                      color={isDark ? '#EA4335' : '#EA4335'}
+                    />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
 
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[
-                styles.loginBtn,
-                loading && styles.disabledBtn,
-                {
-                  borderRadius: scale(isTablet ? 16 : 14),
-                  shadowOffset: { width: 0, height: verticalScale(isTablet ? 6 : 4) },
-                  shadowOpacity: 0.3,
-                  shadowRadius: scale(isTablet ? 12 : 8),
-                  elevation: isTablet ? 6 : 4,
-                }
-              ]}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              <LinearGradient
-                colors={BRAND.primaryGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+            {/* VERSION INFO */}
+            <View style={styles.versionContainer}>
+              <Text
                 style={[
-                  styles.loginGradient,
+                  styles.versionText,
                   {
-                    paddingVertical: verticalScale(isTablet ? 18 : 16),
-                    borderRadius: scale(isTablet ? 16 : 14),
-                  }
+                    color: colors.textMuted,
+                    fontSize: moderateScale(isTablet ? 14 : 11),
+                  },
                 ]}
               >
-                {loading ? (
-                  <ActivityIndicator color={BRAND.white} size={isSmallDevice ? 'small' : 'large'} />
-                ) : (
-                  <Text style={[
-                    styles.loginBtnText,
-                    {
-                      fontSize: moderateScale(isTablet ? 18 : 16),
-                      letterSpacing: 0.5,
-                    }
-                  ]}>
-                    Sign In
-                  </Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* Sign Up Link */}
-            <View style={[
-              styles.footerLinks,
-              {
-                marginTop: verticalScale(isTablet ? 24 : 20),
-                gap: scale(isTablet ? 8 : 6),
-              }
-            ]}>
-              <Text style={[
-                styles.noAccountText,
-                {
-                  color: colors.textSecondary,
-                  fontSize: moderateScale(isTablet ? 16 : 15),
-                }
-              ]}>
-                Don't have an account?
+                Version 1.0.0
               </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Register')}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.registerLink,
-                  {
-                    color: colors.primary,
-                    fontSize: moderateScale(isTablet ? 16 : 15),
-                  }
-                ]}>
-                  Sign Up
-                </Text>
-              </TouchableOpacity>
             </View>
-          </View>
-
-          {/* SOCIAL ICONS - LIQUID GLASS STYLE (No Labels) */}
-          <View style={[
-            styles.socialSection,
-            {
-              marginTop: verticalScale(isTablet ? 24 : 16),
-              marginBottom: verticalScale(isTablet ? 12 : 8),
-            }
-          ]}>
-            <View style={styles.socialDividerContainer}>
-              <View style={[
-                styles.socialDivider,
-                { backgroundColor: colors.border }
-              ]} />
-              <Text style={[
-                styles.socialDividerText,
-                { color: colors.textMuted }
-              ]}>
-                Connect With Us
-              </Text>
-              <View style={[
-                styles.socialDivider,
-                { backgroundColor: colors.border }
-              ]} />
-            </View>
-
-            {/* Liquid Glass Icons - No Labels */}
-            <View style={[
-              styles.socialIconsContainer,
-              {
-                gap: scale(isTablet ? 20 : 8),
-                marginTop: verticalScale(isTablet ? 16 : 12),
-              }
-            ]}>
-              {/* WhatsApp */}
-              <TouchableOpacity
-                style={[
-                  styles.glassIconWrapper,
-                  {
-                    width: scale(glassIconSize),
-                    height: scale(glassIconSize),
-                    borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                    borderWidth: 1,
-                  }
-                ]}
-                onPress={handleWhatsApp}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
-                  style={[
-                    styles.glassGradient,
-                    {
-                      borderRadius: scale(glassIconSize / 2),
-                    }
-                  ]}
-                >
-                  <FontAwesome
-                    name="whatsapp"
-                    size={scale(glassIconInner)}
-                    color={isDark ? '#25D366' : '#25D366'}
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
-
-              {/* Phone */}
-              <TouchableOpacity
-                style={[
-                  styles.glassIconWrapper,
-                  {
-                    width: scale(glassIconSize),
-                    height: scale(glassIconSize),
-                    borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                    borderWidth: 1,
-                  }
-                ]}
-                onPress={handlePhone}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
-                  style={[
-                    styles.glassGradient,
-                    {
-                      borderRadius: scale(glassIconSize / 2),
-                    }
-                  ]}
-                >
-                  <Feather
-                    name="phone"
-                    size={scale(glassIconInner)}
-                    color={isDark ? '#4CAF50' : '#4CAF50'}
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
-
-              {/* LinkedIn */}
-              <TouchableOpacity
-                style={[
-                  styles.glassIconWrapper,
-                  {
-                    width: scale(glassIconSize),
-                    height: scale(glassIconSize),
-                    borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                    borderWidth: 1,
-                  }
-                ]}
-                onPress={handleLinkedIn}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
-                  style={[
-                    styles.glassGradient,
-                    {
-                      borderRadius: scale(glassIconSize / 2),
-                    }
-                  ]}
-                >
-                  <FontAwesome
-                    name="linkedin"
-                    size={scale(glassIconInner)}
-                    color={isDark ? '#0A66C2' : '#0A66C2'}
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
-
-              {/* Email */}
-              <TouchableOpacity
-                style={[
-                  styles.glassIconWrapper,
-                  {
-                    width: scale(glassIconSize),
-                    height: scale(glassIconSize),
-                    borderRadius: scale(glassIconSize / 2),
-                    backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(223, 216, 216, 0.5)',
-                    borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                    borderWidth: 1,
-                  }
-                ]}
-                onPress={handleEmail}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={isDark ? ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0.02)'] : ['rgba(255,255,255,0.4)', 'rgba(255,255,255,0.1)']}
-                  style={[
-                    styles.glassGradient,
-                    {
-                      borderRadius: scale(glassIconSize / 2),
-                    }
-                  ]}
-                >
-                  <Feather
-                    name="mail"
-                    size={scale(glassIconInner)}
-                    color={isDark ? '#EA4335' : '#EA4335'}
-                  />
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* VERSION INFO */}
-          <View style={styles.versionContainer}>
-            <Text style={[
-              styles.versionText,
-              {
-                color: colors.textMuted,
-                fontSize: moderateScale(isTablet ? 14 : 11),
-              }
-            ]}>
-              Version 1.0.0
-            </Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </>
   );
 };
@@ -893,7 +1013,7 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
     color: '#FFFFFF',
     letterSpacing: -0.5,
     textAlign: 'center',
@@ -927,7 +1047,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   inputWrapper: {
@@ -974,7 +1094,7 @@ const styles = StyleSheet.create({
   },
 
   forgotText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   loginBtn: {
@@ -993,7 +1113,7 @@ const styles = StyleSheet.create({
 
   loginBtnText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   footerLinks: {
@@ -1008,7 +1128,7 @@ const styles = StyleSheet.create({
   },
 
   registerLink: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   // Social Section - Liquid Glass Styles (No Labels)
@@ -1031,7 +1151,7 @@ const styles = StyleSheet.create({
   socialDividerText: {
     paddingHorizontal: 16,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     letterSpacing: 0.5,
   },
 

@@ -1,6 +1,11 @@
 import Share from 'react-native-share';
 
-export const shareArticle = async () => {
+type ShareArticleData = {
+  title: string;
+  slug: string;
+};
+
+export const shareArticle = async (article: ShareArticleData) => {
   try {
     await Share.open({
       title: article.title,

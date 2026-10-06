@@ -1,7 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import Toast, { BaseToast, ErrorToast, ToastConfig } from 'react-native-toast-message';
-import { useTheme } from '../redux/hooks/useTheme';
-import { Platform, View } from 'react-native';
+import Toast, {
+  BaseToast,
+  ErrorToast,
+  ToastConfig,
+} from 'react-native-toast-message';
+import { useTheme } from '../store/hooks/useTheme';
+import { View } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
 // Enhanced Toast Config with better styling and icons
@@ -28,7 +32,7 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
       }}
       text1Style={{
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '600' as const,
         color: isDark ? '#ffffff' : '#1a1a1a',
         letterSpacing: 0.3,
       }}
@@ -39,15 +43,17 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
         marginTop: 2,
       }}
       renderLeadingIcon={() => (
-        <View style={{
-          marginLeft: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Icon 
-            name="check-circle" 
-            size={24} 
-            color={colors.success || '#22c55e'} 
+        <View
+          style={{
+            marginLeft: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon
+            name="check-circle"
+            size={24}
+            color={colors.success || '#22c55e'}
           />
         </View>
       )}
@@ -76,7 +82,7 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
       }}
       text1Style={{
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '600' as const,
         color: isDark ? '#ffffff' : '#1a1a1a',
         letterSpacing: 0.3,
       }}
@@ -87,15 +93,17 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
         marginTop: 2,
       }}
       renderLeadingIcon={() => (
-        <View style={{
-          marginLeft: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Icon 
-            name="alert-circle" 
-            size={24} 
-            color={colors.error || '#ef4444'} 
+        <View
+          style={{
+            marginLeft: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon
+            name="alert-circle"
+            size={24}
+            color={colors.error || '#ef4444'}
           />
         </View>
       )}
@@ -124,7 +132,7 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
       }}
       text1Style={{
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '600' as const,
         color: isDark ? '#ffffff' : '#1a1a1a',
         letterSpacing: 0.3,
       }}
@@ -135,16 +143,14 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
         marginTop: 2,
       }}
       renderLeadingIcon={() => (
-        <View style={{
-          marginLeft: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Icon 
-            name="info" 
-            size={24} 
-            color={colors.primary || '#c9060a'} 
-          />
+        <View
+          style={{
+            marginLeft: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon name="info" size={24} color={colors.primary || '#c9060a'} />
         </View>
       )}
     />
@@ -172,7 +178,7 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
       }}
       text1Style={{
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '600' as const,
         color: isDark ? '#ffffff' : '#1a1a1a',
         letterSpacing: 0.3,
       }}
@@ -183,16 +189,14 @@ export const getToastConfig = (colors: any, isDark: boolean): ToastConfig => ({
         marginTop: 2,
       }}
       renderLeadingIcon={() => (
-        <View style={{
-          marginLeft: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <Icon 
-            name="alert-triangle" 
-            size={24} 
-            color="#f59e0b" 
-          />
+        <View
+          style={{
+            marginLeft: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon name="alert-triangle" size={24} color="#f59e0b" />
         </View>
       )}
     />
@@ -237,15 +241,18 @@ export const useToastConfig = () => {
       marginTop: 2,
     };
 
-    const renderIcon = (iconName: string, color: string) => () => (
-      <View style={{
-        marginLeft: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-        <Icon name={iconName} size={24} color={color} />
-      </View>
-    );
+    const renderIcon = (iconName: string, color: string) => () =>
+      (
+        <View
+          style={{
+            marginLeft: 12,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Icon name={iconName} size={24} color={color} />
+        </View>
+      );
 
     return {
       success: (props: any) => (
@@ -259,7 +266,10 @@ export const useToastConfig = () => {
           contentContainerStyle={baseContentStyle}
           text1Style={text1Style}
           text2Style={text2Style}
-          renderLeadingIcon={renderIcon('check-circle', colors.success || '#22c55e')}
+          renderLeadingIcon={renderIcon(
+            'check-circle',
+            colors.success || '#22c55e',
+          )}
         />
       ),
       error: (props: any) => (
@@ -273,7 +283,10 @@ export const useToastConfig = () => {
           contentContainerStyle={baseContentStyle}
           text1Style={text1Style}
           text2Style={text2Style}
-          renderLeadingIcon={renderIcon('alert-circle', colors.error || '#ef4444')}
+          renderLeadingIcon={renderIcon(
+            'alert-circle',
+            colors.error || '#ef4444',
+          )}
         />
       ),
       info: (props: any) => (
@@ -324,7 +337,7 @@ export const showToast = {
       bottomOffset: 40,
     });
   },
-  
+
   error: (text1: string, text2?: string) => {
     Toast.show({
       type: 'error',
@@ -337,7 +350,7 @@ export const showToast = {
       bottomOffset: 40,
     });
   },
-  
+
   info: (text1: string, text2?: string) => {
     Toast.show({
       type: 'info',
@@ -350,7 +363,7 @@ export const showToast = {
       bottomOffset: 40,
     });
   },
-  
+
   warning: (text1: string, text2?: string) => {
     Toast.show({
       type: 'warning',
@@ -369,7 +382,7 @@ export const showToast = {
 export const ToastContainer = () => {
   const { colors, isDark } = useTheme();
   const toastConfig = getToastConfig(colors, isDark);
-  
+
   return (
     <Toast
       config={toastConfig}
@@ -381,7 +394,6 @@ export const ToastContainer = () => {
     />
   );
 };
-
 
 // Usage in components (simplified)
 // Instead of:

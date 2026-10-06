@@ -8,32 +8,23 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Dimensions,
-  Platform,
   Modal,
 } from 'react-native';
-
 import LinearGradient from 'react-native-linear-gradient';
 import RazorpayCheckout from 'react-native-razorpay';
-
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { getPlans } from '../../services/api/plans';
-import {
-  upgradePlan,
-  verifySubscriptionPayment,
-} from '../../services/api/subscription';
-import { refreshProfile } from '../../utils/helper/refreshProfile';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 
-const { width, height } = Dimensions.get('window');
+import { refreshProfile } from '../../utils/helpers/refreshProfile';
+import { upgradePlan, verifySubscriptionPayment } from '../../services/subscription.service';
+import { getMembershipPlans } from '../../services/membership.service';
 
 const PricingCard = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
-  const { colors, isDark } = useTheme();
-
+  const { colors } = useTheme();
   const { user, subscription } = useSelector((state: any) => state.auth);
 
   const [plans, setPlans] = useState<any[]>([]);
@@ -41,28 +32,33 @@ const PricingCard = () => {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<number>(2);
 
-  useEffect(() => {
-    fetchPlans();
-  }, []);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     try {
-      const res = await getPlans();
+      const res = await getMembershipPlans();
+
       const data = Array.isArray(res)
         ? res
         : Array.isArray(res?.data)
-          ? res.data
-          : [];
+        ? res.data
+        : [];
+
       setPlans(data);
     } catch (error) {
       console.log('PLANS ERROR =>', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   const parseFeatures = (feature: string) => {
     if (!feature) return [];
+
     const matches = feature.match(/<li>(.*?)<\/li>/g);
+
     if (!matches) return [];
+
     return matches.map(item => item.replace(/<\/?li>/g, '').trim());
   };
 
@@ -74,40 +70,11 @@ const PricingCard = () => {
     return !!user;
   }, [user]);
 
-  const goToRegister = () => {
+  const goToRegister = useCallback(() => {
     navigation.navigate('Register', {
-      selectedPlanId: selectedPlanId,
+      selectedPlanId,
     });
-  };
-
-  // const handlePaymentSuccess = async () => {
-  //   try {
-  //     await refreshProfile(dispatch);
-  //   } catch (e) {
-  //     console.log(e);
-  //   } finally {
-  //     setProcessingPayment(false);
-
-  //     navigation.dispatch(
-  //       CommonActions.reset({
-  //         index: 0,
-  //         routes: [
-  //           {
-  //             name: 'MainApp',
-  //             state: {
-  //               routes: [
-  //                 {
-  //                   name: 'Dashboard',
-  //                 },
-  //               ],
-  //               index: 0,
-  //             },
-  //           },
-  //         ],
-  //       }),
-  //     );
-  //   }
-  // };
+  }, [navigation, selectedPlanId]);
 
   const handleSubscribe = useCallback(async () => {
     if (!selectedPlan) return;
@@ -145,28 +112,22 @@ const PricingCard = () => {
         },
       });
 
-      // Show full screen loader after payment success
       setProcessingPayment(true);
-      console.log("1 Payment Success");
+      console.log('1 Payment Success');
+
       const verifyPayload = {
         razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
         razorpay_order_id: razorpayResponse?.razorpay_order_id,
         razorpay_signature: razorpayResponse?.razorpay_signature,
         membership_plan_id: selectedPlan.id,
-        purchase_type: 'UPGRADE',
+        purchase_type: 'UPGRADE' as const,
       };
 
-      // setProcessingPayment(true);
-
       try {
-
-
         await verifySubscriptionPayment(verifyPayload);
 
-        // Hide loader
         setProcessingPayment(false);
 
-        // Go to Dashboard immediately
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -182,21 +143,17 @@ const PricingCard = () => {
           }),
         );
 
-        // Refresh profile in background
         refreshProfile(dispatch).catch(console.log);
-
       } catch (e: any) {
         setProcessingPayment(false);
 
         Alert.alert(
-          "Error",
-          e?.response?.data?.message || "Payment verification failed"
+          'Error',
+          e?.response?.data?.message || 'Payment verification failed',
         );
       } finally {
         setLoading(false);
       }
-
-      // await handlePaymentSuccess();
     } catch (error: any) {
       setProcessingPayment(false);
 
@@ -208,13 +165,13 @@ const PricingCard = () => {
       Alert.alert(
         'Error',
         error?.response?.data?.message ||
-        error?.message ||
-        'Something went wrong',
+          error?.message ||
+          'Something went wrong',
       );
     } finally {
       setLoading(false);
     }
-  }, [selectedPlan, user, dispatch, navigation]);
+  }, [dispatch, goToRegister, navigation, selectedPlan, user]);
 
   if (!plans.length) {
     return (
@@ -231,22 +188,22 @@ const PricingCard = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.headerBadge}>
             <Text style={styles.headerBadgeText}>Choose Your Plan</Text>
           </View>
+
           <Text style={[styles.title, { color: colors.text }]}>
             Premium Access
           </Text>
+
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Select the perfect plan for your needs
           </Text>
         </View>
 
-        {/* Plans Grid */}
         <View style={styles.plansGrid}>
-          {plans.map((plan, index) => {
+          {plans.map(plan => {
             const isSelected = selectedPlanId === plan.id;
             const isFreePlanCard = Number(plan.price) === 0;
             const disableFreePlan = isFreePlanCard && isFreePlanDisabled;
@@ -270,7 +227,6 @@ const PricingCard = () => {
                   isCurrentPlan && styles.currentPlanCard,
                 ]}
               >
-                {/* Badge */}
                 {(plan.tag || isCurrentPlan) && (
                   <View style={styles.badgeContainer}>
                     {plan.tag && !disableFreePlan && (
@@ -280,6 +236,7 @@ const PricingCard = () => {
                         <Text style={styles.badgeText}>{plan.tag}</Text>
                       </View>
                     )}
+
                     {isCurrentPlan && (
                       <View
                         style={[styles.badge, { backgroundColor: '#10b981' }]}
@@ -287,6 +244,7 @@ const PricingCard = () => {
                         <Text style={styles.badgeText}>Active</Text>
                       </View>
                     )}
+
                     {disableFreePlan && (
                       <View
                         style={[styles.badge, { backgroundColor: '#6b7280' }]}
@@ -297,19 +255,19 @@ const PricingCard = () => {
                   </View>
                 )}
 
-                {/* Plan Name */}
                 <Text style={[styles.planName, { color: colors.text }]}>
                   {plan.name}
                 </Text>
 
-                {/* Price */}
                 <View style={styles.priceContainer}>
                   <Text style={[styles.currency, { color: colors.text }]}>
                     ₹
                   </Text>
+
                   <Text style={[styles.price, { color: colors.text }]}>
                     {plan.price}
                   </Text>
+
                   {Number(plan.price) > 0 && (
                     <Text
                       style={[styles.pricePeriod, { color: colors.textMuted }]}
@@ -319,7 +277,6 @@ const PricingCard = () => {
                   )}
                 </View>
 
-                {/* Features */}
                 <View style={styles.featuresContainer}>
                   {features.slice(0, 4).map((item: string, index: number) => (
                     <View key={index} style={styles.featureRow}>
@@ -328,10 +285,13 @@ const PricingCard = () => {
                           ✓
                         </Text>
                       </View>
+
                       <Text
                         style={[
                           styles.featureText,
-                          { color: colors.textSecondary },
+                          {
+                            color: colors.textSecondary,
+                          },
                         ]}
                       >
                         {item}
@@ -340,19 +300,22 @@ const PricingCard = () => {
                   ))}
                 </View>
 
-                {/* Select Button */}
                 <View
                   style={[
                     styles.selectButton,
                     isSelected && styles.selectButtonActive,
-                    !isSelected && { backgroundColor: colors.background },
+                    !isSelected && {
+                      backgroundColor: colors.background,
+                    },
                   ]}
                 >
                   <Text
                     style={[
                       styles.selectButtonText,
                       isSelected && styles.selectButtonTextActive,
-                      !isSelected && { color: colors.textSecondary },
+                      !isSelected && {
+                        color: colors.textSecondary,
+                      },
                     ]}
                   >
                     {isSelected ? 'Selected' : 'Select Plan'}
@@ -363,10 +326,9 @@ const PricingCard = () => {
           })}
         </View>
 
-        {/* CTA Button */}
         <View style={styles.ctaContainer}>
           <TouchableOpacity
-            style={[styles.subscribeBtn]}
+            style={styles.subscribeBtn}
             activeOpacity={0.85}
             disabled={loading || processingPayment}
             onPress={handleSubscribe}
@@ -384,6 +346,7 @@ const PricingCard = () => {
                   <Text style={styles.subscribeText}>
                     {user ? 'Upgrade Now' : 'Get Started'}
                   </Text>
+
                   <View style={styles.iconCircle}>
                     <Text style={styles.arrow}>→</Text>
                   </View>
@@ -400,17 +363,11 @@ const PricingCard = () => {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={processingPayment}
-        transparent
-        animationType="fade"
-      >
+      <Modal visible={processingPayment} transparent animationType="fade">
         <View style={styles.paymentOverlay}>
           <ActivityIndicator size="large" color="#fff" />
 
-          <Text style={styles.paymentText}>
-            Processing Payment...
-          </Text>
+          <Text style={styles.paymentText}>Processing Payment...</Text>
 
           <Text style={styles.paymentSubText}>
             Please wait while we update your subscription
@@ -437,8 +394,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Header Styles
   header: {
     alignItems: 'center',
     marginBottom: 24,
@@ -454,12 +409,12 @@ const styles = StyleSheet.create({
   headerBadgeText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     letterSpacing: 0.5,
   },
   title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '800' as const,
     textAlign: 'center',
     marginBottom: 8,
   },
@@ -469,13 +424,9 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 20,
   },
-
-  // Plans Grid
   plansGrid: {
     gap: 16,
   },
-
-  // Card Styles
   card: {
     borderRadius: 20,
     padding: 20,
@@ -506,8 +457,6 @@ const styles = StyleSheet.create({
   disabledCard: {
     opacity: 0.5,
   },
-
-  // Badge Styles
   badgeContainer: {
     flexDirection: 'row',
     marginBottom: 12,
@@ -522,19 +471,15 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#fff',
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
-
-  // Plan Name
   planName: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 8,
   },
-
-  // Price Styles
   priceContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -542,7 +487,7 @@ const styles = StyleSheet.create({
   },
   currency: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 4,
   },
   price: {
@@ -556,8 +501,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     marginBottom: 6,
   },
-
-  // Features
   featuresContainer: {
     gap: 10,
     marginBottom: 20,
@@ -577,15 +520,13 @@ const styles = StyleSheet.create({
   },
   check: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   featureText: {
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
   },
-
-  // Select Button
   selectButton: {
     borderRadius: 12,
     paddingVertical: 12,
@@ -598,14 +539,12 @@ const styles = StyleSheet.create({
     borderColor: '#c9060a',
   },
   selectButtonText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
     fontSize: 14,
   },
   selectButtonTextActive: {
     color: '#fff',
   },
-
-  // CTA Section
   ctaContainer: {
     marginTop: 24,
     alignItems: 'center',
@@ -634,7 +573,7 @@ const styles = StyleSheet.create({
   subscribeText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.3,
   },
   iconCircle: {
@@ -650,14 +589,13 @@ const styles = StyleSheet.create({
   arrow: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   footerNote: {
     fontSize: 12,
     marginTop: 16,
     textAlign: 'center',
   },
-
   paymentOverlay: {
     position: 'absolute',
     width: '100%',
@@ -668,14 +606,12 @@ const styles = StyleSheet.create({
     zIndex: 9999,
     elevation: 9999,
   },
-
   paymentText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 20,
   },
-
   paymentSubText: {
     color: '#ddd',
     fontSize: 14,

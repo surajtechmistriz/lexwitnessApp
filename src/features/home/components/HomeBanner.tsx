@@ -9,7 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useTheme } from '../../../redux/hooks/useTheme';
+import { useTheme } from '../../../store/hooks/useTheme';
 import Toast from 'react-native-toast-message';
 
 const HomeBanner = () => {
@@ -21,8 +21,9 @@ const HomeBanner = () => {
   const handleSubmit = () => {
     if (!name || !email) {
       Toast.show({
-             type: 'error',
-             text1: 'Name and email are required',})
+        type: 'error',
+        text1: 'Name and email are required',
+      });
       return;
     }
 
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 6,
   },
 
@@ -172,6 +173,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 });

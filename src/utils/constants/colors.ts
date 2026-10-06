@@ -7,7 +7,7 @@ export const LightColors: ThemeColors = {
   primaryBackground: '#fef0f0',
   background: '#f5f5f7',
   card: '#ffffff',
-    glass: 'transparent', // or 'rgba(255,255,255,0.08)'
+  glass: 'transparent', // or 'rgba(255,255,255,0.08)'
   text: '#1a1a1b',
   textSecondary: '#6b7280',
   textMuted: '#9ca3af',
@@ -28,6 +28,7 @@ export const DarkColors: ThemeColors = {
   primaryBackground: '#2d1a1a',
   background: '#121212',
   card: '#1e1e1e',
+  glass: 'transparent', //  ADD — matches LightColors
   text: '#ffffff',
   textSecondary: '#b0b0b0',
   textMuted: '#6b7280',

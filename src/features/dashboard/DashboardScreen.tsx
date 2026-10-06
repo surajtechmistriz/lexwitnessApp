@@ -19,14 +19,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RazorpayCheckout from 'react-native-razorpay';
 import Toast from 'react-native-toast-message';
 
-import { logoutApi } from '../../screens/auth/api/auth';
-import { logout } from '../../redux/slices/authSlice';
-import { renewPlan, verifyRenewPayment } from '../../services/api/subscription';
-import { refreshProfile } from '../../utils/helper/refreshProfile';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { logout } from '../../store/slices/authSlice';
+import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
+import { refreshProfile } from '../../utils/helpers/refreshProfile';
+import { logoutApi } from '../../services/auth.service';
+import { renewPlan, verifyRenewPayment } from '../../services/subscription.service';
 
 // ------ TYPES ------
 
@@ -73,23 +73,13 @@ const DashboardScreen = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
-  const {
-    isTablet,
-    isSmallDevice,
-    moderateScale,
-    spacing,
-    font,
-    sizes,
-    wp,
-    hp,
-    pixelRatio
-  } = useResponsive();
+  const { isTablet, isSmallDevice, moderateScale } = useResponsive();
 
   const { user, subscription, nextSubscriptions } = useSelector(
     (state: any) => state.auth,
   ) as AuthState;
 
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
 
   const [expandedPlans, setExpandedPlans] = useState<number[]>([]);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -149,26 +139,25 @@ const DashboardScreen = () => {
 
   const remainingDays = subscription?.end_date
     ? Math.ceil(
-      (new Date(subscription.end_date).getTime() - now.getTime()) /
-      (1000 * 60 * 60 * 24),
-    )
+        (new Date(subscription.end_date).getTime() - now.getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
     : null;
 
   const remainingDaysLabel =
     remainingDays === null
       ? '—'
       : remainingDays <= 0
-        ? 'Expired'
-        : `${remainingDays} day${remainingDays > 1 ? 's' : ''} left`;
+      ? 'Expired'
+      : `${remainingDays} day${remainingDays > 1 ? 's' : ''} left`;
 
-  const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${subscription?.plan?.duration_unit || ''
-    }`;
+  const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${
+    subscription?.plan?.duration_unit || ''
+  }`;
 
   const upcomingPlans = nextSubscriptions || [];
 
   // ------ FIXED LOGOUT HANDLER ------
-
-
 
   const navigateToSignIn = () => {
     navigation.dispatch(
@@ -217,10 +206,7 @@ const DashboardScreen = () => {
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
-          routes: [
-            { name: 'MainApp' },
-            { name: 'SignIn' },
-          ],
+          routes: [{ name: 'MainApp' }, { name: 'SignIn' }],
         }),
       );
 
@@ -277,23 +263,25 @@ const DashboardScreen = () => {
     }
   };
 
-
   const handleLogout = () => {
     if (isLoggingOut) return;
-    console.log("Logout pressed");
+    console.log('Logout pressed');
 
     setShowLogoutModal(true);
   };
 
-
   useEffect(() => {
-    console.log("showLogoutModal:", showLogoutModal);
+    console.log('showLogoutModal:', showLogoutModal);
   }, [showLogoutModal]);
   // ------  RENEW PLAN ------
 
   const handleRenewPlan = async () => {
     try {
-      const res = await renewPlan(subscription?.id);
+      if (!subscription?.id) {
+        return;
+      }
+
+      const res = await renewPlan(subscription.id);
 
       if (!res?.status) {
         Alert.alert('Error', res?.message || 'Unable to renew plan');
@@ -393,17 +381,21 @@ const DashboardScreen = () => {
   const isAndroid = Platform.OS === 'android';
 
   const cardMargin = isTablet ? 24 : 16;
-  const headerPaddingTop = (isTablet ? 0 : 0);
+  const headerPaddingTop = isTablet ? 0 : 0;
   const headerPaddingHorizontal = isTablet ? 32 : 20;
-  const headerPaddingBottom = isAndroid ? (isTablet ? 40 : 55) : (isTablet ? 45 : 65);
+  const headerPaddingBottom = isAndroid
+    ? isTablet
+      ? 40
+      : 55
+    : isTablet
+    ? 45
+    : 65;
   const avatarSize = isTablet ? 76 : 60;
   const borderRadius = isTablet ? 24 : 20;
 
-  const androidFontWeight = isAndroid ? '600' : '700';
   const androidFontWeightBold = isAndroid ? '800' : '700';
 
   return (
-
     <SafeAreaView
       edges={['top']}
       style={[
@@ -432,9 +424,15 @@ const DashboardScreen = () => {
           contentContainerStyle={[
             styles.scrollContainer,
             {
-              paddingBottom: isAndroid ? (isTablet ? 40 : 30) : (isTablet ? 50 : 40),
+              paddingBottom: isAndroid
+                ? isTablet
+                  ? 40
+                  : 30
+                : isTablet
+                ? 50
+                : 40,
               paddingTop: isAndroid ? (isSmallDevice ? 0 : 0) : 0,
-            }
+            },
           ]}
         >
           {/* HEADER */}
@@ -449,16 +447,24 @@ const DashboardScreen = () => {
                 borderBottomLeftRadius: isTablet ? 32 : 28,
                 borderBottomRightRadius: isTablet ? 32 : 28,
                 elevation: isAndroid ? 8 : 0,
-              }
+              },
             ]}
           >
-            <View style={[
-              styles.topRow,
-              {
-                marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 15),
-                marginTop: 0,
-              }
-            ]}>
+            <View
+              style={[
+                styles.topRow,
+                {
+                  marginBottom: isAndroid
+                    ? isTablet
+                      ? 16
+                      : 12
+                    : isTablet
+                    ? 20
+                    : 15,
+                  marginTop: 0,
+                },
+              ]}
+            >
               <TouchableOpacity
                 onPress={handleBack}
                 style={[
@@ -467,11 +473,14 @@ const DashboardScreen = () => {
                     width: isTablet ? 48 : 40,
                     height: isTablet ? 48 : 40,
                     borderRadius: isTablet ? 24 : 20,
-                    android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-                  }
+                  },
                 ]}
               >
-                <Icon name="arrow-left" size={isAndroid ? (isTablet ? 24 : 28) : (isTablet ? 26 : 22)} color="#fff" />
+                <Icon
+                  name="arrow-left"
+                  size={isAndroid ? (isTablet ? 24 : 28) : isTablet ? 26 : 22}
+                  color="#fff"
+                />
               </TouchableOpacity>
               <View style={{ flex: 1 }} />
             </View>
@@ -486,37 +495,69 @@ const DashboardScreen = () => {
                     height: avatarSize,
                     borderRadius: avatarSize / 2,
                     marginRight: isTablet ? 16 : 12,
-                  }
+                  },
                 ]}
               >
-                <Text style={[
-                  styles.avatarText,
-                  {
-                    fontSize: isAndroid ? (isTablet ? 30 : 24) : (isTablet ? 34 : 28),
-                    fontWeight: androidFontWeightBold,
-                  }
-                ]}>
-                  {user?.first_name?.charAt(0) + user?.last_name?.charAt(0) || 'U'}
+                <Text
+                  style={[
+                    styles.avatarText,
+                    {
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 30
+                          : 24
+                        : isTablet
+                        ? 34
+                        : 28,
+                      fontWeight: androidFontWeightBold,
+                    },
+                  ]}
+                >
+                  {`${user?.first_name?.charAt(0) ?? ''}${
+                    user?.last_name?.charAt(0) ?? ''
+                  }` || 'U'}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[
-                  styles.welcome,
-                  {
-                    fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                    fontWeight: isAndroid ? '500' : '400',
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.welcome,
+                    {
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 16
+                          : 14
+                        : isTablet
+                        ? 16
+                        : 14,
+                      fontWeight: isAndroid ? '500' : '400',
+                    },
+                  ]}
+                >
                   Welcome Back
                 </Text>
-                <Text style={[
-                  styles.name,
-                  {
-                    fontSize: isAndroid ? (isTablet ? 26 : 20) : (isTablet ? 30 : 24),
-                    fontWeight: androidFontWeightBold,
-                    marginTop: isAndroid ? (isTablet ? 2 : 1) : (isTablet ? 4 : 2),
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.name,
+                    {
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 26
+                          : 20
+                        : isTablet
+                        ? 30
+                        : 24,
+                      fontWeight: androidFontWeightBold,
+                      marginTop: isAndroid
+                        ? isTablet
+                          ? 2
+                          : 1
+                        : isTablet
+                        ? 4
+                        : 2,
+                    },
+                  ]}
+                >
                   {user?.first_name} {user?.last_name}
                 </Text>
               </View>
@@ -528,11 +569,14 @@ const DashboardScreen = () => {
                     width: isTablet ? 48 : 40,
                     height: isTablet ? 48 : 40,
                     borderRadius: isTablet ? 24 : 20,
-                    android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-                  }
+                  },
                 ]}
               >
-                <Icon name="bell" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 24 : 20)} color="#fff" />
+                <Icon
+                  name="bell"
+                  size={isAndroid ? (isTablet ? 22 : 18) : isTablet ? 24 : 20}
+                  color="#fff"
+                />
               </TouchableOpacity>
             </View>
           </LinearGradient>
@@ -546,169 +590,309 @@ const DashboardScreen = () => {
                 backgroundColor: colors.card,
                 shadowColor: isDark ? '#000' : '#000',
                 marginHorizontal: cardMargin,
-                marginTop: isAndroid ? (isTablet ? -20 : -16) : (isTablet ? -24 : -18),
+                marginTop: isAndroid
+                  ? isTablet
+                    ? -20
+                    : -16
+                  : isTablet
+                  ? -24
+                  : -18,
                 borderRadius: borderRadius,
-                padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-                shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
-                shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
-                elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
-              }
+                padding: isAndroid ? (isTablet ? 20 : 16) : isTablet ? 24 : 20,
+                shadowOffset: {
+                  width: 0,
+                  height: isAndroid ? 2 : isTablet ? 6 : 4,
+                },
+                shadowRadius: isAndroid ? 4 : isTablet ? 12 : 8,
+                elevation: isAndroid ? (isTablet ? 8 : 4) : isTablet ? 6 : 4,
+              },
             ]}
           >
-            <View style={[
-              styles.sectionHeader,
-              {
-                marginBottom: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-              }
-            ]}>
-              <Text style={[
-                styles.cardTitle,
+            <View
+              style={[
+                styles.sectionHeader,
                 {
-                  color: colors.text,
-                  fontSize: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 22 : 18),
-                  fontWeight: androidFontWeightBold,
-                }
-              ]}>
+                  marginBottom: isAndroid
+                    ? isTablet
+                      ? 20
+                      : 16
+                    : isTablet
+                    ? 24
+                    : 20,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.cardTitle,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 24
+                        : 20
+                      : isTablet
+                      ? 22
+                      : 18,
+                    fontWeight: androidFontWeightBold,
+                  },
+                ]}
+              >
                 Personal Information
               </Text>
-            <View
-  style={[
-    styles.iconCircle,
-    {
-      backgroundColor: colors.primaryBackground,
-      width: isTablet ? 40 : 34,
-      height: isTablet ? 40 : 34,
-      borderRadius: isTablet ? 20 : 17,
-    },
-  ]}
->
-  <TouchableOpacity
-    onPress={() => navigation.navigate('EditProfile')}
-    style={{
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-  >
-    <Icon
-      name="edit"
-      size={isAndroid ? (isTablet ? 18 : 16) : (isTablet ? 20 : 16)}
-      color={colors.primary}
-    />
-  </TouchableOpacity>
-</View>
+              <View
+                style={[
+                  styles.iconCircle,
+                  {
+                    backgroundColor: colors.primaryBackground,
+                    width: isTablet ? 40 : 34,
+                    height: isTablet ? 40 : 34,
+                    borderRadius: isTablet ? 20 : 17,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('EditProfile')}
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Icon
+                    name="edit"
+                    size={isAndroid ? (isTablet ? 18 : 16) : isTablet ? 20 : 16}
+                    color={colors.primary}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <View style={[
-              styles.infoRow,
-              { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
-            ]}>
-              <Text style={[
-                styles.label,
+            <View
+              style={[
+                styles.infoRow,
                 {
-                  color: colors.textMuted,
-                  fontSize: isAndroid ? (isTablet ? 12 : 12) : (isTablet ? 14 : 12),
-                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                  fontWeight: isAndroid ? '500' : '400',
-                }
-              ]}>
+                  marginBottom: isAndroid
+                    ? isTablet
+                      ? 16
+                      : 12
+                    : isTablet
+                    ? 20
+                    : 16,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 12
+                        : 12
+                      : isTablet
+                      ? 14
+                      : 12,
+                    marginBottom: isAndroid
+                      ? isTablet
+                        ? 4
+                        : 3
+                      : isTablet
+                      ? 6
+                      : 4,
+                    letterSpacing: isAndroid ? 0.5 : isTablet ? 1 : 0.7,
+                    fontWeight: isAndroid ? '500' : '400',
+                  },
+                ]}
+              >
                 Email
               </Text>
-              <Text style={[
-                styles.value,
-                {
-                  color: colors.text,
-                  fontSize: isAndroid ? (isTablet ? 15 : 15) : (isTablet ? 17 : 15),
-                  fontWeight: isAndroid ? '600' : '600',
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 15
+                        : 15
+                      : isTablet
+                      ? 17
+                      : 15,
+                    fontWeight: isAndroid ? '600' : '600',
+                  },
+                ]}
+              >
                 {user?.email || '—'}
               </Text>
             </View>
 
-            <View style={[
-              styles.infoRow,
-              { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
-            ]}>
-              <Text style={[
-                styles.label,
+            <View
+              style={[
+                styles.infoRow,
                 {
-                  color: colors.textMuted,
-                  fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                  fontWeight: isAndroid ? '500' : '400',
-                }
-              ]}>
+                  marginBottom: isAndroid
+                    ? isTablet
+                      ? 16
+                      : 12
+                    : isTablet
+                    ? 20
+                    : 16,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 14
+                        : 12
+                      : isTablet
+                      ? 14
+                      : 12,
+                    marginBottom: isAndroid
+                      ? isTablet
+                        ? 4
+                        : 3
+                      : isTablet
+                      ? 6
+                      : 4,
+                    letterSpacing: isAndroid ? 0.5 : isTablet ? 1 : 0.7,
+                    fontWeight: isAndroid ? '500' : '400',
+                  },
+                ]}
+              >
                 Contact
               </Text>
-              <Text style={[
-                styles.value,
-                {
-                  color: colors.text,
-                  fontSize: isAndroid ? (isTablet ? 18 : 15) : (isTablet ? 17 : 15),
-                  fontWeight: isAndroid ? '600' : '600',
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 15
+                      : isTablet
+                      ? 17
+                      : 15,
+                    fontWeight: isAndroid ? '600' : '600',
+                  },
+                ]}
+              >
                 {user?.contact || '—'}
               </Text>
             </View>
 
-            <View style={[
-              styles.infoRow,
-              { marginBottom: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16) }
-            ]}>
-              <Text style={[
-                styles.label,
+            <View
+              style={[
+                styles.infoRow,
                 {
-                  color: colors.textMuted,
-                  fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                  fontWeight: isAndroid ? '500' : '400',
-                }
-              ]}>
+                  marginBottom: isAndroid
+                    ? isTablet
+                      ? 16
+                      : 12
+                    : isTablet
+                    ? 20
+                    : 16,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 14
+                        : 12
+                      : isTablet
+                      ? 14
+                      : 12,
+                    marginBottom: isAndroid
+                      ? isTablet
+                        ? 4
+                        : 3
+                      : isTablet
+                      ? 6
+                      : 4,
+                    letterSpacing: isAndroid ? 0.5 : isTablet ? 1 : 0.7,
+                    fontWeight: isAndroid ? '500' : '400',
+                  },
+                ]}
+              >
                 Location
               </Text>
-              <Text style={[
-                styles.value,
-                {
-                  color: colors.text,
-                  fontSize: isAndroid ? (isTablet ? 18 : 15) : (isTablet ? 17 : 15),
-                  fontWeight: isAndroid ? '600' : '600',
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 15
+                      : isTablet
+                      ? 17
+                      : 15,
+                    fontWeight: isAndroid ? '600' : '600',
+                  },
+                ]}
+              >
                 {user?.city && user?.state
                   ? `${user?.city}, ${user?.state}`
                   : '—'}
               </Text>
             </View>
 
-            <View style={[
-              styles.infoRow,
-              { marginBottom: 0 }
-            ]}>
-              <Text style={[
-                styles.label,
-                {
-                  color: colors.textMuted,
-                  fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                  marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
-                  letterSpacing: isAndroid ? 0.5 : (isTablet ? 1 : 0.7),
-                  fontWeight: isAndroid ? '500' : '400',
-                }
-              ]}>
+            <View style={[styles.infoRow, { marginBottom: 0 }]}>
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 14
+                        : 12
+                      : isTablet
+                      ? 14
+                      : 12,
+                    marginBottom: isAndroid
+                      ? isTablet
+                        ? 4
+                        : 3
+                      : isTablet
+                      ? 6
+                      : 4,
+                    letterSpacing: isAndroid ? 0.5 : isTablet ? 1 : 0.7,
+                    fontWeight: isAndroid ? '500' : '400',
+                  },
+                ]}
+              >
                 Country
               </Text>
-              <Text style={[
-                styles.value,
-                {
-                  color: colors.text,
-                  fontSize: isAndroid ? (isTablet ? 18 : 15) : (isTablet ? 17 : 15),
-                  fontWeight: isAndroid ? '600' : '600',
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.value,
+                  {
+                    color: colors.text,
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 15
+                      : isTablet
+                      ? 17
+                      : 15,
+                    fontWeight: isAndroid ? '600' : '600',
+                  },
+                ]}
+              >
                 {user?.country || '—'}
               </Text>
             </View>
@@ -725,10 +909,15 @@ const DashboardScreen = () => {
                   styles.renewBtn,
                   {
                     marginHorizontal: cardMargin,
-                    marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                    marginTop: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 14
+                      : isTablet
+                      ? 22
+                      : 18,
                     borderRadius: isTablet ? 20 : 18,
-                    android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-                  }
+                  },
                 ]}
                 activeOpacity={0.9}
                 onPress={handleRenewPlan}
@@ -738,19 +927,43 @@ const DashboardScreen = () => {
                   style={[
                     styles.renewGradient,
                     {
-                      paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-                    }
+                      paddingVertical: isAndroid
+                        ? isTablet
+                          ? 18
+                          : 14
+                        : isTablet
+                        ? 22
+                        : 18,
+                    },
                   ]}
                 >
-                  <Icon name="refresh-cw" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
-                  <Text style={[
-                    styles.renewText,
-                    {
-                      fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                      marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Icon
+                    name="refresh-cw"
+                    size={isAndroid ? (isTablet ? 20 : 16) : isTablet ? 22 : 18}
+                    color="#fff"
+                  />
+                  <Text
+                    style={[
+                      styles.renewText,
+                      {
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 15
+                            : 13
+                          : isTablet
+                          ? 17
+                          : 15,
+                        marginLeft: isAndroid
+                          ? isTablet
+                            ? 8
+                            : 6
+                          : isTablet
+                          ? 12
+                          : 10,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     Renew Plan ({remainingDays} day
                     {remainingDays > 1 ? 's' : ''} left)
                   </Text>
@@ -764,10 +977,15 @@ const DashboardScreen = () => {
               styles.upgradeBtn,
               {
                 marginHorizontal: cardMargin,
-                marginTop: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 16 : 14),
+                marginTop: isAndroid
+                  ? isTablet
+                    ? 12
+                    : 10
+                  : isTablet
+                  ? 16
+                  : 14,
                 borderRadius: isTablet ? 20 : 18,
-                android_ripple: { color: 'rgba(255,255,255,0.2)', borderless: true },
-              }
+              },
             ]}
             activeOpacity={0.9}
             onPress={handleSubscriptionPress}
@@ -777,26 +995,58 @@ const DashboardScreen = () => {
               style={[
                 styles.upgradeGradient,
                 {
-                  paddingVertical: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
-                }
+                  paddingVertical: isAndroid
+                    ? isTablet
+                      ? 18
+                      : 14
+                    : isTablet
+                    ? 22
+                    : 18,
+                },
               ]}
             >
-              <Icon name="zap" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)} color="#fff" />
-              <Text style={[
-                styles.upgradeText,
-                {
-                  fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 17 : 15),
-                  marginLeft: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 12 : 10),
-                  fontWeight: isAndroid ? '700' : '700',
-                }
-              ]}>
+              <Icon
+                name="zap"
+                size={isAndroid ? (isTablet ? 20 : 16) : isTablet ? 22 : 18}
+                color="#fff"
+              />
+              <Text
+                style={[
+                  styles.upgradeText,
+                  {
+                    fontSize: isAndroid
+                      ? isTablet
+                        ? 15
+                        : 13
+                      : isTablet
+                      ? 17
+                      : 15,
+                    marginLeft: isAndroid
+                      ? isTablet
+                        ? 8
+                        : 6
+                      : isTablet
+                      ? 12
+                      : 10,
+                    fontWeight: isAndroid ? '700' : '700',
+                  },
+                ]}
+              >
                 {isFreePlan ? 'Upgrade Plan' : 'Change Plan'}
               </Text>
               <Icon
                 name="arrow-up-right"
-                size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 22 : 18)}
+                size={isAndroid ? (isTablet ? 20 : 16) : isTablet ? 22 : 18}
                 color="#fff"
-                style={{ marginLeft: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 10 : 8) }}
+                style={{
+                  marginLeft: isAndroid
+                    ? isTablet
+                      ? 6
+                      : 4
+                    : isTablet
+                    ? 10
+                    : 8,
+                }}
               />
             </LinearGradient>
           </TouchableOpacity>
@@ -807,12 +1057,21 @@ const DashboardScreen = () => {
               styles.subscriptionCard,
               {
                 marginHorizontal: cardMargin,
-                marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18),
+                marginTop: isAndroid
+                  ? isTablet
+                    ? 18
+                    : 14
+                  : isTablet
+                  ? 22
+                  : 18,
                 borderRadius: isTablet ? 26 : 24,
-                shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
-                shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
-                elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
-              }
+                shadowOffset: {
+                  width: 0,
+                  height: isAndroid ? 2 : isTablet ? 6 : 4,
+                },
+                shadowRadius: isAndroid ? 4 : isTablet ? 12 : 8,
+                elevation: isAndroid ? (isTablet ? 8 : 4) : isTablet ? 6 : 4,
+              },
             ]}
           >
             <LinearGradient
@@ -820,8 +1079,14 @@ const DashboardScreen = () => {
               style={[
                 styles.subscriptionInner,
                 {
-                  padding: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
-                }
+                  padding: isAndroid
+                    ? isTablet
+                      ? 20
+                      : 16
+                    : isTablet
+                    ? 24
+                    : 20,
+                },
               ]}
             >
               <View style={styles.subscriptionHeader}>
@@ -831,22 +1096,42 @@ const DashboardScreen = () => {
                       styles.subscriptionTitle,
                       {
                         color: colors.textSecondary,
-                        fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 17 : 15),
-                        marginBottom: isAndroid ? (isTablet ? 4 : 3) : (isTablet ? 6 : 4),
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 16
+                            : 14
+                          : isTablet
+                          ? 17
+                          : 15,
+                        marginBottom: isAndroid
+                          ? isTablet
+                            ? 4
+                            : 3
+                          : isTablet
+                          ? 6
+                          : 4,
                         fontWeight: isAndroid ? '500' : '400',
-                      }
+                      },
                     ]}
                   >
                     Current Subscription
                   </Text>
-                  <Text style={[
-                    styles.planName,
-                    {
-                      color: colors.text,
-                      fontSize: isAndroid ? (isTablet ? 30 : 24) : (isTablet ? 30 : 24),
-                      fontWeight: androidFontWeightBold,
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.planName,
+                      {
+                        color: colors.text,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 30
+                            : 24
+                          : isTablet
+                          ? 30
+                          : 24,
+                        fontWeight: androidFontWeightBold,
+                      },
+                    ]}
+                  >
                     {subscription?.plan?.name || 'No Plan'}
                   </Text>
                 </View>
@@ -855,39 +1140,95 @@ const DashboardScreen = () => {
                     styles.durationBadge,
                     {
                       backgroundColor: colors.primary,
-                      paddingHorizontal: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 18 : 14),
-                      paddingVertical: isAndroid ? (isTablet ? 9 : 7) : (isTablet ? 9 : 7),
+                      paddingHorizontal: isAndroid
+                        ? isTablet
+                          ? 18
+                          : 14
+                        : isTablet
+                        ? 18
+                        : 14,
+                      paddingVertical: isAndroid
+                        ? isTablet
+                          ? 9
+                          : 7
+                        : isTablet
+                        ? 9
+                        : 7,
                       borderRadius: isTablet ? 32 : 30,
                       elevation: isAndroid ? 4 : 0,
-                    }
+                    },
                   ]}
                 >
-                  <Text style={[
-                    styles.durationText,
-                    {
-                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.durationText,
+                      {
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 14
+                            : 12
+                          : isTablet
+                          ? 14
+                          : 12,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     {currentPlanDuration}
                   </Text>
                 </View>
               </View>
 
-              <View style={[
-                styles.statusRow,
-                { marginTop: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 22 : 18) }
-              ]}>
+              <View
+                style={[
+                  styles.statusRow,
+                  {
+                    marginTop: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 14
+                      : isTablet
+                      ? 22
+                      : 18,
+                  },
+                ]}
+              >
                 <View
                   style={[
                     styles.activeDot,
                     {
-                      backgroundColor: isActive ? colors.success : colors.primary,
-                      width: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 12 : 10),
-                      height: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 12 : 10),
-                      borderRadius: isAndroid ? (isTablet ? 6 : 5) : (isTablet ? 6 : 5),
-                      marginRight: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 10 : 8),
-                    }
+                      backgroundColor: isActive
+                        ? colors.success
+                        : colors.primary,
+                      width: isAndroid
+                        ? isTablet
+                          ? 12
+                          : 10
+                        : isTablet
+                        ? 12
+                        : 10,
+                      height: isAndroid
+                        ? isTablet
+                          ? 12
+                          : 10
+                        : isTablet
+                        ? 12
+                        : 10,
+                      borderRadius: isAndroid
+                        ? isTablet
+                          ? 6
+                          : 5
+                        : isTablet
+                        ? 6
+                        : 5,
+                      marginRight: isAndroid
+                        ? isTablet
+                          ? 10
+                          : 8
+                        : isTablet
+                        ? 10
+                        : 8,
+                    },
                   ]}
                 />
                 <Text
@@ -895,9 +1236,15 @@ const DashboardScreen = () => {
                     styles.activeText,
                     {
                       color: isActive ? colors.success : colors.primary,
-                      fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 16
+                          : 14
+                        : isTablet
+                        ? 16
+                        : 14,
                       fontWeight: isAndroid ? '700' : '700',
-                    }
+                    },
                   ]}
                 >
                   {isActive ? 'Active' : isExpired ? 'Expired' : status || '—'}
@@ -910,27 +1257,70 @@ const DashboardScreen = () => {
                   {
                     backgroundColor: colors.card,
                     shadowColor: isDark ? '#000' : '#000',
-                    marginTop: isAndroid ? (isTablet ? 18 : 16) : (isTablet ? 18 : 16),
+                    marginTop: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 16
+                      : isTablet
+                      ? 18
+                      : 16,
                     borderRadius: isTablet ? 16 : 14,
-                    paddingHorizontal: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 20 : 16),
-                    paddingVertical: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                    shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
-                    shadowRadius: isAndroid ? 2 : (isTablet ? 6 : 4),
-                    elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
-                  }
+                    paddingHorizontal: isAndroid
+                      ? isTablet
+                        ? 16
+                        : 12
+                      : isTablet
+                      ? 20
+                      : 16,
+                    paddingVertical: isAndroid
+                      ? isTablet
+                        ? 16
+                        : 14
+                      : isTablet
+                      ? 16
+                      : 14,
+                    shadowOffset: {
+                      width: 0,
+                      height: isAndroid ? 1 : isTablet ? 3 : 2,
+                    },
+                    shadowRadius: isAndroid ? 2 : isTablet ? 6 : 4,
+                    elevation: isAndroid
+                      ? isTablet
+                        ? 4
+                        : 2
+                      : isTablet
+                      ? 4
+                      : 2,
+                  },
                 ]}
               >
                 <View style={styles.remainingLeft}>
-                  <Icon name="clock" size={isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 20 : 16)} color={colors.primary} />
+                  <Icon
+                    name="clock"
+                    size={isAndroid ? (isTablet ? 20 : 16) : isTablet ? 20 : 16}
+                    color={colors.primary}
+                  />
                   <Text
                     style={[
                       styles.remainingLabel,
                       {
                         color: colors.textSecondary,
-                        fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 15 : 13),
-                        marginLeft: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 10 : 8),
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 15
+                            : 13
+                          : isTablet
+                          ? 15
+                          : 13,
+                        marginLeft: isAndroid
+                          ? isTablet
+                            ? 10
+                            : 8
+                          : isTablet
+                          ? 10
+                          : 8,
                         fontWeight: isAndroid ? '600' : '600',
-                      }
+                      },
                     ]}
                   >
                     Remaining Time
@@ -944,9 +1334,15 @@ const DashboardScreen = () => {
                         remainingDays !== null && remainingDays <= 7
                           ? colors.primary
                           : colors.success,
-                      fontSize: isAndroid ? (isTablet ? 17 : 15) : (isTablet ? 17 : 15),
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 17
+                          : 15
+                        : isTablet
+                        ? 17
+                        : 15,
                       fontWeight: isAndroid ? '800' : '800',
-                    }
+                    },
                   ]}
                 >
                   {remainingDaysLabel}
@@ -959,17 +1355,25 @@ const DashboardScreen = () => {
                   {
                     backgroundColor: colors.border,
                     height: isAndroid ? 0.5 : 1,
-                    marginVertical: isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18),
-                  }
+                    marginVertical: isAndroid
+                      ? isTablet
+                        ? 22
+                        : 18
+                      : isTablet
+                      ? 22
+                      : 18,
+                  },
                 ]}
               />
 
-              <View style={[
-                styles.detailGrid,
-                {
-                  gap: isAndroid ? (isTablet ? 12 : 8) : (isTablet ? 12 : 8),
-                }
-              ]}>
+              <View
+                style={[
+                  styles.detailGrid,
+                  {
+                    gap: isAndroid ? (isTablet ? 12 : 8) : isTablet ? 12 : 8,
+                  },
+                ]}
+              >
                 <View
                   style={[
                     styles.detailBox,
@@ -977,31 +1381,65 @@ const DashboardScreen = () => {
                       backgroundColor: colors.background,
                       width: isAndroid ? '48%' : '48%',
                       borderRadius: isTablet ? 14 : 12,
-                      padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                      padding: isAndroid
+                        ? isTablet
+                          ? 16
+                          : 14
+                        : isTablet
+                        ? 16
+                        : 14,
+                      marginBottom: isAndroid
+                        ? isTablet
+                          ? 14
+                          : 12
+                        : isTablet
+                        ? 14
+                        : 12,
                       elevation: isAndroid ? 2 : 0,
-                    }
+                    },
                   ]}
                 >
-                  <Text style={[
-                    styles.detailLabel,
-                    {
-                      color: colors.textMuted,
-                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
-                      fontWeight: isAndroid ? '500' : '400',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      {
+                        color: colors.textMuted,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 14
+                            : 12
+                          : isTablet
+                          ? 14
+                          : 12,
+                        marginBottom: isAndroid
+                          ? isTablet
+                            ? 8
+                            : 6
+                          : isTablet
+                          ? 8
+                          : 6,
+                        fontWeight: isAndroid ? '500' : '400',
+                      },
+                    ]}
+                  >
                     Start Date
                   </Text>
-                  <Text style={[
-                    styles.detailValue,
-                    {
-                      color: colors.text,
-                      fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailValue,
+                      {
+                        color: colors.text,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 16
+                            : 14
+                          : isTablet
+                          ? 16
+                          : 14,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     {formatDate(subscription?.start_date)}
                   </Text>
                 </View>
@@ -1012,31 +1450,65 @@ const DashboardScreen = () => {
                       backgroundColor: colors.background,
                       width: isAndroid ? '48%' : '48%',
                       borderRadius: isTablet ? 14 : 12,
-                      padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                      padding: isAndroid
+                        ? isTablet
+                          ? 16
+                          : 14
+                        : isTablet
+                        ? 16
+                        : 14,
+                      marginBottom: isAndroid
+                        ? isTablet
+                          ? 14
+                          : 12
+                        : isTablet
+                        ? 14
+                        : 12,
                       elevation: isAndroid ? 2 : 0,
-                    }
+                    },
                   ]}
                 >
-                  <Text style={[
-                    styles.detailLabel,
-                    {
-                      color: colors.textMuted,
-                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
-                      fontWeight: isAndroid ? '500' : '400',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      {
+                        color: colors.textMuted,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 14
+                            : 12
+                          : isTablet
+                          ? 14
+                          : 12,
+                        marginBottom: isAndroid
+                          ? isTablet
+                            ? 8
+                            : 6
+                          : isTablet
+                          ? 8
+                          : 6,
+                        fontWeight: isAndroid ? '500' : '400',
+                      },
+                    ]}
+                  >
                     End Date
                   </Text>
-                  <Text style={[
-                    styles.detailValue,
-                    {
-                      color: colors.text,
-                      fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailValue,
+                      {
+                        color: colors.text,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 16
+                            : 14
+                          : isTablet
+                          ? 16
+                          : 14,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     {formatDate(subscription?.end_date)}
                   </Text>
                 </View>
@@ -1047,31 +1519,65 @@ const DashboardScreen = () => {
                       backgroundColor: colors.background,
                       width: isAndroid ? '48%' : '48%',
                       borderRadius: isTablet ? 14 : 12,
-                      padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                      padding: isAndroid
+                        ? isTablet
+                          ? 16
+                          : 14
+                        : isTablet
+                        ? 16
+                        : 14,
+                      marginBottom: isAndroid
+                        ? isTablet
+                          ? 14
+                          : 12
+                        : isTablet
+                        ? 14
+                        : 12,
                       elevation: isAndroid ? 2 : 0,
-                    }
+                    },
                   ]}
                 >
-                  <Text style={[
-                    styles.detailLabel,
-                    {
-                      color: colors.textMuted,
-                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
-                      fontWeight: isAndroid ? '500' : '400',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      {
+                        color: colors.textMuted,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 14
+                            : 12
+                          : isTablet
+                          ? 14
+                          : 12,
+                        marginBottom: isAndroid
+                          ? isTablet
+                            ? 8
+                            : 6
+                          : isTablet
+                          ? 8
+                          : 6,
+                        fontWeight: isAndroid ? '500' : '400',
+                      },
+                    ]}
+                  >
                     Amount
                   </Text>
-                  <Text style={[
-                    styles.detailValue,
-                    {
-                      color: colors.text,
-                      fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailValue,
+                      {
+                        color: colors.text,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 16
+                            : 14
+                          : isTablet
+                          ? 16
+                          : 14,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     ₹{subscription?.total_amount || 0}
                   </Text>
                 </View>
@@ -1082,31 +1588,65 @@ const DashboardScreen = () => {
                       backgroundColor: colors.background,
                       width: isAndroid ? '48%' : '48%',
                       borderRadius: isTablet ? 14 : 12,
-                      padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                      padding: isAndroid
+                        ? isTablet
+                          ? 16
+                          : 14
+                        : isTablet
+                        ? 16
+                        : 14,
+                      marginBottom: isAndroid
+                        ? isTablet
+                          ? 14
+                          : 12
+                        : isTablet
+                        ? 14
+                        : 12,
                       elevation: isAndroid ? 2 : 0,
-                    }
+                    },
                   ]}
                 >
-                  <Text style={[
-                    styles.detailLabel,
-                    {
-                      color: colors.textMuted,
-                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
-                      fontWeight: isAndroid ? '500' : '400',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailLabel,
+                      {
+                        color: colors.textMuted,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 14
+                            : 12
+                          : isTablet
+                          ? 14
+                          : 12,
+                        marginBottom: isAndroid
+                          ? isTablet
+                            ? 8
+                            : 6
+                          : isTablet
+                          ? 8
+                          : 6,
+                        fontWeight: isAndroid ? '500' : '400',
+                      },
+                    ]}
+                  >
                     Plan Type
                   </Text>
-                  <Text style={[
-                    styles.detailValue,
-                    {
-                      color: colors.text,
-                      fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.detailValue,
+                      {
+                        color: colors.text,
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 16
+                            : 14
+                          : isTablet
+                          ? 16
+                          : 14,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     {subscription?.purchase_type || 'NEW'}
                   </Text>
                 </View>
@@ -1116,29 +1656,63 @@ const DashboardScreen = () => {
 
           {/* UPCOMING PLANS */}
           {upcomingPlans.length > 0 && (
-            <View style={[
-              styles.upcomingWrapper,
-              {
-                marginHorizontal: cardMargin,
-                marginTop: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 24 : 20),
-              }
-            ]}>
-              <View style={[
-                styles.upcomingHeadingRow,
+            <View
+              style={[
+                styles.upcomingWrapper,
                 {
-                  marginBottom: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 18 : 14),
-                }
-              ]}>
-                <Icon name="clock" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18)} color={colors.primary} />
-                <Text style={[
-                  styles.upcomingHeading,
+                  marginHorizontal: cardMargin,
+                  marginTop: isAndroid
+                    ? isTablet
+                      ? 24
+                      : 20
+                    : isTablet
+                    ? 24
+                    : 20,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.upcomingHeadingRow,
                   {
-                    color: colors.text,
-                    fontSize: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 24 : 20),
-                    marginLeft: isAndroid ? (isTablet ? 10 : 8) : (isTablet ? 10 : 8),
-                    fontWeight: androidFontWeightBold,
-                  }
-                ]}>
+                    marginBottom: isAndroid
+                      ? isTablet
+                        ? 18
+                        : 14
+                      : isTablet
+                      ? 18
+                      : 14,
+                  },
+                ]}
+              >
+                <Icon
+                  name="clock"
+                  size={isAndroid ? (isTablet ? 22 : 18) : isTablet ? 22 : 18}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.upcomingHeading,
+                    {
+                      color: colors.text,
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 24
+                          : 20
+                        : isTablet
+                        ? 24
+                        : 20,
+                      marginLeft: isAndroid
+                        ? isTablet
+                          ? 10
+                          : 8
+                        : isTablet
+                        ? 10
+                        : 8,
+                      fontWeight: androidFontWeightBold,
+                    },
+                  ]}
+                >
                   Upcoming Plans
                 </Text>
                 <View
@@ -1146,22 +1720,60 @@ const DashboardScreen = () => {
                     styles.upcomingCount,
                     {
                       backgroundColor: colors.primary,
-                      marginLeft: isAndroid ? (isTablet ? 12 : 10) : (isTablet ? 12 : 10),
-                      minWidth: isAndroid ? (isTablet ? 28 : 24) : (isTablet ? 28 : 24),
-                      height: isAndroid ? (isTablet ? 28 : 24) : (isTablet ? 28 : 24),
-                      borderRadius: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      paddingHorizontal: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
+                      marginLeft: isAndroid
+                        ? isTablet
+                          ? 12
+                          : 10
+                        : isTablet
+                        ? 12
+                        : 10,
+                      minWidth: isAndroid
+                        ? isTablet
+                          ? 28
+                          : 24
+                        : isTablet
+                        ? 28
+                        : 24,
+                      height: isAndroid
+                        ? isTablet
+                          ? 28
+                          : 24
+                        : isTablet
+                        ? 28
+                        : 24,
+                      borderRadius: isAndroid
+                        ? isTablet
+                          ? 14
+                          : 12
+                        : isTablet
+                        ? 14
+                        : 12,
+                      paddingHorizontal: isAndroid
+                        ? isTablet
+                          ? 8
+                          : 6
+                        : isTablet
+                        ? 8
+                        : 6,
                       elevation: isAndroid ? 4 : 0,
-                    }
+                    },
                   ]}
                 >
-                  <Text style={[
-                    styles.upcomingCountText,
-                    {
-                      fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                      fontWeight: isAndroid ? '700' : '700',
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.upcomingCountText,
+                      {
+                        fontSize: isAndroid
+                          ? isTablet
+                            ? 14
+                            : 12
+                          : isTablet
+                          ? 14
+                          : 12,
+                        fontWeight: isAndroid ? '700' : '700',
+                      },
+                    ]}
+                  >
                     {upcomingPlans.length}
                   </Text>
                 </View>
@@ -1169,8 +1781,9 @@ const DashboardScreen = () => {
 
               {upcomingPlans.map((item: Subscription, index: number) => {
                 const expanded = expandedPlans.includes(index);
-                const duration = `${item?.plan?.duration_value || ''} ${item?.plan?.duration_unit || ''
-                  }`;
+                const duration = `${item?.plan?.duration_value || ''} ${
+                  item?.plan?.duration_unit || ''
+                }`;
 
                 return (
                   <View
@@ -1182,12 +1795,33 @@ const DashboardScreen = () => {
                         borderLeftColor: colors.primary,
                         shadowColor: isDark ? '#000' : '#000',
                         borderRadius: isTablet ? 22 : 20,
-                        marginBottom: isAndroid ? (isTablet ? 18 : 14) : (isTablet ? 18 : 14),
-                        borderLeftWidth: isAndroid ? (isTablet ? 5 : 4) : (isTablet ? 5 : 4),
-                        shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
-                        shadowRadius: isAndroid ? 2 : (isTablet ? 7 : 5),
-                        elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 3),
-                      }
+                        marginBottom: isAndroid
+                          ? isTablet
+                            ? 18
+                            : 14
+                          : isTablet
+                          ? 18
+                          : 14,
+                        borderLeftWidth: isAndroid
+                          ? isTablet
+                            ? 5
+                            : 4
+                          : isTablet
+                          ? 5
+                          : 4,
+                        shadowOffset: {
+                          width: 0,
+                          height: isAndroid ? 1 : isTablet ? 3 : 2,
+                        },
+                        shadowRadius: isAndroid ? 2 : isTablet ? 7 : 5,
+                        elevation: isAndroid
+                          ? isTablet
+                            ? 4
+                            : 2
+                          : isTablet
+                          ? 4
+                          : 3,
+                      },
                     ]}
                   >
                     <TouchableOpacity
@@ -1196,20 +1830,33 @@ const DashboardScreen = () => {
                       style={[
                         styles.todoHeader,
                         {
-                          padding: isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18),
-                          android_ripple: { color: 'rgba(0,0,0,0.1)', borderless: true },
-                        }
+                          padding: isAndroid
+                            ? isTablet
+                              ? 22
+                              : 18
+                            : isTablet
+                            ? 22
+                            : 18,
+                        },
                       ]}
                     >
                       <View style={{ flex: 1 }}>
-                        <Text style={[
-                          styles.todoTitle,
-                          {
-                            color: colors.text,
-                            fontSize: isAndroid ? (isTablet ? 19 : 17) : (isTablet ? 19 : 17),
-                            fontWeight: androidFontWeightBold,
-                          }
-                        ]}>
+                        <Text
+                          style={[
+                            styles.todoTitle,
+                            {
+                              color: colors.text,
+                              fontSize: isAndroid
+                                ? isTablet
+                                  ? 19
+                                  : 17
+                                : isTablet
+                                ? 19
+                                : 17,
+                              fontWeight: androidFontWeightBold,
+                            },
+                          ]}
+                        >
                           {item?.plan?.name || 'Plan'}
                         </Text>
                         <Text
@@ -1217,10 +1864,22 @@ const DashboardScreen = () => {
                             styles.todoSub,
                             {
                               color: colors.textSecondary,
-                              fontSize: isAndroid ? (isTablet ? 15 : 13) : (isTablet ? 15 : 13),
-                              marginTop: isAndroid ? (isTablet ? 6 : 4) : (isTablet ? 6 : 4),
+                              fontSize: isAndroid
+                                ? isTablet
+                                  ? 15
+                                  : 13
+                                : isTablet
+                                ? 15
+                                : 13,
+                              marginTop: isAndroid
+                                ? isTablet
+                                  ? 6
+                                  : 4
+                                : isTablet
+                                ? 6
+                                : 4,
                               fontWeight: isAndroid ? '500' : '400',
-                            }
+                            },
                           ]}
                         >
                           {duration}
@@ -1231,10 +1890,22 @@ const DashboardScreen = () => {
                           styles.pendingBadge,
                           {
                             backgroundColor: isDark ? '#2d1a1a' : '#fff3e8',
-                            paddingHorizontal: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                            paddingVertical: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
+                            paddingHorizontal: isAndroid
+                              ? isTablet
+                                ? 14
+                                : 12
+                              : isTablet
+                              ? 14
+                              : 12,
+                            paddingVertical: isAndroid
+                              ? isTablet
+                                ? 8
+                                : 6
+                              : isTablet
+                              ? 8
+                              : 6,
                             borderRadius: isTablet ? 32 : 30,
-                          }
+                          },
                         ]}
                       >
                         <Text
@@ -1242,9 +1913,15 @@ const DashboardScreen = () => {
                             styles.pendingBadgeText,
                             {
                               color: isDark ? '#ff8a00' : '#ff8a00',
-                              fontSize: isAndroid ? (isTablet ? 13 : 11) : (isTablet ? 13 : 11),
+                              fontSize: isAndroid
+                                ? isTablet
+                                  ? 13
+                                  : 11
+                                : isTablet
+                                ? 13
+                                : 11,
                               fontWeight: isAndroid ? '700' : '700',
-                            }
+                            },
                           ]}
                         >
                           {item?.status || 'PENDING'}
@@ -1252,10 +1929,18 @@ const DashboardScreen = () => {
                       </View>
                       <Icon
                         name="chevron-down"
-                        size={isAndroid ? (isTablet ? 26 : 22) : (isTablet ? 26 : 22)}
+                        size={
+                          isAndroid ? (isTablet ? 26 : 22) : isTablet ? 26 : 22
+                        }
                         color={colors.text}
                         style={{
-                          marginLeft: isAndroid ? (isTablet ? 16 : 12) : (isTablet ? 16 : 12),
+                          marginLeft: isAndroid
+                            ? isTablet
+                              ? 16
+                              : 12
+                            : isTablet
+                            ? 16
+                            : 12,
                           transform: [{ rotate: expanded ? '180deg' : '0deg' }],
                         }}
                       />
@@ -1267,17 +1952,39 @@ const DashboardScreen = () => {
                         {
                           maxHeight: expanded ? 500 : 0,
                           opacity: expanded ? 1 : 0,
-                          paddingBottom: expanded ? (isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18)) : 0,
-                          paddingHorizontal: isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18),
-                        }
+                          paddingBottom: expanded
+                            ? isAndroid
+                              ? isTablet
+                                ? 22
+                                : 18
+                              : isTablet
+                              ? 22
+                              : 18
+                            : 0,
+                          paddingHorizontal: isAndroid
+                            ? isTablet
+                              ? 22
+                              : 18
+                            : isTablet
+                            ? 22
+                            : 18,
+                        },
                       ]}
                     >
-                      <View style={[
-                        styles.detailGrid,
-                        {
-                          gap: isAndroid ? (isTablet ? 12 : 8) : (isTablet ? 12 : 8),
-                        }
-                      ]}>
+                      <View
+                        style={[
+                          styles.detailGrid,
+                          {
+                            gap: isAndroid
+                              ? isTablet
+                                ? 12
+                                : 8
+                              : isTablet
+                              ? 12
+                              : 8,
+                          },
+                        ]}
+                      >
                         <View
                           style={[
                             styles.detailBox,
@@ -1285,10 +1992,22 @@ const DashboardScreen = () => {
                               backgroundColor: colors.background,
                               width: isAndroid ? '48%' : '48%',
                               borderRadius: isTablet ? 14 : 12,
-                              padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                              marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                              padding: isAndroid
+                                ? isTablet
+                                  ? 16
+                                  : 14
+                                : isTablet
+                                ? 16
+                                : 14,
+                              marginBottom: isAndroid
+                                ? isTablet
+                                  ? 14
+                                  : 12
+                                : isTablet
+                                ? 14
+                                : 12,
                               elevation: isAndroid ? 2 : 0,
-                            }
+                            },
                           ]}
                         >
                           <Text
@@ -1296,10 +2015,22 @@ const DashboardScreen = () => {
                               styles.detailLabel,
                               {
                                 color: colors.textMuted,
-                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                                marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 14
+                                    : 12
+                                  : isTablet
+                                  ? 14
+                                  : 12,
+                                marginBottom: isAndroid
+                                  ? isTablet
+                                    ? 8
+                                    : 6
+                                  : isTablet
+                                  ? 8
+                                  : 6,
                                 fontWeight: isAndroid ? '500' : '400',
-                              }
+                              },
                             ]}
                           >
                             Starts
@@ -1309,9 +2040,15 @@ const DashboardScreen = () => {
                               styles.detailValue,
                               {
                                 color: colors.text,
-                                fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 16
+                                    : 14
+                                  : isTablet
+                                  ? 16
+                                  : 14,
                                 fontWeight: isAndroid ? '700' : '700',
-                              }
+                              },
                             ]}
                           >
                             {formatDate(item?.start_date)}
@@ -1324,10 +2061,22 @@ const DashboardScreen = () => {
                               backgroundColor: colors.background,
                               width: isAndroid ? '48%' : '48%',
                               borderRadius: isTablet ? 14 : 12,
-                              padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                              marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                              padding: isAndroid
+                                ? isTablet
+                                  ? 16
+                                  : 14
+                                : isTablet
+                                ? 16
+                                : 14,
+                              marginBottom: isAndroid
+                                ? isTablet
+                                  ? 14
+                                  : 12
+                                : isTablet
+                                ? 14
+                                : 12,
                               elevation: isAndroid ? 2 : 0,
-                            }
+                            },
                           ]}
                         >
                           <Text
@@ -1335,10 +2084,22 @@ const DashboardScreen = () => {
                               styles.detailLabel,
                               {
                                 color: colors.textMuted,
-                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                                marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 14
+                                    : 12
+                                  : isTablet
+                                  ? 14
+                                  : 12,
+                                marginBottom: isAndroid
+                                  ? isTablet
+                                    ? 8
+                                    : 6
+                                  : isTablet
+                                  ? 8
+                                  : 6,
                                 fontWeight: isAndroid ? '500' : '400',
-                              }
+                              },
                             ]}
                           >
                             Ends
@@ -1348,9 +2109,15 @@ const DashboardScreen = () => {
                               styles.detailValue,
                               {
                                 color: colors.text,
-                                fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 16
+                                    : 14
+                                  : isTablet
+                                  ? 16
+                                  : 14,
                                 fontWeight: isAndroid ? '700' : '700',
-                              }
+                              },
                             ]}
                           >
                             {formatDate(item?.end_date)}
@@ -1363,10 +2130,22 @@ const DashboardScreen = () => {
                               backgroundColor: colors.background,
                               width: isAndroid ? '48%' : '48%',
                               borderRadius: isTablet ? 14 : 12,
-                              padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                              marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                              padding: isAndroid
+                                ? isTablet
+                                  ? 16
+                                  : 14
+                                : isTablet
+                                ? 16
+                                : 14,
+                              marginBottom: isAndroid
+                                ? isTablet
+                                  ? 14
+                                  : 12
+                                : isTablet
+                                ? 14
+                                : 12,
                               elevation: isAndroid ? 2 : 0,
-                            }
+                            },
                           ]}
                         >
                           <Text
@@ -1374,10 +2153,22 @@ const DashboardScreen = () => {
                               styles.detailLabel,
                               {
                                 color: colors.textMuted,
-                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                                marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 14
+                                    : 12
+                                  : isTablet
+                                  ? 14
+                                  : 12,
+                                marginBottom: isAndroid
+                                  ? isTablet
+                                    ? 8
+                                    : 6
+                                  : isTablet
+                                  ? 8
+                                  : 6,
                                 fontWeight: isAndroid ? '500' : '400',
-                              }
+                              },
                             ]}
                           >
                             Amount
@@ -1387,9 +2178,15 @@ const DashboardScreen = () => {
                               styles.detailValue,
                               {
                                 color: colors.text,
-                                fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 16
+                                    : 14
+                                  : isTablet
+                                  ? 16
+                                  : 14,
                                 fontWeight: isAndroid ? '700' : '700',
-                              }
+                              },
                             ]}
                           >
                             ₹{item?.total_amount || 0}
@@ -1402,10 +2199,22 @@ const DashboardScreen = () => {
                               backgroundColor: colors.background,
                               width: isAndroid ? '48%' : '48%',
                               borderRadius: isTablet ? 14 : 12,
-                              padding: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
-                              marginBottom: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
+                              padding: isAndroid
+                                ? isTablet
+                                  ? 16
+                                  : 14
+                                : isTablet
+                                ? 16
+                                : 14,
+                              marginBottom: isAndroid
+                                ? isTablet
+                                  ? 14
+                                  : 12
+                                : isTablet
+                                ? 14
+                                : 12,
                               elevation: isAndroid ? 2 : 0,
-                            }
+                            },
                           ]}
                         >
                           <Text
@@ -1413,10 +2222,22 @@ const DashboardScreen = () => {
                               styles.detailLabel,
                               {
                                 color: colors.textMuted,
-                                fontSize: isAndroid ? (isTablet ? 14 : 12) : (isTablet ? 14 : 12),
-                                marginBottom: isAndroid ? (isTablet ? 8 : 6) : (isTablet ? 8 : 6),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 14
+                                    : 12
+                                  : isTablet
+                                  ? 14
+                                  : 12,
+                                marginBottom: isAndroid
+                                  ? isTablet
+                                    ? 8
+                                    : 6
+                                  : isTablet
+                                  ? 8
+                                  : 6,
                                 fontWeight: isAndroid ? '500' : '400',
-                              }
+                              },
                             ]}
                           >
                             Purchase
@@ -1426,9 +2247,15 @@ const DashboardScreen = () => {
                               styles.detailValue,
                               {
                                 color: colors.text,
-                                fontSize: isAndroid ? (isTablet ? 16 : 14) : (isTablet ? 16 : 14),
+                                fontSize: isAndroid
+                                  ? isTablet
+                                    ? 16
+                                    : 14
+                                  : isTablet
+                                  ? 16
+                                  : 14,
                                 fontWeight: isAndroid ? '700' : '700',
-                              }
+                              },
                             ]}
                           >
                             {item?.purchase_type || 'NEW'}
@@ -1451,32 +2278,68 @@ const DashboardScreen = () => {
                 borderColor: colors.border,
                 shadowColor: isDark ? '#000' : '#000',
                 marginHorizontal: cardMargin,
-                marginTop: isAndroid ? (isTablet ? 14 : 10) : (isTablet ? 28 : 24),
+                marginTop: isAndroid
+                  ? isTablet
+                    ? 14
+                    : 10
+                  : isTablet
+                  ? 28
+                  : 24,
                 borderRadius: isTablet ? 16 : 14,
-                paddingVertical: isAndroid ? (isTablet ? 17 : 15) : (isTablet ? 18 : 16),
-                paddingHorizontal: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 24 : 20),
+                paddingVertical: isAndroid
+                  ? isTablet
+                    ? 17
+                    : 15
+                  : isTablet
+                  ? 18
+                  : 16,
+                paddingHorizontal: isAndroid
+                  ? isTablet
+                    ? 20
+                    : 16
+                  : isTablet
+                  ? 24
+                  : 20,
                 borderWidth: isAndroid ? 0.5 : 1,
-                shadowOffset: { width: 0, height: isAndroid ? 1 : (isTablet ? 3 : 2) },
-                shadowRadius: isAndroid ? 2 : (isTablet ? 8 : 6),
-                elevation: isAndroid ? (isTablet ? 4 : 2) : (isTablet ? 4 : 2),
-                android_ripple: { color: 'rgba(0,0,0,0.05)', borderless: true },
-              }
+                shadowOffset: {
+                  width: 0,
+                  height: isAndroid ? 1 : isTablet ? 3 : 2,
+                },
+                shadowRadius: isAndroid ? 2 : isTablet ? 8 : 6,
+                elevation: isAndroid ? (isTablet ? 4 : 2) : isTablet ? 4 : 2,
+              },
             ]}
             activeOpacity={0.85}
             onPress={handleInvoicePress}
           >
-            <Icon name="file-text" size={isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 22 : 18)} color={colors.text} />
-            <Text style={[
-              styles.invoiceBtnText,
-              {
-                color: colors.text,
-                fontSize: isAndroid ? (isTablet ? 18 : 16) : (isTablet ? 18 : 16),
-                fontWeight: isAndroid ? '600' : '700',
-              }
-            ]}>
+            <Icon
+              name="file-text"
+              size={isAndroid ? (isTablet ? 24 : 20) : isTablet ? 22 : 18}
+              color={colors.text}
+            />
+            <Text
+              style={[
+                styles.invoiceBtnText,
+                {
+                  color: colors.text,
+                  fontSize: isAndroid
+                    ? isTablet
+                      ? 18
+                      : 16
+                    : isTablet
+                    ? 18
+                    : 16,
+                  fontWeight: isAndroid ? '600' : '700',
+                },
+              ]}
+            >
               Invoices
             </Text>
-            <Icon name="arrow-right" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18)} color={colors.text} />
+            <Icon
+              name="arrow-right"
+              size={isAndroid ? (isTablet ? 22 : 18) : isTablet ? 22 : 18}
+              color={colors.text}
+            />
           </TouchableOpacity>
 
           {/* LOGOUT BUTTON */}
@@ -1487,32 +2350,67 @@ const DashboardScreen = () => {
                 backgroundColor: colors.primary,
                 shadowColor: colors.primary,
                 marginHorizontal: cardMargin,
-                marginTop: isAndroid ? (isTablet ? 24 : 20) : (isTablet ? 24 : 20),
-                marginBottom: isAndroid ? (isTablet ? 20 : 16) : (isTablet ? 20 : 16),
+                marginTop: isAndroid
+                  ? isTablet
+                    ? 24
+                    : 20
+                  : isTablet
+                  ? 24
+                  : 20,
+                marginBottom: isAndroid
+                  ? isTablet
+                    ? 20
+                    : 16
+                  : isTablet
+                  ? 20
+                  : 16,
                 borderRadius: isTablet ? 16 : 14,
-                paddingVertical: isAndroid ? (isTablet ? 17 : 15) : (isTablet ? 18 : 16),
-                shadowOffset: { width: 0, height: isAndroid ? 2 : (isTablet ? 6 : 4) },
-                shadowRadius: isAndroid ? 4 : (isTablet ? 12 : 8),
-                elevation: isAndroid ? (isTablet ? 8 : 4) : (isTablet ? 6 : 4),
-                android_ripple: { color: 'rgba(255,255,255,0.3)', borderless: true },
-              }
+                paddingVertical: isAndroid
+                  ? isTablet
+                    ? 17
+                    : 15
+                  : isTablet
+                  ? 18
+                  : 16,
+                shadowOffset: {
+                  width: 0,
+                  height: isAndroid ? 2 : isTablet ? 6 : 4,
+                },
+                shadowRadius: isAndroid ? 4 : isTablet ? 12 : 8,
+                elevation: isAndroid ? (isTablet ? 8 : 4) : isTablet ? 6 : 4,
+              },
             ]}
             activeOpacity={0.85}
             onPress={handleLogout}
             disabled={isLoggingOut}
           >
             {isLoggingOut ? (
-              <ActivityIndicator color="#fff" size={isAndroid ? (isSmallDevice ? 'small' : 'small') : 'large'} />
+              <ActivityIndicator
+                color="#fff"
+                size={isAndroid ? (isSmallDevice ? 'small' : 'small') : 'large'}
+              />
             ) : (
               <>
-                <Icon name="log-out" size={isAndroid ? (isTablet ? 22 : 18) : (isTablet ? 22 : 18)} color="#fff" />
-                <Text style={[
-                  styles.logoutBtnText,
-                  {
-                    fontSize: isAndroid ? (isTablet ? 18 : 16) : (isTablet ? 18 : 16),
-                    fontWeight: isAndroid ? '700' : '700',
-                  }
-                ]}>
+                <Icon
+                  name="log-out"
+                  size={isAndroid ? (isTablet ? 22 : 18) : isTablet ? 22 : 18}
+                  color="#fff"
+                />
+                <Text
+                  style={[
+                    styles.logoutBtnText,
+                    {
+                      fontSize: isAndroid
+                        ? isTablet
+                          ? 18
+                          : 16
+                        : isTablet
+                        ? 18
+                        : 16,
+                      fontWeight: isAndroid ? '700' : '700',
+                    },
+                  ]}
+                >
                   Logout
                 </Text>
               </>
@@ -1520,13 +2418,15 @@ const DashboardScreen = () => {
           </TouchableOpacity>
 
           <View style={styles.versionContainer}>
-            <Text style={[
-              styles.versionText,
-              {
-                color: colors.textMuted,
-                fontSize: moderateScale(isTablet ? 14 : 11),
-              }
-            ]}>
+            <Text
+              style={[
+                styles.versionText,
+                {
+                  color: colors.textMuted,
+                  fontSize: moderateScale(isTablet ? 14 : 11),
+                },
+              ]}
+            >
               Version 1.0.0
             </Text>
           </View>
@@ -1541,8 +2441,8 @@ const DashboardScreen = () => {
           onCancel={() => setShowLogoutModal(false)}
           onConfirm={performLogout}
         />
-      </View >
-    </SafeAreaView >
+      </View>
+    </SafeAreaView>
   );
 };
 
@@ -1596,7 +2496,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: '#fff',
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   welcome: {
@@ -1607,7 +2507,7 @@ const styles = StyleSheet.create({
   name: {
     color: '#fff',
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 2,
   },
 
@@ -1639,7 +2539,7 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   iconCircle: {
@@ -1663,7 +2563,7 @@ const styles = StyleSheet.create({
 
   value: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   subscriptionCard: {
@@ -1694,7 +2594,7 @@ const styles = StyleSheet.create({
 
   planName: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
 
   durationBadge: {
@@ -1705,7 +2605,7 @@ const styles = StyleSheet.create({
 
   durationText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 12,
     textTransform: 'capitalize',
   },
@@ -1724,7 +2624,7 @@ const styles = StyleSheet.create({
   },
 
   activeText: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   divider: {
@@ -1752,7 +2652,7 @@ const styles = StyleSheet.create({
 
   detailValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   renewBtn: {
@@ -1771,7 +2671,7 @@ const styles = StyleSheet.create({
 
   renewText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 15,
     marginLeft: 10,
   },
@@ -1792,7 +2692,7 @@ const styles = StyleSheet.create({
 
   upgradeText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 15,
     marginLeft: 10,
   },
@@ -1819,12 +2719,12 @@ const styles = StyleSheet.create({
   remainingLabel: {
     marginLeft: 8,
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   remainingValue: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
 
   upcomingWrapper: {
@@ -1840,7 +2740,7 @@ const styles = StyleSheet.create({
 
   upcomingHeading: {
     fontSize: 20,
-    fontWeight: '800',
+    fontWeight: '800' as const,
     marginLeft: 8,
   },
 
@@ -1857,7 +2757,7 @@ const styles = StyleSheet.create({
   upcomingCountText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   todoCard: {
@@ -1879,7 +2779,7 @@ const styles = StyleSheet.create({
 
   todoTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
 
   todoSub: {
@@ -1895,7 +2795,7 @@ const styles = StyleSheet.create({
   },
 
   pendingBadgeText: {
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 11,
     textTransform: 'uppercase',
   },
@@ -1924,7 +2824,7 @@ const styles = StyleSheet.create({
 
   invoiceBtnText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   logoutBtn: {
@@ -1946,7 +2846,7 @@ const styles = StyleSheet.create({
   logoutBtnText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   versionContainer: {
     alignItems: 'center',

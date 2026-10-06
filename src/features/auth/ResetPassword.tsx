@@ -17,8 +17,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-toast-message';
-import { useTheme } from '../../../redux/hooks/useTheme';
-import { resetPassword } from '../api/auth';
+import { useTheme } from '../../store/hooks/useTheme';
+import { resetPassword } from '../../services/auth.service';
+// import { useTheme } from '../../../store/hooks/useTheme';
 
 const { height, width } = Dimensions.get('window');
 
@@ -41,7 +42,7 @@ const moderateScale = (size: number, factor = 0.5) => {
 
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
-const isLargeTablet = width >= 1024;
+// const isLargeTablet = width >= 1024;
 
 const THEME = {
   primary: '#c9060a',
@@ -115,8 +116,7 @@ const ResetPasswordScreen = () => {
       }
     } catch (error: any) {
       const message =
-        error?.response?.data?.message ||
-        'Failed to reset password';
+        error?.response?.data?.message || 'Failed to reset password';
 
       setError(message);
 
@@ -131,16 +131,20 @@ const ResetPasswordScreen = () => {
   };
 
   // Responsive values
-  const headerPaddingTop = verticalScale(isSmallDevice ? 40 : isTablet ? 70 : 50);
-  const headerPaddingBottom = verticalScale(isSmallDevice ? 40 : isTablet ? 70 : 50);
+  const headerPaddingTop = verticalScale(
+    isSmallDevice ? 40 : isTablet ? 70 : 50,
+  );
+  const headerPaddingBottom = verticalScale(
+    isSmallDevice ? 40 : isTablet ? 70 : 50,
+  );
   const formMarginTop = verticalScale(isTablet ? -30 : -20);
   const formPaddingHorizontal = scale(isTablet ? 32 : 24);
   const formPaddingTop = verticalScale(isTablet ? 36 : 32);
   const formPaddingBottom = verticalScale(isTablet ? 44 : 40);
 
   return (
-    <SafeAreaView 
-      style={[styles.container, { backgroundColor: colors.background }]} 
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
       edges={['left', 'right', 'bottom']}
     >
       <KeyboardAvoidingView
@@ -151,30 +155,30 @@ const ResetPasswordScreen = () => {
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
-            { paddingBottom: verticalScale(isTablet ? 30 : 20) }
+            { paddingBottom: verticalScale(isTablet ? 30 : 20) },
           ]}
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.backButton, 
-              { 
+              styles.backButton,
+              {
                 backgroundColor: 'rgba(255,255,255,0.2)',
                 top: verticalScale(isSmallDevice ? 16 : 20),
                 left: scale(isSmallDevice ? 12 : 16),
                 width: scale(isTablet ? 52 : 44),
                 height: scale(isTablet ? 52 : 44),
                 borderRadius: scale(isTablet ? 35 : 30),
-              }
-            ]} 
+              },
+            ]}
             onPress={handleBack}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name="arrow-back" 
-              size={moderateScale(isTablet ? 28 : 24)} 
-              color="#fff" 
+            <Ionicons
+              name="arrow-back"
+              size={moderateScale(isTablet ? 28 : 24)}
+              color="#fff"
             />
           </TouchableOpacity>
 
@@ -190,110 +194,138 @@ const ResetPasswordScreen = () => {
                 paddingHorizontal: scale(isTablet ? 40 : 24),
                 borderBottomLeftRadius: scale(isTablet ? 40 : 30),
                 borderBottomRightRadius: scale(isTablet ? 40 : 30),
-              }
+              },
             ]}
           >
-            <Text style={[
-              styles.header,
-              {
-                fontSize: moderateScale(isTablet ? 42 : 34),
-                marginBottom: verticalScale(isTablet ? 10 : 8),
-              }
-            ]}>
+            <Text
+              style={[
+                styles.header,
+                {
+                  fontSize: moderateScale(isTablet ? 42 : 34),
+                  marginBottom: verticalScale(isTablet ? 10 : 8),
+                },
+              ]}
+            >
               Reset Password
             </Text>
-            <Text style={[
-              styles.subText, 
-              { 
-                color: 'rgba(255,255,255,0.9)',
-                fontSize: moderateScale(isTablet ? 18 : 16),
-              }
-            ]}>
+            <Text
+              style={[
+                styles.subText,
+                {
+                  color: 'rgba(255,255,255,0.9)',
+                  fontSize: moderateScale(isTablet ? 18 : 16),
+                },
+              ]}
+            >
               Enter your new password below
             </Text>
           </LinearGradient>
 
-          <View style={[
-            styles.formContainer, 
-            { 
-              backgroundColor: colors.card,
-              shadowColor: isDark ? '#000' : '#000',
-              marginTop: formMarginTop,
-              marginHorizontal: scale(isTablet ? 40 : 20),
-              borderRadius: scale(isTablet ? 35 : 30),
-              paddingHorizontal: formPaddingHorizontal,
-              paddingTop: formPaddingTop,
-              paddingBottom: formPaddingBottom,
-              maxWidth: isTablet ? 600 : undefined,
-              alignSelf: isTablet ? 'center' : 'stretch',
-              width: isTablet ? '90%' : undefined,
-              shadowOffset: { width: 0, height: verticalScale(isTablet ? 12 : 8) },
-              shadowRadius: scale(isTablet ? 32 : 24),
-              elevation: isTablet ? 8 : 5,
-            }
-          ]}>
+          <View
+            style={[
+              styles.formContainer,
+              {
+                backgroundColor: colors.card,
+                shadowColor: isDark ? '#000' : '#000',
+                marginTop: formMarginTop,
+                marginHorizontal: scale(isTablet ? 40 : 20),
+                borderRadius: scale(isTablet ? 35 : 30),
+                paddingHorizontal: formPaddingHorizontal,
+                paddingTop: formPaddingTop,
+                paddingBottom: formPaddingBottom,
+                maxWidth: isTablet ? 600 : undefined,
+                alignSelf: isTablet ? 'center' : 'stretch',
+                width: isTablet ? '90%' : undefined,
+                shadowOffset: {
+                  width: 0,
+                  height: verticalScale(isTablet ? 12 : 8),
+                },
+                shadowRadius: scale(isTablet ? 32 : 24),
+                elevation: isTablet ? 8 : 5,
+              },
+            ]}
+          >
             {error ? (
-              <View style={[
-                styles.errorContainer, 
-                { 
-                  backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
-                  borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
-                  padding: verticalScale(isTablet ? 16 : 14),
-                  borderRadius: scale(isTablet ? 16 : 14),
-                  marginBottom: verticalScale(isTablet ? 24 : 20),
-                }
-              ]}>
-                <Ionicons 
-                  name="alert-circle" 
-                  size={moderateScale(isTablet ? 20 : 18)} 
-                  color={THEME.error} 
+              <View
+                style={[
+                  styles.errorContainer,
+                  {
+                    backgroundColor: isDark ? '#2d1a1a' : '#FEF2F2',
+                    borderColor: isDark ? '#4a1a1a' : '#FEE2E2',
+                    padding: verticalScale(isTablet ? 16 : 14),
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    marginBottom: verticalScale(isTablet ? 24 : 20),
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="alert-circle"
+                  size={moderateScale(isTablet ? 20 : 18)}
+                  color={THEME.error}
                 />
-                <Text style={[
-                  styles.errorText, 
-                  { 
-                    color: THEME.error,
-                    fontSize: moderateScale(isTablet ? 15 : 14),
-                    marginLeft: scale(isTablet ? 12 : 10),
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.errorText,
+                    {
+                      color: THEME.error,
+                      fontSize: moderateScale(isTablet ? 15 : 14),
+                      marginLeft: scale(isTablet ? 12 : 10),
+                    },
+                  ]}
+                >
                   {error}
                 </Text>
               </View>
             ) : null}
 
             {/* New Password */}
-            <View style={[
-              styles.inputGroup,
-              { marginBottom: verticalScale(isTablet ? 24 : 20) }
-            ]}>
-              <Text style={[
-                styles.label, 
-                { 
-                  color: colors.text,
-                  fontSize: moderateScale(isTablet ? 15 : 14),
-                  marginBottom: verticalScale(isTablet ? 10 : 8),
-                  marginLeft: scale(isTablet ? 6 : 4),
-                }
-              ]}>
+            <View
+              style={[
+                styles.inputGroup,
+                { marginBottom: verticalScale(isTablet ? 24 : 20) },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.text,
+                    fontSize: moderateScale(isTablet ? 15 : 14),
+                    marginBottom: verticalScale(isTablet ? 10 : 8),
+                    marginLeft: scale(isTablet ? 6 : 4),
+                  },
+                ]}
+              >
                 New Password
               </Text>
-              <View style={[
-                styles.inputWrapper,
-                { 
-                  backgroundColor: isDark ? colors.background : THEME.lightGray,
-                  borderColor: newPassword ? THEME.primary : (isDark ? colors.border : THEME.border),
-                  borderWidth: 1.5,
-                  borderRadius: scale(isTablet ? 18 : 16),
-                  paddingHorizontal: scale(isTablet ? 18 : 16),
-                  paddingVertical: isTablet ? 4 : 0,
-                },
-                newPassword && styles.inputWrapperFilled,
-              ]}>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  {
+                    backgroundColor: isDark
+                      ? colors.background
+                      : THEME.lightGray,
+                    borderColor: newPassword
+                      ? THEME.primary
+                      : isDark
+                      ? colors.border
+                      : THEME.border,
+                    borderWidth: 1.5,
+                    borderRadius: scale(isTablet ? 18 : 16),
+                    paddingHorizontal: scale(isTablet ? 18 : 16),
+                    paddingVertical: isTablet ? 4 : 0,
+                  },
+                  newPassword && styles.inputWrapperFilled,
+                ]}
+              >
                 <Ionicons
                   name="lock-closed-outline"
                   size={moderateScale(isTablet ? 22 : 20)}
                   color={colors.textMuted}
-                  style={[styles.inputIcon, { marginRight: scale(isTablet ? 14 : 12) }]}
+                  style={[
+                    styles.inputIcon,
+                    { marginRight: scale(isTablet ? 14 : 12) },
+                  ]}
                 />
                 <TextInput
                   value={newPassword}
@@ -301,12 +333,12 @@ const ResetPasswordScreen = () => {
                   secureTextEntry={!showPassword}
                   editable={!loading}
                   style={[
-                    styles.input, 
-                    { 
+                    styles.input,
+                    {
                       color: colors.text,
                       paddingVertical: verticalScale(isTablet ? 18 : 16),
                       fontSize: moderateScale(isTablet ? 16 : 15),
-                    }
+                    },
                   ]}
                   placeholder="Enter new password"
                   placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
@@ -324,38 +356,53 @@ const ResetPasswordScreen = () => {
             </View>
 
             {/* Confirm Password */}
-            <View style={[
-              styles.inputGroup,
-              { marginBottom: verticalScale(isTablet ? 24 : 20) }
-            ]}>
-              <Text style={[
-                styles.label, 
-                { 
-                  color: colors.text,
-                  fontSize: moderateScale(isTablet ? 15 : 14),
-                  marginBottom: verticalScale(isTablet ? 10 : 8),
-                  marginLeft: scale(isTablet ? 6 : 4),
-                }
-              ]}>
+            <View
+              style={[
+                styles.inputGroup,
+                { marginBottom: verticalScale(isTablet ? 24 : 20) },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.label,
+                  {
+                    color: colors.text,
+                    fontSize: moderateScale(isTablet ? 15 : 14),
+                    marginBottom: verticalScale(isTablet ? 10 : 8),
+                    marginLeft: scale(isTablet ? 6 : 4),
+                  },
+                ]}
+              >
                 Confirm Password
               </Text>
-              <View style={[
-                styles.inputWrapper,
-                { 
-                  backgroundColor: isDark ? colors.background : THEME.lightGray,
-                  borderColor: confirmPassword ? THEME.primary : (isDark ? colors.border : THEME.border),
-                  borderWidth: 1.5,
-                  borderRadius: scale(isTablet ? 18 : 16),
-                  paddingHorizontal: scale(isTablet ? 18 : 16),
-                  paddingVertical: isTablet ? 4 : 0,
-                },
-                confirmPassword && styles.inputWrapperFilled,
-              ]}>
+              <View
+                style={[
+                  styles.inputWrapper,
+                  {
+                    backgroundColor: isDark
+                      ? colors.background
+                      : THEME.lightGray,
+                    borderColor: confirmPassword
+                      ? THEME.primary
+                      : isDark
+                      ? colors.border
+                      : THEME.border,
+                    borderWidth: 1.5,
+                    borderRadius: scale(isTablet ? 18 : 16),
+                    paddingHorizontal: scale(isTablet ? 18 : 16),
+                    paddingVertical: isTablet ? 4 : 0,
+                  },
+                  confirmPassword && styles.inputWrapperFilled,
+                ]}
+              >
                 <Ionicons
                   name="lock-closed-outline"
                   size={moderateScale(isTablet ? 22 : 20)}
                   color={colors.textMuted}
-                  style={[styles.inputIcon, { marginRight: scale(isTablet ? 14 : 12) }]}
+                  style={[
+                    styles.inputIcon,
+                    { marginRight: scale(isTablet ? 14 : 12) },
+                  ]}
                 />
                 <TextInput
                   value={confirmPassword}
@@ -363,12 +410,12 @@ const ResetPasswordScreen = () => {
                   secureTextEntry={!showConfirmPassword}
                   editable={!loading}
                   style={[
-                    styles.input, 
-                    { 
+                    styles.input,
+                    {
                       color: colors.text,
                       paddingVertical: verticalScale(isTablet ? 18 : 16),
                       fontSize: moderateScale(isTablet ? 16 : 15),
-                    }
+                    },
                   ]}
                   placeholder="Confirm new password"
                   placeholderTextColor={isDark ? '#888' : '#9CA3AF'}
@@ -377,7 +424,9 @@ const ResetPasswordScreen = () => {
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   <Ionicons
-                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                    name={
+                      showConfirmPassword ? 'eye-off-outline' : 'eye-outline'
+                    }
                     size={moderateScale(isTablet ? 22 : 20)}
                     color={colors.textMuted}
                   />
@@ -388,34 +437,42 @@ const ResetPasswordScreen = () => {
             {/* Reset Button */}
             <TouchableOpacity
               style={[
-                styles.resetBtn, 
-                { 
+                styles.resetBtn,
+                {
                   backgroundColor: colors.primary,
                   shadowColor: colors.primary,
                   paddingVertical: verticalScale(isTablet ? 18 : 16),
                   borderRadius: scale(isTablet ? 18 : 16),
-                  shadowOffset: { width: 0, height: verticalScale(isTablet ? 6 : 4) },
+                  shadowOffset: {
+                    width: 0,
+                    height: verticalScale(isTablet ? 6 : 4),
+                  },
                   shadowOpacity: 0.3,
                   shadowRadius: scale(isTablet ? 12 : 8),
                   elevation: isTablet ? 6 : 4,
                   marginTop: verticalScale(isTablet ? 12 : 10),
                 },
-                loading && styles.disabledBtn
+                loading && styles.disabledBtn,
               ]}
               onPress={handleResetPassword}
               disabled={loading}
               activeOpacity={0.85}
             >
               {loading ? (
-                <ActivityIndicator color="#fff" size={isSmallDevice ? 'small' : 'large'} />
+                <ActivityIndicator
+                  color="#fff"
+                  size={isSmallDevice ? 'small' : 'large'}
+                />
               ) : (
-                <Text style={[
-                  styles.resetBtnText,
-                  {
-                    fontSize: moderateScale(isTablet ? 18 : 16),
-                    letterSpacing: 0.5,
-                  }
-                ]}>
+                <Text
+                  style={[
+                    styles.resetBtnText,
+                    {
+                      fontSize: moderateScale(isTablet ? 18 : 16),
+                      letterSpacing: 0.5,
+                    },
+                  ]}
+                >
                   Reset Password
                 </Text>
               )}
@@ -425,7 +482,7 @@ const ResetPasswordScreen = () => {
             <TouchableOpacity
               style={[
                 styles.signInLink,
-                { marginTop: verticalScale(isTablet ? 24 : 20) }
+                { marginTop: verticalScale(isTablet ? 24 : 20) },
               ]}
               onPress={() => {
                 navigation.reset({
@@ -434,21 +491,25 @@ const ResetPasswordScreen = () => {
                 });
               }}
             >
-              <Text style={[
-                styles.signInText, 
-                { 
-                  color: colors.textSecondary,
-                  fontSize: moderateScale(isTablet ? 16 : 15),
-                }
-              ]}>
-                Remember your password?{' '}
-                <Text style={[
-                  styles.signInLinkText, 
-                  { 
-                    color: colors.primary,
+              <Text
+                style={[
+                  styles.signInText,
+                  {
+                    color: colors.textSecondary,
                     fontSize: moderateScale(isTablet ? 16 : 15),
-                  }
-                ]}>
+                  },
+                ]}
+              >
+                Remember your password?{' '}
+                <Text
+                  style={[
+                    styles.signInLinkText,
+                    {
+                      color: colors.primary,
+                      fontSize: moderateScale(isTablet ? 16 : 15),
+                    },
+                  ]}
+                >
                   Sign In
                 </Text>
               </Text>
@@ -487,7 +548,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
     color: '#FFFFFF',
     letterSpacing: -0.5,
     textAlign: 'center',
@@ -513,7 +574,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   inputWrapper: {
     flexDirection: 'row',
@@ -538,7 +599,7 @@ const styles = StyleSheet.create({
   },
   resetBtnText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
   },
   signInLink: {
     alignItems: 'center',
@@ -548,6 +609,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   signInLinkText: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });

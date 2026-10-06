@@ -1,180 +1,216 @@
-'use client';
-
-import React, { ReactNode, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   StyleSheet,
-  View,
-  ActivityIndicator,
   Text,
   TouchableOpacity,
-  Linking,
+  View,
 } from 'react-native';
-import { latesteEdition } from '../../../services/api/latestedition';
-import Config from 'react-native-config';
+
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../../redux/hooks/useTheme';
 
-/* ---------- TYPES ---------- */
+import { useTheme } from '../../../store/hooks/useTheme';
+import {
+  getMagazineImageUrl,
+  getPostImageUrl,
+} from '../../../utils/helpers/imageHelper';
 
-type Post = {
-  id: number;
-  title: string;
-  image?: string;
-  description?: string;
-  short_description: string;
-  slug: string;
-  category?: {
-    slug: string;
-    name?: string;
-  };
-};
+import { latesteEdition } from '../../../services/home.service';
+import type { EditionResponse, LatestEditionProps, Post } from '../../../types/home.types';
 
-type Magazine = {
-  magazine_name: ReactNode;
-  id: number;
-  title: string;
-  image: string;
-  year: number;
-  slug?: string;
-  link?: string;
-};
-
-type EditionResponse = {
-  magazine: Magazine;
-  posts: Post[];
-};
-
-/* ---------- CONSTANTS ---------- */
-
-const MagimgUrl = Config.MAGAZINES_BASE_URL;
-const PostimgUrl = Config.POSTS_BASE_URL;
-
-/* ---------- COMPONENT ---------- */
-
-const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
+const LatestEdition = ({ onData }: LatestEditionProps) => {
   const { colors, isDark } = useTheme();
+  const navigation = useNavigation<any>();
+
   const [data, setData] = useState<EditionResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const navigation = useNavigation<any>();
+  const fetchEdition = useCallback(async () => {
+    try {
+      const result = await latesteEdition();
+      const edition = result.data;
+
+      setData(edition);
+      onData(edition);
+    } catch (error) {
+      console.error('Failed to load latest edition:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [onData]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result = await latesteEdition();
-        setData(result.data);
-        onData(result.data);
-      } catch (error) {
-        console.error('API Error:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchEdition();
+  }, [fetchEdition]);
 
-    fetchData();
-  }, [onData]);
+  const handleArticlePress = useCallback(
+    (item: Post) => {
+      navigation.navigate('ArticleDetail', {
+        slug: item.slug,
+        category: item.category?.slug ?? 'general',
+      });
+    },
+    [navigation],
+  );
+
+  const handleMagazinePress = useCallback(() => {
+    if (!data?.magazine) {
+      return;
+    }
+
+    navigation.navigate('MagazineDetail', {
+      slug: data.magazine.slug ?? String(data.magazine.id),
+    });
+  }, [data, navigation]);
+
+  const handleSubscribe = useCallback(() => {
+    navigation.navigate('Subscription');
+  }, [navigation]);
 
   if (loading) {
     return (
       <ActivityIndicator
         size="small"
         color={colors.primary}
-        style={{ marginTop: 24 }}
+        style={styles.loading}
       />
     );
   }
 
-  if (!data) return null;
-
-  //  FIXED - Direct navigation
-  const goToArticle = (item: Post) => {
-    navigation.navigate('ArticleDetail', {
-      slug: item.slug,
-      category: item.category?.slug ?? 'general',
-    });
-  };
-
-  //  FIXED - Direct navigation
-  const goToMagazine = () => {
-    navigation.navigate('MagazineDetail', {
-      slug: data.magazine?.slug ?? String(data.magazine.id),
-    });
-  };
-
-  //  FIXED - Direct navigation
-  const handleSubscribe = () => {
-    navigation.navigate('Subscription');
-  };
+  if (!data) {
+    return null;
+  }
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: colors.background }]}>
-      {/* Header */}
-      <Text style={[styles.heading, { color: colors.text }]}>Latest Edition</Text>
-      <View style={[styles.redLine, { backgroundColor: colors.primary }]} />
+    <View
+      style={[
+        styles.wrapper,
+        {
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
+      <Text style={[styles.heading, { color: colors.text }]}>
+        Latest Edition
+      </Text>
 
-      {/* Magazine Card */}
-      <TouchableOpacity 
-        style={[styles.magCard, { 
-          backgroundColor: colors.card,
-          shadowColor: isDark ? '#000' : '#000',
-        }]} 
-        onPress={goToMagazine}
+      <View
+        style={[
+          styles.redLine,
+          {
+            backgroundColor: colors.primary,
+          },
+        ]}
+      />
+
+      <TouchableOpacity
+        style={[
+          styles.magCard,
+          {
+            backgroundColor: colors.card,
+            shadowColor: '#000',
+          },
+        ]}
+        onPress={handleMagazinePress}
+        activeOpacity={0.8}
       >
         <Image
-          source={{ uri: `${MagimgUrl}/${data.magazine?.image}` }}
-          style={[styles.magImage, { backgroundColor: isDark ? colors.border : '#f5f5f5' }]}
+          source={{
+            uri: getMagazineImageUrl(data.magazine.image),
+          }}
+          style={[
+            styles.magImage,
+            {
+              backgroundColor: isDark ? colors.border : '#f5f5f5',
+            },
+          ]}
           resizeMode="contain"
         />
 
         <View style={styles.magContent}>
-          <Text style={[styles.magTitle, { color: colors.text }]} numberOfLines={1}>
-            {data.magazine?.title}
+          <Text
+            style={[styles.magTitle, { color: colors.text }]}
+            numberOfLines={1}
+          >
+            {data.magazine.title}
           </Text>
-          <Text style={[styles.magSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
-            {data.magazine?.magazine_name}
+
+          <Text
+            style={[styles.magSubtitle, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
+            {data.magazine.magazine_name}
           </Text>
         </View>
       </TouchableOpacity>
 
-      {/* Subscribe */}
       <TouchableOpacity
-        style={[styles.subscribeBtn, { backgroundColor: colors.primary }]}
+        style={[
+          styles.subscribeBtn,
+          {
+            backgroundColor: colors.primary,
+          },
+        ]}
         onPress={handleSubscribe}
+        activeOpacity={0.8}
       >
         <Text style={styles.subscribeText}>Subscribe Now</Text>
       </TouchableOpacity>
 
-      {/* Articles – as cards */}
       <View style={styles.articleList}>
         {data.posts.slice(0, 3).map(item => (
           <TouchableOpacity
             key={item.id}
-            style={[styles.articleCard, { 
-              backgroundColor: colors.card,
-              shadowColor: isDark ? '#000' : '#000',
-            }]}
-            onPress={() => goToArticle(item)}
+            style={[
+              styles.articleCard,
+              {
+                backgroundColor: colors.card,
+                shadowColor: '#000',
+              },
+            ]}
+            onPress={() => handleArticlePress(item)}
+            activeOpacity={0.8}
           >
             <Image
-              source={{ uri: `${PostimgUrl}/${item.image}` }}
-              style={[styles.articleImage, { backgroundColor: isDark ? colors.border : '#eee' }]}
+              source={{
+                uri: getPostImageUrl(item.image),
+              }}
+              style={[
+                styles.articleImage,
+                {
+                  backgroundColor: isDark ? colors.border : '#eee',
+                },
+              ]}
             />
 
             <View style={styles.articleContent}>
-              <Text numberOfLines={2} style={[styles.articleTitle, { color: colors.text }]}>
+              <Text
+                numberOfLines={2}
+                style={[styles.articleTitle, { color: colors.text }]}
+              >
                 {item.title}
               </Text>
 
-              <Text numberOfLines={2} style={[styles.articleDesc, { color: colors.textSecondary }]}>
+              <Text
+                numberOfLines={2}
+                style={[styles.articleDesc, { color: colors.textSecondary }]}
+              >
                 {item.short_description}
               </Text>
 
               {item.category?.slug && (
-                <Text style={[styles.categoryBadge, { 
-                  color: colors.primary,
-                  backgroundColor: isDark ? colors.primaryBackground : 'rgba(201, 6, 10, 0.1)',
-                }]}>
+                <Text
+                  style={[
+                    styles.categoryBadge,
+                    {
+                      color: colors.primary,
+                      backgroundColor: isDark
+                        ? colors.primaryBackground
+                        : 'rgba(201, 6, 10, 0.1)',
+                    },
+                  ]}
+                >
                   {item.category.slug}
                 </Text>
               )}
@@ -189,6 +225,10 @@ const LatestEdition = ({ onData }: { onData: (data: any) => void }) => {
 export default LatestEdition;
 
 const styles = StyleSheet.create({
+  loading: {
+    marginTop: 24,
+  },
+
   wrapper: {
     paddingHorizontal: 12,
     marginTop: 16,
@@ -198,9 +238,9 @@ const styles = StyleSheet.create({
 
   heading: {
     fontSize: 15,
-    fontWeight: '700',
-    // marginBottom: 6,
+    fontWeight: '600',
   },
+
   redLine: {
     width: 36,
     height: 3,
@@ -220,13 +260,14 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 3,
   },
+
   magContent: {
     padding: 12,
   },
 
   magTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
   magSubtitle: {
@@ -242,10 +283,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     elevation: 2,
   },
+
   subscribeText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
 
   articleList: {
@@ -276,9 +318,10 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     justifyContent: 'center',
   },
+
   articleTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     marginBottom: 4,
   },
 

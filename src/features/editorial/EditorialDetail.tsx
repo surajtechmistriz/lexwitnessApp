@@ -12,27 +12,52 @@ import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useTheme } from '../../store/hooks/useTheme';
+
+// ---------- Types ----------
+
+interface EditorialData {
+  id?: number;
+  name?: string;
+  company_name?: string;
+  designation?: string;
+  place?: string;
+  image?: string;
+  description?: string;
+  [key: string]: any;
+}
+
+type EditorialDetailParams = {
+  editorialData?: EditorialData;
+};
+
+type EditorialDetailRoute = RouteProp<
+  { EditorialDetail: EditorialDetailParams },
+  'EditorialDetail'
+>;
+
+// ---------- Component ----------
 
 const EditorialDetail = () => {
-  const route = useRoute();
+  const route = useRoute<EditorialDetailRoute>(); //  typed
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
-  
-  const editorialData = route.params?.editorialData || {};
-  
+
+  const editorialData = route.params?.editorialData ?? {};
+
   const imgUrl = Config.EDITORIAL_IMAGE_URL || '';
 
-  // ===== CLEAN DESCRIPTION =====
   const cleanDescription = useMemo(() => {
-    return editorialData?.description?.replace(/<[^>]*>?/gm, '').trim() || 'No description available.';
+    return (
+      editorialData?.description?.replace(/<[^>]*>?/gm, '').trim() ||
+      'No description available.'
+    );
   }, [editorialData?.description]);
 
-  // ===== FALLBACK IMAGE =====
-  const fallbackImage = 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
+  const fallbackImage =
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
 
-  // ===== IMAGE URL =====
   const initialImage = useMemo(() => {
     const image = editorialData?.image;
     if (image && image !== 'null' && image.trim() !== '') {
@@ -43,14 +68,15 @@ const EditorialDetail = () => {
 
   const [imageSource, setImageSource] = useState({ uri: initialImage });
 
-  // ===== NAVIGATION FUNCTIONS =====
   const handleBack = () => {
     navigation.goBack();
   };
 
-  // ===== RENDER =====
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['left', 'right', 'bottom']}
+    >
       <StatusBar
         translucent={false}
         backgroundColor={colors.background}
@@ -61,16 +87,14 @@ const EditorialDetail = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* BACK BUTTON */}
-        <TouchableOpacity 
-          style={[styles.backButton, { backgroundColor: 'rgba(0,0,0,0.3)' }]} 
+        <TouchableOpacity
+          style={[styles.backButton, { backgroundColor: 'rgba(0,0,0,0.3)' }]}
           onPress={handleBack}
           activeOpacity={0.7}
         >
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
 
-        {/* HERO SECTION */}
         <View style={styles.heroWrapper}>
           <Image
             source={imageSource}
@@ -106,23 +130,36 @@ const EditorialDetail = () => {
           </View>
         </View>
 
-        {/* INFO GRID */}
-        <View style={[styles.infoGrid, { 
-          backgroundColor: colors.card,
-          shadowColor: isDark ? '#000' : '#000',
-          borderColor: colors.border,
-        }]}>
+        <View
+          style={[
+            styles.infoGrid,
+            {
+              backgroundColor: colors.card,
+              shadowColor: '#000',
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <View style={styles.infoBox}>
             <Icon name="briefcase-outline" size={22} color={colors.primary} />
             <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
               DESIGNATION
             </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={2}>
+            <Text
+              style={[styles.infoValue, { color: colors.text }]}
+              numberOfLines={2}
+            >
               {editorialData?.designation || 'Editor'}
             </Text>
           </View>
 
-          <View style={[styles.infoBox, styles.borderLeft, { borderLeftColor: colors.border }]}>
+          <View
+            style={[
+              styles.infoBox,
+              styles.borderLeft,
+              { borderLeftColor: colors.border },
+            ]}
+          >
             <Icon name="location-outline" size={22} color={colors.primary} />
             <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
               LOCATION
@@ -133,10 +170,11 @@ const EditorialDetail = () => {
           </View>
         </View>
 
-        {/* CONTENT */}
         <View style={styles.contentBody}>
           <View style={styles.sectionHeader}>
-            <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
+            <View
+              style={[styles.accentBar, { backgroundColor: colors.primary }]}
+            />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               The Insight
             </Text>
@@ -154,29 +192,11 @@ const EditorialDetail = () => {
 export default EditorialDetail;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  scrollContent: {
-    paddingBottom: 50,
-  },
-
-  heroWrapper: {
-    height: 500,
-    width: '100%',
-  },
-
-  heroImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-
+  container: { flex: 1 },
+  scrollContent: { paddingBottom: 50 },
+  heroWrapper: { height: 500, width: '100%' },
+  heroImage: { width: '100%', height: '100%', position: 'absolute' },
+  overlay: { ...StyleSheet.absoluteFillObject },
   heroContent: {
     position: 'absolute',
     bottom: 60,
@@ -184,7 +204,6 @@ const styles = StyleSheet.create({
     right: 24,
     paddingTop: 20,
   },
-
   backButton: {
     position: 'absolute',
     top: 16,
@@ -196,7 +215,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   badge: {
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
@@ -204,34 +222,29 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginBottom: 14,
   },
-
   badgeText: {
     color: '#fff',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
   },
-
   name: {
     fontSize: 38,
     fontWeight: '800',
     color: '#fff',
     lineHeight: 46,
   },
-
   companyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
   },
-
   company: {
     color: '#fff',
     fontSize: 16,
     marginLeft: 8,
     fontWeight: '500',
   },
-
   infoGrid: {
     flexDirection: 'row',
     marginHorizontal: 20,
@@ -244,54 +257,43 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     borderWidth: 1,
   },
-
   infoBox: {
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: 12,
   },
-
-  borderLeft: {
-    borderLeftWidth: 1,
-  },
-
+  borderLeft: { borderLeftWidth: 1 },
   infoLabel: {
     marginTop: 8,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 1,
   },
-
   infoValue: {
     marginTop: 5,
     fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
   },
-
   contentBody: {
     paddingHorizontal: 24,
     marginTop: 36,
   },
-
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 18,
   },
-
   accentBar: {
     width: 4,
     height: 24,
     borderRadius: 10,
     marginRight: 12,
   },
-
   sectionTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '600',
   },
-
   description: {
     fontSize: 16,
     lineHeight: 30,

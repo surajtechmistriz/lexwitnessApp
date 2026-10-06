@@ -12,24 +12,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Config from 'react-native-config';
 
-// API
-import { getPosts } from '../../services/api/posts';
-import { getYears } from '../../services/api/years';
-
 // Components
 import PostList from '../../components/common/PostList';
 import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
 import Banner from '../../components/common/DynamicBanner';
-import HomeBanner from '../home/components/HomeBanner';
-import HomeAdvertisement from '../home/components/HomeAdvertisement';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { getPosts } from '../article/api/posts';
+import { getYears } from '../magazines/api/years';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function TagScreen() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const scrollRef = useRef<ScrollView>(null);
@@ -157,82 +153,84 @@ export default function TagScreen() {
   };
 
   return (
-       <>
-           <StatusBar
-             translucent={false}
-             backgroundColor={colors.primary}
-             barStyle="light-content"
-           />
-         <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]}>
-             <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView
-        ref={scrollRef}
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={['#c9060a']}
-          />
-        }
-        stickyHeaderIndices={[0]} // Changed from [1] to [0] since Banner is now first
-        showsVerticalScrollIndicator={false}
+    <>
+      <StatusBar
+        translucent={false}
+        backgroundColor={colors.primary}
+        barStyle="light-content"
+      />
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.primary }]}
       >
-        {/* BANNER WITH BACK BUTTON */}
-        <Banner
-          title={tagTitle}
-          showBackButton={true}  // Enable back button
-          onBackPress={handleBack}  // Handle back navigation
-          renderFilter={close => (
-            <YearFilter
-              years={years}
-              selectedYear={selectedYear}
-              onSelect={setSelectedYear}
-              onApply={() => {
-                handleApplyFilter();
-                close();
-              }}
+        <View
+          style={[styles.container, { backgroundColor: colors.background }]}
+        >
+          <ScrollView
+            ref={scrollRef}
+            style={styles.container}
+            contentContainerStyle={styles.scrollContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#c9060a']}
+              />
+            }
+            stickyHeaderIndices={[0]} // Changed from [1] to [0] since Banner is now first
+            showsVerticalScrollIndicator={false}
+          >
+            {/* BANNER WITH BACK BUTTON */}
+            <Banner
+              title={tagTitle}
+              showBackButton={true} // Enable back button
+              onBackPress={handleBack} // Handle back navigation
+              renderFilter={close => (
+                <YearFilter
+                  years={years}
+                  selectedYear={selectedYear}
+                  onSelect={setSelectedYear}
+                  onApply={() => {
+                    handleApplyFilter();
+                    close();
+                  }}
+                />
+              )}
             />
-          )}
-        />
 
-        {/* CONTENT */}
-        <View style={styles.content}>
-          {loading && !refreshing ? (
-            <View style={styles.skeletonWrapper}>
-              {[1, 2, 3, 4, 5].map(item => (
-                <ArticleSkeleton key={item} />
-              ))}
+            {/* CONTENT */}
+            <View style={styles.content}>
+              {loading && !refreshing ? (
+                <View style={styles.skeletonWrapper}>
+                  {[1, 2, 3, 4, 5].map(item => (
+                    <ArticleSkeleton key={item} />
+                  ))}
+                </View>
+              ) : (
+                <PostList
+                  posts={posts}
+                  loading={false}
+                  postBaseUrl={postBaseUrl}
+                  fallbackAuthorName={tagTitle}
+                  emptyMessage={
+                    appliedYear
+                      ? `No posts found for ${tagTitle} in ${appliedYear}`
+                      : `No posts found for ${tagTitle}`
+                  }
+                />
+              )}
+
+              {!loading && posts.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  lastPage={lastPage}
+                  onPageChange={handlePageChange}
+                  loading={loading}
+                />
+              )}
             </View>
-          ) : (
-            <PostList
-              posts={posts}
-              loading={false}
-              postBaseUrl={postBaseUrl}
-              fallbackAuthorName={tagTitle}
-              emptyMessage={
-                appliedYear
-                  ? `No posts found for ${tagTitle} in ${appliedYear}`
-                  : `No posts found for ${tagTitle}`
-              }
-            />
-          )}
-
-          {!loading && posts.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              lastPage={lastPage}
-              onPageChange={handlePageChange}
-              loading={loading}
-            />
-          )}
+          </ScrollView>
         </View>
-
-
-      </ScrollView>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
     </>
   );
 }

@@ -1,5 +1,3 @@
-
-
 export const formatMonthYear = (monthName?: string, year?: number | string) => {
   if (!monthName || !year) return '';
 
@@ -22,5 +20,3 @@ export const formatMonthYear = (monthName?: string, year?: number | string) => {
 
   return `${shortMonth} ${year}`;
 };
-
-

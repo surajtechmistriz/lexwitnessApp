@@ -11,7 +11,7 @@ import {
   Share,
   Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LinkedinIcon from 'react-native-vector-icons/FontAwesome';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Config from 'react-native-config';
@@ -19,18 +19,18 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import IconBack from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 
-import { getArticleBySlug, getRelatedPosts } from '../../services/api/posts';
 import TestimonialCard from './components/Testimonial';
 import RenderHtml from 'react-native-render-html';
 
 import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/store';
+import { RootState } from '../../store/store';
 
 import { Linking } from 'react-native';
 import { Animated } from 'react-native';
-import { useTheme } from '../../redux/hooks/useTheme';
+import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import MainLayout from '../../MainLayout';
+import { getArticleBySlug, getRelatedPosts } from './api/posts';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -38,9 +38,9 @@ type Route = RouteProp<{ ArticleDetail: { slug: string } }, 'ArticleDetail'>;
 
 export default function ArticleDetailPage() {
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+  // const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { isTablet, isSmallDevice, spacing, font, sizes } = useResponsive();
+  const { isTablet, spacing, font, sizes } = useResponsive();
 
   const route = useRoute<Route>();
   const navigation = useNavigation<any>();
@@ -59,10 +59,10 @@ export default function ArticleDetailPage() {
 
   const isSubscribed = Boolean(
     user &&
-    subscription &&
-    subscription.status === 'ACTIVE' &&
-    subscription.end_date &&
-    new Date(subscription.end_date) >= new Date(),
+      subscription &&
+      subscription.status === 'ACTIVE' &&
+      subscription.end_date &&
+      new Date(subscription.end_date) >= new Date(),
   );
 
   const isAndroid = Platform.OS === 'android';
@@ -218,7 +218,7 @@ export default function ArticleDetailPage() {
   // Responsive values
   const heroHeight = isTablet ? width * 0.5 : width * 0.7;
   const titleSize = isTablet ? font.xl : font.lg;
-  const contentPadding = isTablet ? spacing.xl : spacing.lg;
+  // const contentPadding = isTablet ? spacing.xl : spacing.lg;
 
   // Show loading inside MainLayout to maintain status bar color
   if (loading) {
@@ -249,7 +249,11 @@ export default function ArticleDetailPage() {
         onBackPress={handleBack}
       >
         <View style={[styles.center, { backgroundColor: colors.background }]}>
-          <Icon name="document-text-outline" size={48} color={colors.textMuted} />
+          <Icon
+            name="document-text-outline"
+            size={48}
+            color={colors.textMuted}
+          />
           <Text style={[styles.notFoundText, { color: colors.textSecondary }]}>
             Article not found
           </Text>
@@ -323,34 +327,40 @@ export default function ArticleDetailPage() {
           )}
 
           {/* Category and Share Row */}
-          <View style={[
-            styles.topRow,
-            {
-              paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-              marginTop: isAndroid ? spacing.sm : spacing.md,
-              marginBottom: isAndroid ? spacing.xs : spacing.sm,
-            }
-          ]}>
+          <View
+            style={[
+              styles.topRow,
+              {
+                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                marginTop: isAndroid ? spacing.sm : spacing.md,
+                marginBottom: isAndroid ? spacing.xs : spacing.sm,
+              },
+            ]}
+          >
             <TouchableOpacity
               onPress={() => handleCategoryPress(article.category)}
               activeOpacity={0.8}
             >
-              <View style={[
-                styles.categoryPill,
-                {
-                  backgroundColor: colors.primaryBackground,
-                  paddingHorizontal: isAndroid ? spacing.sm : spacing.md,
-                  paddingVertical: isAndroid ? spacing.xs : spacing.sm,
-                  borderRadius: isAndroid ? 16 : 20,
-                }
-              ]}>
-                <Text style={[
-                  styles.categoryText,
+              <View
+                style={[
+                  styles.categoryPill,
                   {
-                    color: colors.primary,
-                    fontSize: isTablet ? font.md : font.sm,
-                  }
-                ]}>
+                    backgroundColor: colors.primaryBackground,
+                    paddingHorizontal: isAndroid ? spacing.sm : spacing.md,
+                    paddingVertical: isAndroid ? spacing.xs : spacing.sm,
+                    borderRadius: isAndroid ? 16 : 20,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.categoryText,
+                    {
+                      color: colors.primary,
+                      fontSize: isTablet ? font.md : font.sm,
+                    },
+                  ]}
+                >
                   {article.category?.name || 'UNCATEGORIZED'}
                 </Text>
               </View>
@@ -365,7 +375,7 @@ export default function ArticleDetailPage() {
                   width: isAndroid ? 34 : 36,
                   height: isAndroid ? 34 : 36,
                   borderRadius: isAndroid ? 20 : 18,
-                }
+                },
               ]}
             >
               <Icon
@@ -377,27 +387,31 @@ export default function ArticleDetailPage() {
           </View>
 
           {/* Title */}
-          <Text style={[
-            styles.title,
-            {
-              color: colors.text,
-              fontSize: titleSize,
-              paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-              lineHeight: isTablet ? 32 : 24,
-              marginBottom: isAndroid ? spacing.md : spacing.lg,
-            }
-          ]}>
+          <Text
+            style={[
+              styles.title,
+              {
+                color: colors.text,
+                fontSize: titleSize,
+                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                lineHeight: isTablet ? 32 : 24,
+                marginBottom: isAndroid ? spacing.md : spacing.lg,
+              },
+            ]}
+          >
             {article.title}
           </Text>
 
           {/* Meta Info */}
-          <View style={[
-            styles.metaRow,
-            {
-              paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-              gap: isAndroid ? spacing.xs : spacing.sm,
-            }
-          ]}>
+          <View
+            style={[
+              styles.metaRow,
+              {
+                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                gap: isAndroid ? spacing.xs : spacing.sm,
+              },
+            ]}
+          >
             <View style={styles.authorsList}>
               <Icon
                 name="person-outline"
@@ -409,13 +423,15 @@ export default function ArticleDetailPage() {
                   key={author.slug || index}
                   onPress={() => handleAuthorPress(author)}
                 >
-                  <Text style={[
-                    styles.authorName,
-                    {
-                      color: colors.primary,
-                      fontSize: isTablet ? font.lg : 12,
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.authorName,
+                      {
+                        color: colors.primary,
+                        fontSize: isTablet ? font.lg : 12,
+                      },
+                    ]}
+                  >
                     {author?.name}
                     {index !== article.authors.length - 1 ? ', ' : ''}
                   </Text>
@@ -429,13 +445,15 @@ export default function ArticleDetailPage() {
                 size={isAndroid ? 16 : 14}
                 color={colors.textMuted}
               />
-              <Text style={[
-                styles.dateText,
-                {
-                  color: colors.textMuted,
-                  fontSize: isTablet ? font.sm : font.sm,
-                }
-              ]}>
+              <Text
+                style={[
+                  styles.dateText,
+                  {
+                    color: colors.textMuted,
+                    fontSize: isTablet ? font.sm : font.sm,
+                  },
+                ]}
+              >
                 {article.magazine?.month?.name} {article.magazine?.year}
               </Text>
             </View>
@@ -443,20 +461,24 @@ export default function ArticleDetailPage() {
         </View>
 
         {/* CONTENT SECTION */}
-        <View style={[
-          styles.contentCard,
-          {
-            backgroundColor: colors.card,
-            borderTopLeftRadius: isAndroid ? 20 : 24,
-            borderTopRightRadius: isAndroid ? 20 : 24,
-            paddingTop: isAndroid ? spacing.md : spacing.lg,
-          }
-        ]}>
+        <View
+          style={[
+            styles.contentCard,
+            {
+              backgroundColor: colors.card,
+              borderTopLeftRadius: isAndroid ? 20 : 24,
+              borderTopRightRadius: isAndroid ? 20 : 24,
+              paddingTop: isAndroid ? spacing.md : spacing.lg,
+            },
+          ]}
+        >
           {/* Article Body */}
-          <View style={[
-            styles.articleBody,
-            { paddingHorizontal: isAndroid ? spacing.md : spacing.lg }
-          ]}>
+          <View
+            style={[
+              styles.articleBody,
+              { paddingHorizontal: isAndroid ? spacing.md : spacing.lg },
+            ]}
+          >
             {isSubscribed ? (
               (() => {
                 const cleanedHtml =
@@ -497,80 +519,92 @@ export default function ArticleDetailPage() {
             ) : (
               <View>
                 {/* Preview Text */}
-                <View style={[
-                  styles.previewContainer,
-                  {
-                    backgroundColor: colors.background,
-                    borderRadius: isAndroid ? sizes.borderRadius : 16,
-                    padding: isAndroid ? spacing.md : spacing.lg,
-                    marginBottom: isAndroid ? spacing.md : spacing.lg,
-                  }
-                ]}>
-                  <Text style={[
-                    styles.previewText,
+                <View
+                  style={[
+                    styles.previewContainer,
                     {
-                      color: colors.textSecondary,
-                      fontSize: isTablet ? font.md : font.md,
-                      lineHeight: isTablet ? 30 : 22,
-                    }
-                  ]}>
+                      backgroundColor: colors.background,
+                      borderRadius: isAndroid ? sizes.borderRadius : 16,
+                      padding: isAndroid ? spacing.md : spacing.lg,
+                      marginBottom: isAndroid ? spacing.md : spacing.lg,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.previewText,
+                      {
+                        color: colors.textSecondary,
+                        fontSize: isTablet ? font.md : font.md,
+                        lineHeight: isTablet ? 30 : 22,
+                      },
+                    ]}
+                  >
                     {previewText}...
                   </Text>
                 </View>
 
                 {/* Premium Lock Box */}
-                <View style={[
-                  styles.lockBox,
-                  {
-                    backgroundColor: colors.primaryBackground,
-                    borderColor: colors.border,
-                    padding: isAndroid ? spacing.xl : spacing.xxl,
-                    borderRadius: isAndroid ? 16 : 20,
-                    borderWidth: isAndroid ? 0.5 : 1,
-                    marginTop: isAndroid ? spacing.xs : spacing.sm,
-                  }
-                ]}>
-                  <View style={[
-                    styles.lockIconContainer,
+                <View
+                  style={[
+                    styles.lockBox,
                     {
-                      backgroundColor: colors.card,
-                      shadowColor: colors.primary,
-                      width: isAndroid ? 72 : 64,
-                      height: isAndroid ? 72 : 64,
-                      borderRadius: isAndroid ? 36 : 32,
-                      marginBottom: isAndroid ? spacing.md : spacing.lg,
-                      shadowOffset: { width: 0, height: isAndroid ? 4 : 2 },
-                      shadowOpacity: isAndroid ? 0.15 : 0.1,
-                      shadowRadius: isAndroid ? 12 : 8,
-                      elevation: isAndroid ? 6 : 4,
-                    }
-                  ]}>
+                      backgroundColor: colors.primaryBackground,
+                      borderColor: colors.border,
+                      padding: isAndroid ? spacing.xl : spacing.xxl,
+                      borderRadius: isAndroid ? 16 : 20,
+                      borderWidth: isAndroid ? 0.5 : 1,
+                      marginTop: isAndroid ? spacing.xs : spacing.sm,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.lockIconContainer,
+                      {
+                        backgroundColor: colors.card,
+                        shadowColor: colors.primary,
+                        width: isAndroid ? 72 : 64,
+                        height: isAndroid ? 72 : 64,
+                        borderRadius: isAndroid ? 36 : 32,
+                        marginBottom: isAndroid ? spacing.md : spacing.lg,
+                        shadowOffset: { width: 0, height: isAndroid ? 4 : 2 },
+                        shadowOpacity: isAndroid ? 0.15 : 0.1,
+                        shadowRadius: isAndroid ? 12 : 8,
+                        elevation: isAndroid ? 6 : 4,
+                      },
+                    ]}
+                  >
                     <Icon
                       name="lock-closed"
                       size={isAndroid ? 36 : 32}
                       color={colors.primary}
                     />
                   </View>
-                  <Text style={[
-                    styles.lockTitle,
-                    {
-                      color: colors.text,
-                      fontSize: isTablet ? font.xl : font.xl,
-                      marginBottom: isAndroid ? spacing.xs : spacing.sm,
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.lockTitle,
+                      {
+                        color: colors.text,
+                        fontSize: isTablet ? font.xl : font.xl,
+                        marginBottom: isAndroid ? spacing.xs : spacing.sm,
+                      },
+                    ]}
+                  >
                     Premium Content
                   </Text>
-                  <Text style={[
-                    styles.lockSubtext,
-                    {
-                      color: colors.textSecondary,
-                      fontSize: isTablet ? font.lg : font.md,
-                      marginBottom: isAndroid ? spacing.xl : spacing.xxl,
-                      lineHeight: isTablet ? 26 : 22,
-                      paddingHorizontal: isAndroid ? spacing.sm : spacing.md,
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.lockSubtext,
+                      {
+                        color: colors.textSecondary,
+                        fontSize: isTablet ? font.lg : font.md,
+                        marginBottom: isAndroid ? spacing.xl : spacing.xxl,
+                        lineHeight: isTablet ? 26 : 22,
+                        paddingHorizontal: isAndroid ? spacing.sm : spacing.md,
+                      },
+                    ]}
+                  >
                     Subscribe to unlock full access to this article and
                     thousands more
                   </Text>
@@ -589,17 +623,19 @@ export default function ArticleDetailPage() {
                         shadowOpacity: isAndroid ? 0.35 : 0.3,
                         shadowRadius: isAndroid ? 12 : 8,
                         elevation: isAndroid ? 6 : 4,
-                      }
+                      },
                     ]}
                     onPress={handleSubscribe}
                     activeOpacity={0.9}
                   >
-                    <Text style={[
-                      styles.subscribeBtnText,
-                      {
-                        fontSize: isTablet ? font.md : font.md,
-                      }
-                    ]}>
+                    <Text
+                      style={[
+                        styles.subscribeBtnText,
+                        {
+                          fontSize: isTablet ? font.md : font.md,
+                        },
+                      ]}
+                    >
                       Subscribe Now
                     </Text>
                     <Icon
@@ -609,14 +645,16 @@ export default function ArticleDetailPage() {
                     />
                   </TouchableOpacity>
 
-                  <Text style={[
-                    styles.lockFooter,
-                    {
-                      color: colors.textMuted,
-                      marginTop: isAndroid ? spacing.lg : spacing.xl,
-                      fontSize: isTablet ? font.sm : font.sm,
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.lockFooter,
+                      {
+                        color: colors.textMuted,
+                        marginTop: isAndroid ? spacing.lg : spacing.xl,
+                        fontSize: isTablet ? font.sm : font.sm,
+                      },
+                    ]}
+                  >
                     Already have an account? Sign in
                   </Text>
                 </View>
@@ -627,89 +665,110 @@ export default function ArticleDetailPage() {
           {/* Testimonials/Feedback */}
           {article.reader_feedbacks?.filter((i: any) => i.reader_feedback)
             .length > 0 && (
-              <View style={[
+            <View
+              style={[
                 styles.sectionBlock,
                 {
                   marginTop: isAndroid ? spacing.xl : spacing.xxl,
                   paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-                }
-              ]}>
-                <View style={[
+                },
+              ]}
+            >
+              <View
+                style={[
                   styles.sectionHeader,
-                  { marginBottom: isAndroid ? spacing.sm : spacing.md }
-                ]}>
-                  <Text style={[
+                  { marginBottom: isAndroid ? spacing.sm : spacing.md },
+                ]}
+              >
+                <Text
+                  style={[
                     styles.sectionTitle,
                     {
                       color: colors.text,
                       fontSize: isTablet ? font.xl : font.lg,
-                    }
-                  ]}>
-                    Reader Feedback
-                  </Text>
-                  <View style={[
+                    },
+                  ]}
+                >
+                  Reader Feedback
+                </Text>
+                <View
+                  style={[
                     styles.sectionLine,
                     {
                       backgroundColor: colors.border,
                       height: isAndroid ? 0.5 : 1,
                       marginLeft: isAndroid ? spacing.sm : spacing.md,
-                    }
-                  ]} />
-                </View>
-                {article.reader_feedbacks
-                  ?.filter((i: any) => i.reader_feedback)
-                  .map((item: any, i: number) => (
-                    <View key={item.id} style={{ marginBottom: isAndroid ? spacing.md : 16 }}>
-                      <TestimonialCard
-                        data={{
-                          reader_feedback: item.reader_feedback,
-                          reader_name: item.reader_name,
-                          reader_designation: item.reader_designation,
-                          text_alignment:
-                            (item.text_aligment?.replace('text-', '') as any) ||
-                            'left',
-                        }}
-                      />
-                    </View>
-                  ))}
+                    },
+                  ]}
+                />
               </View>
-            )}
+              {article.reader_feedbacks
+                ?.filter((i: any) => i.reader_feedback)
+                .map((item: any) => (
+                  <View
+                    key={item.id}
+                    style={{ marginBottom: isAndroid ? spacing.md : 16 }}
+                  >
+                    <TestimonialCard
+                      data={{
+                        reader_feedback: item.reader_feedback,
+                        reader_name: item.reader_name,
+                        reader_designation: item.reader_designation,
+                        text_alignment:
+                          (item.text_aligment?.replace('text-', '') as any) ||
+                          'left',
+                      }}
+                    />
+                  </View>
+                ))}
+            </View>
+          )}
 
           {/* Tags */}
           {article.tags?.length > 0 && (
-            <View style={[
-              styles.tagsSection,
-              {
-                marginTop: isAndroid ? spacing.xl : spacing.xxl,
-                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-              }
-            ]}>
-              <View style={[
-                styles.sectionHeader,
-                { marginBottom: isAndroid ? spacing.sm : spacing.md }
-              ]}>
-                <Text style={[
-                  styles.sectionTitle,
-                  {
-                    color: colors.text,
-                    fontSize: isTablet ? font.xl : font.lg,
-                  }
-                ]}>
+            <View
+              style={[
+                styles.tagsSection,
+                {
+                  marginTop: isAndroid ? spacing.xl : spacing.xxl,
+                  paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.sectionHeader,
+                  { marginBottom: isAndroid ? spacing.sm : spacing.md },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      color: colors.text,
+                      fontSize: isTablet ? font.xl : font.lg,
+                    },
+                  ]}
+                >
                   Tags
                 </Text>
-                <View style={[
-                  styles.sectionLine,
-                  {
-                    backgroundColor: colors.border,
-                    height: isAndroid ? 0.5 : 1,
-                    marginLeft: isAndroid ? spacing.sm : spacing.md,
-                  }
-                ]} />
+                <View
+                  style={[
+                    styles.sectionLine,
+                    {
+                      backgroundColor: colors.border,
+                      height: isAndroid ? 0.5 : 1,
+                      marginLeft: isAndroid ? spacing.sm : spacing.md,
+                    },
+                  ]}
+                />
               </View>
-              <View style={[
-                styles.tagsWrap,
-                { gap: isAndroid ? spacing.xs : spacing.sm }
-              ]}>
+              <View
+                style={[
+                  styles.tagsWrap,
+                  { gap: isAndroid ? spacing.xs : spacing.sm },
+                ]}
+              >
                 {article.tags.map((tag: any, index: number) => (
                   <TouchableOpacity
                     key={tag.id || index}
@@ -722,18 +781,20 @@ export default function ArticleDetailPage() {
                         paddingVertical: isAndroid ? spacing.xs : spacing.sm,
                         borderRadius: isAndroid ? 20 : 24,
                         borderWidth: isAndroid ? 0.5 : 1,
-                      }
+                      },
                     ]}
                     onPress={() => handleTagPress(tag)}
                     activeOpacity={0.7}
                   >
-                    <Text style={[
-                      styles.tagText,
-                      {
-                        color: colors.primary,
-                        fontSize: isTablet ? font.sm : font.xs,
-                      }
-                    ]}>
+                    <Text
+                      style={[
+                        styles.tagText,
+                        {
+                          color: colors.primary,
+                          fontSize: isTablet ? font.sm : font.xs,
+                        },
+                      ]}
+                    >
                       #{tag.name}
                     </Text>
                   </TouchableOpacity>
@@ -744,34 +805,42 @@ export default function ArticleDetailPage() {
 
           {/* Authors Section */}
           {article.authors?.length > 0 && (
-            <View style={[
-              styles.authorSection,
-              {
-                marginTop: isAndroid ? spacing.xl : spacing.xxl,
-                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-              }
-            ]}>
-              <View style={[
-                styles.sectionHeader,
-                { marginBottom: isAndroid ? spacing.sm : spacing.md }
-              ]}>
-                <Text style={[
-                  styles.sectionTitle,
-                  {
-                    color: colors.text,
-                    fontSize: isTablet ? font.xl : 15,
-                  }
-                ]}>
+            <View
+              style={[
+                styles.authorSection,
+                {
+                  marginTop: isAndroid ? spacing.xl : spacing.xxl,
+                  paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.sectionHeader,
+                  { marginBottom: isAndroid ? spacing.sm : spacing.md },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      color: colors.text,
+                      fontSize: isTablet ? font.xl : 15,
+                    },
+                  ]}
+                >
                   About {article.authors.length > 1 ? 'Authors' : 'Author'}
                 </Text>
-                <View style={[
-                  styles.sectionLine,
-                  {
-                    backgroundColor: colors.border,
-                    height: isAndroid ? 0.5 : 1,
-                    marginLeft: isAndroid ? spacing.sm : spacing.md,
-                  }
-                ]} />
+                <View
+                  style={[
+                    styles.sectionLine,
+                    {
+                      backgroundColor: colors.border,
+                      height: isAndroid ? 0.5 : 1,
+                      marginLeft: isAndroid ? spacing.sm : spacing.md,
+                    },
+                  ]}
+                />
               </View>
 
               {article.authors.map((author: any, index: number) => {
@@ -782,29 +851,32 @@ export default function ArticleDetailPage() {
                 }
 
                 return (
-                  <View key={authorKey} style={[
-                    styles.authorCard,
-                    {
-                      backgroundColor: colors.card,
-                      shadowColor: isDark ? '#000' : '#000',
-                      borderRadius: isAndroid ? 16 : 18,
-                      padding: isAndroid ? spacing.md : 16,
-                      marginBottom: isAndroid ? spacing.md : 18,
-                      shadowOffset: { width: 0, height: isAndroid ? 2 : 4 },
-                      shadowOpacity: isAndroid ? 0.08 : 0.06,
-                      shadowRadius: isAndroid ? 6 : 10,
-                      elevation: isAndroid ? 4 : 3,
-                    }
-                  ]}>
+                  <View
+                    key={authorKey}
+                    style={[
+                      styles.authorCard,
+                      {
+                        backgroundColor: colors.card,
+                        shadowColor: isDark ? '#000' : '#000',
+                        borderRadius: isAndroid ? 16 : 18,
+                        padding: isAndroid ? spacing.md : 16,
+                        marginBottom: isAndroid ? spacing.md : 18,
+                        shadowOffset: { width: 0, height: isAndroid ? 2 : 4 },
+                        shadowOpacity: isAndroid ? 0.08 : 0.06,
+                        shadowRadius: isAndroid ? 6 : 10,
+                        elevation: isAndroid ? 4 : 3,
+                      },
+                    ]}
+                  >
                     {/* Top Row */}
                     <View style={styles.authorTopRow}>
                       <Image
                         source={
                           author.image
                             ? {
-                              uri: `${Config.ADMIN_IMAGE_URL}${author.image}`,
-                            }
-                            : require('../../assets/avatar.jpg')
+                                uri: `${Config.ADMIN_IMAGE_URL}${author.image}`,
+                              }
+                            : require('../../assets/images/avatar.jpg')
                         }
                         style={[
                           styles.avatar,
@@ -812,31 +884,37 @@ export default function ArticleDetailPage() {
                             width: isAndroid ? 68 : 72,
                             height: isAndroid ? 68 : 72,
                             borderRadius: isAndroid ? 34 : 36,
-                          }
+                          },
                         ]}
                       />
 
-                      <View style={[
-                        styles.authorMeta,
-                        { marginLeft: isAndroid ? spacing.sm : spacing.md }
-                      ]}>
-                        <Text style={[
-                          styles.authorTitle,
-                          {
-                            color: colors.text,
-                            fontSize: isTablet ? font.xl : font.lg,
-                          }
-                        ]}>
+                      <View
+                        style={[
+                          styles.authorMeta,
+                          { marginLeft: isAndroid ? spacing.sm : spacing.md },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.authorTitle,
+                            {
+                              color: colors.text,
+                              fontSize: isTablet ? font.xl : font.lg,
+                            },
+                          ]}
+                        >
                           {author.name}
                         </Text>
-                        <Text style={[
-                          styles.authorRole,
-                          {
-                            color: colors.primary,
-                            fontSize: isTablet ? font.md : font.sm,
-                            marginTop: isAndroid ? 2 : 5,
-                          }
-                        ]}>
+                        <Text
+                          style={[
+                            styles.authorRole,
+                            {
+                              color: colors.primary,
+                              fontSize: isTablet ? font.md : font.sm,
+                              marginTop: isAndroid ? 2 : 5,
+                            },
+                          ]}
+                        >
                           {author.email || 'Contributor'}
                         </Text>
 
@@ -845,7 +923,7 @@ export default function ArticleDetailPage() {
                             activeOpacity={0.8}
                             style={[
                               styles.linkedinRow,
-                              { marginTop: isAndroid ? 4 : 8 }
+                              { marginTop: isAndroid ? 4 : 8 },
                             ]}
                             onPress={() => Linking.openURL(author.linkedin)}
                           >
@@ -854,13 +932,15 @@ export default function ArticleDetailPage() {
                               size={isAndroid ? 20 : 18}
                               color="#0A66C2"
                             />
-                            <Text style={[
-                              styles.linkedinText,
-                              {
-                                fontSize: isTablet ? font.sm : font.xs,
-                                marginLeft: isAndroid ? spacing.xs : 6,
-                              }
-                            ]}>
+                            <Text
+                              style={[
+                                styles.linkedinText,
+                                {
+                                  fontSize: isTablet ? font.sm : font.xs,
+                                  marginLeft: isAndroid ? spacing.xs : 6,
+                                },
+                              ]}
+                            >
                               LinkedIn
                             </Text>
                           </TouchableOpacity>
@@ -876,7 +956,7 @@ export default function ArticleDetailPage() {
                           fontSize: isTablet ? font.lg : font.md,
                           lineHeight: isTablet ? 26 : 24,
                           marginTop: isAndroid ? spacing.sm : 16,
-                        }
+                        },
                       ]}
                       numberOfLines={expandedAuthors[authorKey] ? undefined : 2}
                       ellipsizeMode="tail"
@@ -892,17 +972,19 @@ export default function ArticleDetailPage() {
                         {
                           paddingVertical: isAndroid ? 2 : 4,
                           marginTop: isAndroid ? 2 : 6,
-                        }
+                        },
                       ]}
                       onPress={() => toggleAuthor(authorKey)}
                     >
-                      <Text style={[
-                        styles.readMoreText,
-                        {
-                          color: colors.primary,
-                          fontSize: isTablet ? font.lg : font.sm,
-                        }
-                      ]}>
+                      <Text
+                        style={[
+                          styles.readMoreText,
+                          {
+                            color: colors.primary,
+                            fontSize: isTablet ? font.lg : font.sm,
+                          },
+                        ]}
+                      >
                         {expandedAuthors[authorKey] ? 'Show less' : 'View more'}
                       </Text>
 
@@ -913,9 +995,9 @@ export default function ArticleDetailPage() {
                             {
                               rotate: rotateAnim[authorKey]
                                 ? rotateAnim[authorKey].interpolate({
-                                  inputRange: [0, 1],
-                                  outputRange: ['0deg', '180deg'],
-                                })
+                                    inputRange: [0, 1],
+                                    outputRange: ['0deg', '180deg'],
+                                  })
                                 : '0deg',
                             },
                           ],
@@ -936,35 +1018,43 @@ export default function ArticleDetailPage() {
 
           {/* Related Stories */}
           {related.length > 0 && (
-            <View style={[
-              styles.relatedSection,
-              {
-                marginTop: isAndroid ? spacing.xl : spacing.xxl,
-                paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
-                marginBottom: isAndroid ? spacing.md : spacing.lg,
-              }
-            ]}>
-              <View style={[
-                styles.sectionHeader,
-                { marginBottom: isAndroid ? spacing.sm : spacing.md }
-              ]}>
-                <Text style={[
-                  styles.sectionTitle,
-                  {
-                    color: colors.text,
-                    fontSize: isTablet ? font.xl : font.lg,
-                  }
-                ]}>
+            <View
+              style={[
+                styles.relatedSection,
+                {
+                  marginTop: isAndroid ? spacing.xl : spacing.xxl,
+                  paddingHorizontal: isAndroid ? spacing.md : spacing.lg,
+                  marginBottom: isAndroid ? spacing.md : spacing.lg,
+                },
+              ]}
+            >
+              <View
+                style={[
+                  styles.sectionHeader,
+                  { marginBottom: isAndroid ? spacing.sm : spacing.md },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    {
+                      color: colors.text,
+                      fontSize: isTablet ? font.xl : font.lg,
+                    },
+                  ]}
+                >
                   Related Stories
                 </Text>
-                <View style={[
-                  styles.sectionLine,
-                  {
-                    backgroundColor: colors.border,
-                    height: isAndroid ? 0.5 : 1,
-                    marginLeft: isAndroid ? spacing.sm : spacing.md,
-                  }
-                ]} />
+                <View
+                  style={[
+                    styles.sectionLine,
+                    {
+                      backgroundColor: colors.border,
+                      height: isAndroid ? 0.5 : 1,
+                      marginLeft: isAndroid ? spacing.sm : spacing.md,
+                    },
+                  ]}
+                />
               </View>
 
               {related.map((post: any) => (
@@ -978,7 +1068,7 @@ export default function ArticleDetailPage() {
                       borderRadius: isAndroid ? 14 : 16,
                       borderWidth: isAndroid ? 0.5 : 1,
                       marginBottom: isAndroid ? spacing.xs : spacing.sm,
-                    }
+                    },
                   ]}
                   onPress={() => handleRelatedPress(post)}
                   activeOpacity={0.8}
@@ -987,45 +1077,49 @@ export default function ArticleDetailPage() {
                     source={
                       post.image
                         ? {
-                          uri: post.image.startsWith('http')
-                            ? post.image
-                            : `${postBaseUrl}/${post.image}`,
-                        }
-                        : require('../../assets/image.png')
+                            uri: post.image.startsWith('http')
+                              ? post.image
+                              : `${postBaseUrl}/${post.image}`,
+                          }
+                        : require('../../assets/images/image.png')
                     }
                     style={[
                       styles.relatedImage,
                       {
                         width: isAndroid ? 72 : 80,
                         height: isAndroid ? 72 : 80,
-                      }
+                      },
                     ]}
                     resizeMode="cover"
                     onError={e => {
                       e.currentTarget.setNativeProps({
-                        source: require('../../assets/image.png'),
+                        source: require('../../assets/images/image.png'),
                       });
                     }}
                   />
-                  <View style={[
-                    styles.relatedText,
-                    { padding: isAndroid ? spacing.xs : spacing.sm }
-                  ]}>
-                    <Text numberOfLines={2} style={[
-                      styles.relatedTitle,
-                      {
-                        color: colors.text,
-                        fontSize: isTablet ? font.lg : font.md,
-                        lineHeight: isTablet ? 22 : 20,
-                        marginBottom: isAndroid ? 2 : 6,
-                      }
-                    ]}>
+                  <View
+                    style={[
+                      styles.relatedText,
+                      { padding: isAndroid ? spacing.xs : spacing.sm },
+                    ]}
+                  >
+                    <Text
+                      numberOfLines={2}
+                      style={[
+                        styles.relatedTitle,
+                        {
+                          color: colors.text,
+                          fontSize: isTablet ? font.lg : font.md,
+                          lineHeight: isTablet ? 22 : 20,
+                          marginBottom: isAndroid ? 2 : 6,
+                        },
+                      ]}
+                    >
                       {post.title}
                     </Text>
-                    <View style={[
-                      styles.relatedMeta,
-                      { gap: isAndroid ? 2 : 4 }
-                    ]}>
+                    <View
+                      style={[styles.relatedMeta, { gap: isAndroid ? 2 : 4 }]}
+                    >
                       <Icon
                         name="person-outline"
                         size={isAndroid ? 14 : 12}
@@ -1052,7 +1146,7 @@ export default function ArticleDetailPage() {
                     color={colors.textMuted}
                     style={[
                       styles.relatedArrow,
-                      { marginRight: isAndroid ? spacing.sm : spacing.md }
+                      { marginRight: isAndroid ? spacing.sm : spacing.md },
                     ]}
                   />
                 </TouchableOpacity>
@@ -1076,67 +1170,67 @@ const tagsStyles = {
     fontSize: 15,
     lineHeight: 24,
     marginBottom: 18,
-    textAlign: 'justify',
+    textAlign: 'justify' as const,
   },
   h1: {
     fontSize: 25,
     lineHeight: 35,
-    fontWeight: '800',
+    fontWeight: '800' as const,
     marginTop: 26,
     marginBottom: 18,
   },
   h2: {
     fontSize: 26,
     lineHeight: 36,
-    fontWeight: '700',
+    fontWeight: '600' as const,
     marginTop: 24,
     marginBottom: 16,
   },
   h3: {
     fontSize: 22,
     lineHeight: 32,
-    fontWeight: '700',
+    fontWeight: '600' as const,
     marginTop: 20,
     marginBottom: 14,
   },
   h4: {
     fontSize: 20,
     lineHeight: 28,
-    fontWeight: '700',
+    fontWeight: '600' as const,
     marginTop: 18,
     marginBottom: 12,
   },
   h5: {
     fontSize: 18,
     lineHeight: 26,
-    fontWeight: '700',
+    fontWeight: '600' as const,
     marginTop: 16,
     marginBottom: 10,
   },
   h6: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: '700',
+    fontWeight: '600' as const,
     marginTop: 14,
     marginBottom: 8,
   },
   strong: {
-    fontWeight: '700',
+    fontWeight: '600' as const,
   },
   b: {
-    fontWeight: '700',
+    fontWeight: '600' as const,
   },
   em: {
-    fontStyle: 'italic',
+    fontStyle: 'italic' as const,   // ADD `as const`
   },
   i: {
-    fontStyle: 'italic',
+    fontStyle: 'italic' as const,   // ADD `as const`
   },
   u: {
-    textDecorationLine: 'underline',
+    textDecorationLine: 'underline' as const,  // Also recommended
   },
   a: {
-    textDecorationLine: 'underline',
+    textDecorationLine: 'underline' as const,  // Also recommended
   },
   ul: {
     marginVertical: 12,
@@ -1160,7 +1254,7 @@ const tagsStyles = {
   },
   img: {
     width: '100%',
-    height: 'auto',
+    height: 'auto' as const,   // `height: 'auto'` also widens to string
     borderRadius: 18,
     marginVertical: 20,
   },
@@ -1171,7 +1265,7 @@ const tagsStyles = {
   th: {
     padding: 10,
     borderWidth: 1,
-    fontWeight: '700',
+    fontWeight: '600' as const,
   },
   td: {
     padding: 10,
@@ -1195,7 +1289,7 @@ const tagsStyles = {
     borderBottomWidth: 1,
     marginVertical: 24,
   },
-};
+} as const;   // Optional: makes the whole object readonly & literal
 
 const styles = StyleSheet.create({
   screen: {
@@ -1241,7 +1335,7 @@ const styles = StyleSheet.create({
   },
   categoryPill: {},
   categoryText: {
-    fontWeight: '700',
+    fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -1250,7 +1344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
     textAlign: 'justify',
   },
   metaRow: {
@@ -1264,10 +1358,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     flex: 1,
-    gap: 2
+    gap: 2,
   },
   authorName: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   dateContainer: {
     flexDirection: 'row',
@@ -1292,7 +1386,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lockTitle: {
-    fontWeight: '800',
+    fontWeight: '800' as const,
   },
   lockSubtext: {
     textAlign: 'center',
@@ -1303,7 +1397,7 @@ const styles = StyleSheet.create({
   },
   subscribeBtnText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.8,
   },
   lockFooter: {
@@ -1315,7 +1409,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.3,
   },
   sectionLine: {
@@ -1328,7 +1422,7 @@ const styles = StyleSheet.create({
   },
   tagPill: {},
   tagText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   authorSection: {},
   authorCard: {},
@@ -1348,19 +1442,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkedinText: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   authorTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
   authorRole: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   bio: {
     fontWeight: '400',
   },
   relatedSection: {
-    paddingBottom: 20
+    paddingBottom: 20,
   },
   relatedCard: {
     flexDirection: 'row',
@@ -1374,7 +1468,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   relatedTitle: {
-    fontWeight: '600',
+    fontWeight: '600' as const,
   },
   relatedMeta: {
     flexDirection: 'row',

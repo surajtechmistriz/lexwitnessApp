@@ -1,97 +1,70 @@
-// src/screens/Home/index.tsx
-import React, { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
   RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
   useWindowDimensions,
-  Platform,
-  StatusBar,
+  View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Carousel from 'react-native-reanimated-carousel';
-import Config from 'react-native-config';
+
 import NetInfo from '@react-native-community/netinfo';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import Config from 'react-native-config';
+import Carousel from 'react-native-reanimated-carousel';
+import { useNavigation } from '@react-navigation/native';
 
-import TopMenu from '../../components/common/Menubar';
-import HeroCard from './components/HeroCard';
-import ListCard from './components/ListCard';
-import EditorPicksSection from './sections/EditorPickSection';
-import HomeAdvertisement from './components/HomeAdvertisement';
-import HomeBanner from './components/HomeBanner';
-import LatestEdition from './components/LatestEdition';
-import LatestEditions from './components/Latest5Edition';
-import EditorialCard from './components/Editorial';
-
-import { getHeroPost } from '../../services/api/heroCard';
-import { getEditorPick } from '../../services/api/editorpicks';
-import { getCache, setCache, isCacheExpired } from '../../utils/cache';
-import { useRefresh } from '../../hooks/useRefresh';
-import HeroSkeleton from '../../skeleton/HeroSkeleton';
-import ListSkeleton from '../../skeleton/ListSkeleton';
 import MainLayout from '../../MainLayout';
-import { useTheme } from '../../redux/hooks/useTheme';
+import TopMenu from '../../components/layout/Menubar';
+import { useRefresh } from '../../hooks/useRefresh';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useTabBarHeight } from '../../hooks/useTabBarHeight';
+import { useTheme } from '../../store/hooks/useTheme';
+import HeroSkeleton from '../../skeleton/HeroSkeleton';
+import { getCache, isCacheExpired, setCache } from '../../utils/cache';
+
+import { getEditorPick, getHeroPost } from '../../services/home.service';
+import EditorialCard from './components/Editorial';
+import EditorPicksSection from './sections/EditorPickSection';
+import HeroCard from './components/HeroCard';
+import HomeAdvertisement from './components/HomeAdvertisement';
+import HomeBanner from './components/HomeBanner';
+import LatestEditions from './components/Latest5Edition';
+import LatestEdition from './components/LatestEdition';
+import ListCard from './components/ListCard';
 
 const IMAGE_BASE_URL = Config.POSTS_BASE_URL;
 
 const Home = () => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
-
-
-
-  const insets = useSafeAreaInsets();
-
-  const {
-    spacing, font,
-    isTablet, isSmallDevice,
-    moderateScale
-  } = useResponsive();
-
+  const { spacing, font, isTablet } = useResponsive();
   const tabBarHeight = useTabBarHeight();
   const { width } = useWindowDimensions();
 
-  // ------ ALL HOOKS AT TOP ------
   const [articles, setArticles] = useState<any[]>([]);
   const [editorPicks, setEditorPicks] = useState<any[]>([]);
   const [latestEditionData, setLatestEditionData] = useState<any>(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [restLoading, setRestLoading] = useState(true);
-  const [heroReady, setHeroReady] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
-  const [activeIndex, setActiveIndex] = useState(0);
 
-  // ------ useMemo HOOKS ------
   const sliderData = articles.slice(0, 3);
   const remainingCards = articles.slice(3);
 
-  // ------ Responsive calculations ------
   const horizontalPadding = isTablet ? spacing.lg : spacing.md;
-  const carouselWidth = width - (horizontalPadding * 2);
-  const HERO_HEIGHT = carouselWidth * (9 / 16);
-
-  //  Calculate bottom padding for ScrollView
-  // Add extra spacing so content doesn't hide behind tab bar
+  const carouselWidth = width - horizontalPadding * 2;
+  const heroHeight = carouselWidth * (9 / 16);
   const bottomPadding = tabBarHeight - spacing.lg;
 
-  // Format magazine date
   const formatDate = (item: any) => {
     const month = item?.magazine?.month?.name || '';
     const year = item?.magazine?.year || '';
+
     return `${month} ${year}`;
   };
 
-  // Generate image URL
-  const getImage = (image: string) => {
-    return `${IMAGE_BASE_URL}/${image}`;
-  };
+  const getImage = (image: string) => `${IMAGE_BASE_URL}/${image}`;
 
-  // ------ Navigation handlers ------
   const handleArticlePress = useCallback(
     (item: any) => {
       navigation.navigate('ArticleDetail', {
@@ -124,7 +97,6 @@ const Home = () => {
     [navigation],
   );
 
-  // ----- Fetch Home Data -----
   const fetchHomeData = useCallback(
     async (force = false) => {
       try {
@@ -147,17 +119,19 @@ const Home = () => {
           return;
         }
 
-        const heroRes = await getHeroPost();
-        setArticles(heroRes || []);
+        const heroResponse = await getHeroPost();
+
+        setArticles(heroResponse || []);
         setHeroLoading(false);
 
-        const editorRes = await getEditorPick();
-        setEditorPicks(editorRes || []);
+        const editorResponse = await getEditorPick();
+
+        setEditorPicks(editorResponse || []);
         setRestLoading(false);
 
         await setCache('HOME_DATA', {
-          articles: heroRes || [],
-          editorPicks: editorRes || [],
+          articles: heroResponse || [],
+          editorPicks: editorResponse || [],
         });
       } catch (error) {
         console.error('Failed to load home data:', error);
@@ -169,25 +143,24 @@ const Home = () => {
     [isConnected],
   );
 
-  // ------ Internet Listener ------
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener(state => {
       setIsConnected(!!state.isConnected);
     });
+
     return unsubscribe;
   }, []);
 
-  // Initial Load
   useEffect(() => {
     fetchHomeData();
   }, [fetchHomeData]);
 
-  // ------ CUSTOM HOOK ------
   const { refreshing, onRefresh } = useRefresh(() => fetchHomeData(true));
 
-  //  Render Latest Articles with Grid for Tablet
   const renderLatestArticles = () => {
-    if (heroLoading) return <HeroSkeleton />;
+    if (heroLoading) {
+      return <HeroSkeleton />;
+    }
 
     return (
       <View style={{ marginTop: spacing.md }}>
@@ -203,7 +176,8 @@ const Home = () => {
         >
           Latest Articles
         </Text>
-         <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
+
+        <View style={[styles.accentBar, { backgroundColor: colors.primary }]} />
 
         {isTablet ? (
           <View style={styles.gridContainer}>
@@ -217,7 +191,7 @@ const Home = () => {
                     paddingRight: index % 2 === 0 ? spacing.sm : 0,
                     paddingLeft: index % 2 !== 0 ? spacing.sm : 0,
                     marginBottom: spacing.md,
-                  }
+                  },
                 ]}
               >
                 <ListCard
@@ -244,23 +218,18 @@ const Home = () => {
     );
   };
 
-
-  const statusBarColor = '#c9060a';
-  const statusBarStyle = 'light-content';
-
   return (
     <MainLayout
       title="Home"
       routeName="Home"
-      showHeader={true}
+      showHeader
       showTopMenu={false}
       showBanner={false}
       scrollable={false}
       contentPadding={false}
-      statusBarColor={statusBarColor}
-      statusBarStyle={statusBarStyle}
+      statusBarColor="#c9060a"
+      statusBarStyle="light-content"
     >
-      {/*  Remove SafeAreaView wrapper - MainLayout already handles it */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -282,7 +251,6 @@ const Home = () => {
       >
         <TopMenu />
 
-        {/* HERO SECTION */}
         {heroLoading ? (
           <HeroSkeleton />
         ) : (
@@ -291,33 +259,26 @@ const Home = () => {
               loop
               autoPlay
               width={carouselWidth}
-              height={HERO_HEIGHT}
+              height={heroHeight}
               data={sliderData}
               autoPlayInterval={isTablet ? 3000 : 4000}
               scrollAnimationDuration={1200}
-              renderItem={({ item, index }) => (
+              renderItem={({ item }) => (
                 <HeroCard
                   category={item.category}
                   title={item.title}
                   slug={item.slug}
                   date={formatDate(item)}
                   image={getImage(item.image)}
-                  onLoadEnd={
-                    index === 0 ? () => setHeroReady(true) : undefined
-                  }
                   onPress={() => handleArticlePress(item)}
                 />
               )}
-              onSnapToItem={(index) => setActiveIndex(index)}
             />
-
           </View>
         )}
 
-        {/* LATEST ARTICLES */}
         {!heroLoading && renderLatestArticles()}
 
-        {/* ADVERTISEMENT */}
         <View
           style={[
             styles.graySectionWrapper,
@@ -333,7 +294,6 @@ const Home = () => {
           <HomeAdvertisement />
         </View>
 
-        {/* EDITOR PICKS */}
         {restLoading ? (
           <View
             style={[
@@ -351,20 +311,16 @@ const Home = () => {
           />
         )}
 
-        {/* HOME BANNER */}
         <View style={{ marginVertical: spacing.md }}>
           <HomeBanner />
         </View>
 
-        {/* LATEST EDITION */}
         <LatestEdition onData={setLatestEditionData} />
 
-        {/* EDITORIAL */}
         <View style={{ marginVertical: spacing.sm }}>
           <EditorialCard onPressItem={handleEditorialPress} />
         </View>
 
-        {/* MAGAZINES */}
         <View style={{ marginBottom: spacing.lg }}>
           <LatestEditions
             skipId={latestEditionData?.magazine?.id}
@@ -380,47 +336,40 @@ const Home = () => {
 export default Home;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContent: {
     flexGrow: 1,
   },
+
   carouselWrapper: {
     alignItems: 'center',
   },
+
   graySectionWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+
   heading: {
-    fontWeight: '700',
+    fontWeight: '600',
   },
+
   loadingBlock: {
     padding: 20,
     alignItems: 'center',
   },
+
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -4,
   },
+
   gridItem: {},
-  paginationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  paginationDot: {
-    borderRadius: 4,
-    marginHorizontal: 4,
-  },
-   accentBar: {
+
+  accentBar: {
     width: 30,
     height: 3,
     marginTop: -8,
     marginBottom: 8,
-    // marginLeft: 12,
   },
-
 });

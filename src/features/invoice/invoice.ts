@@ -1,7 +1,6 @@
-
 /* ---------------- TYPES ---------------- */
 
-import api from "../../services/axios";
+import api from '../../network/client';
 
 export interface Invoice {
   id: number;
@@ -21,20 +20,15 @@ export interface InvoiceResponse {
 /* ---------------- HISTORY API ---------------- */
 
 export const getUserInvoices = async () => {
-  const res = await api.get<InvoiceResponse>(
-    "/subscription/plan-history"
-  );
-// console.log("Invoice responses",res)
+  const res = await api.get<InvoiceResponse>('/subscription/plan-history');
+  // console.log("Invoice responses",res)
   return res.data;
 };
 
 /* ---------------- DOWNLOAD API ---------------- */
 
 export const downloadInvoiceApi = async (id: number) => {
-  return api.get(
-    `/subscription/plan-invoice/${id}`,
-    {
-      responseType: "arraybuffer", // NOT blob
-    }
-  );
+  return api.get(`/subscription/plan-invoice/${id}`, {
+    responseType: 'arraybuffer', // NOT blob
+  });
 };

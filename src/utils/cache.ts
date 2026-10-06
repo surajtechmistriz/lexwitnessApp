@@ -6,7 +6,7 @@ export const setCache = async (key: string, data: any) => {
     JSON.stringify({
       data,
       timestamp: Date.now(),
-    })
+    }),
   );
 };
 
@@ -15,9 +15,6 @@ export const getCache = async (key: string) => {
   return value ? JSON.parse(value) : null;
 };
 
-export const isCacheExpired = (
-  timestamp: number,
-  maxAge = 5 * 60 * 1000
-) => {
+export const isCacheExpired = (timestamp: number, maxAge = 5 * 60 * 1000) => {
   return Date.now() - timestamp > maxAge;
 };

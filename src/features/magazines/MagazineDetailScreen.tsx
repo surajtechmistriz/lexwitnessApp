@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,16 +10,14 @@ import {
   useWindowDimensions,
   Platform,
 } from 'react-native';
-import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import IconBack from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
 import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
-import { useTheme } from '../../redux/hooks/useTheme';
 import MainLayout from '../../MainLayout';
-import LatestEditions from '../home/components/Latest5Edition';
-import { getLatestMagazines } from '../home/api/home.api';
+import { useTheme } from '../../store/hooks/useTheme';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;
@@ -33,26 +31,16 @@ export default function MagazineDetailScreen() {
   const { slug } = route.params || {};
   const [magazine, setMagazine] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [latestEditions, setLatestEditions] = useState<any[]>([]);
-  const [loadingEditions, setLoadingEditions] = useState(false);
 
   // Breakpoints / Responsive Adjustments
   const isTablet = width >= 768;
   const contentWidthMax = isTablet ? 650 : width;
   const heroHeight = isTablet ? 400 : width * 0.75;
 
-  // Status bar color
   const statusBarColor = '#c9060a';
   const statusBarStyle = 'light-content';
 
-  useEffect(() => {
-    if (slug) {
-      fetchMagazine();
-      fetchLatestEditions();
-    }
-  }, [slug]);
-
-  const fetchMagazine = async () => {
+  const fetchMagazine = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getSingleMagazine(slug);
@@ -62,67 +50,18 @@ export default function MagazineDetailScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
 
-  const fetchLatestEditions = async () => {
-    try {
-      setLoadingEditions(true);
-      const data = await getLatestMagazines();
-      setLatestEditions(data || []);
-    } catch (err) {
-      console.error('Failed to fetch latest editions:', err);
-    } finally {
-      setLoadingEditions(false);
+  useEffect(() => {
+    if (slug) {
+      fetchMagazine();
     }
-  };
+  }, [slug, fetchMagazine]);
 
   const getImage = (img: string, base: string) => {
     if (!img) return 'https://via.placeholder.com/300x200';
     return img.startsWith('http') ? img : `${base}/${img}`;
   };
-
-  // Navigation handlers
- const handleMagazinePress = (item: any) => {
-  // Use push to navigate to new magazine detail while keeping navigation stack
-  navigation.push('MagazineDetail', {
-    slug: item.slug,
-  });
-};
-
-const handleViewAllMagazines = () => {
-    // Option 1: Navigate to Magazines screen with reset to show tabs
-    // This will go back to the magazines list with tabs visible
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 1,
-        routes: [
-          { 
-            name: 'MainApp', 
-            state: {
-              routes: [
-                { 
-                  name: 'HomeTab', 
-                  state: {
-                    routes: [{ name: 'Magazines' }],
-                    index: 0,
-                  }
-                }
-              ],
-              index: 0,
-            }
-          },
-          { name: 'Magazines' }
-        ],
-      })
-    );
-  };
-
-  // Alternative: Simple navigation to magazines (shows with tabs if nested)
-  // const handleViewAllMagazines = () => {
-  //   navigation.navigate('Magazines');
-  // };
-
-
 
   if (loading) {
     return (
@@ -202,25 +141,49 @@ const handleViewAllMagazines = () => {
           )}
 
           {/* Centered container wrapper for tablet readability */}
-          <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
+          <View
+            style={[
+              styles.responsiveContentBlock,
+              { maxWidth: contentWidthMax },
+            ]}
+          >
             {/* Magazine Info Row */}
             <View style={styles.topRow}>
-              <Text style={[styles.categoryText, { color: colors.text, fontSize: isTablet ? 20 : 16 }]}>
+              <Text
+                style={[
+                  styles.categoryText,
+                  { color: colors.text, fontSize: isTablet ? 20 : 16 },
+                ]}
+              >
                 {magazine.magazine_name?.toUpperCase() || 'MAGAZINE'}
               </Text>
             </View>
 
             {/* Title */}
             <View style={styles.titleRow}>
-              <Icon name="calendar-outline" size={16} color={colors.textMuted} />
-              <Text style={[styles.magazineTitle, { color: colors.text, fontSize: isTablet ? 27 : 13 }]}>
+              <Icon
+                name="calendar-outline"
+                size={16}
+                color={colors.textMuted}
+              />
+              <Text
+                style={[
+                  styles.magazineTitle,
+                  { color: colors.text, fontSize: isTablet ? 27 : 13 },
+                ]}
+              >
                 {magazine.title}
               </Text>
             </View>
 
             {/* Meta Info */}
             <View style={styles.metaRow}>
-              <Text style={[styles.dateText, { color: colors.primary, fontSize: isTablet ? 17 : 15 }]}>
+              <Text
+                style={[
+                  styles.dateText,
+                  { color: colors.primary, fontSize: isTablet ? 17 : 15 },
+                ]}
+              >
                 Magazine Details
               </Text>
             </View>
@@ -228,25 +191,45 @@ const handleViewAllMagazines = () => {
         </View>
 
         {/* CONTENT SECTION */}
-        <View style={[styles.contentCard, {
-          backgroundColor: colors.card,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-        }]}>
-          <View style={[styles.responsiveContentBlock, { maxWidth: contentWidthMax }]}>
+        <View
+          style={[
+            styles.contentCard,
+            {
+              backgroundColor: colors.card,
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.responsiveContentBlock,
+              { maxWidth: contentWidthMax },
+            ]}
+          >
             {/* Description */}
             <View style={styles.descriptionContainer}>
-              <Text style={[styles.description, { color: colors.textSecondary, fontSize: isTablet ? 15 : 13 }]}>
-                {magazine.description?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&')}
+              <Text
+                style={[
+                  styles.description,
+                  { color: colors.textSecondary, fontSize: isTablet ? 15 : 13 },
+                ]}
+              >
+                {magazine.description
+                  ?.replace(/<[^>]+>/g, '')
+                  .replace(/&amp;/g, '&')}
               </Text>
             </View>
 
             {/* Subscribe Button */}
             <TouchableOpacity
-              style={[styles.subscribeBtn, {
-                backgroundColor: colors.primary,
-                shadowColor: colors.primary,
-              }]}
+              style={[
+                styles.subscribeBtn,
+                {
+                  backgroundColor: colors.primary,
+                  shadowColor: colors.primary,
+                },
+              ]}
               onPress={() => navigation.navigate('Subscription')}
               activeOpacity={0.9}
             >
@@ -258,23 +241,39 @@ const handleViewAllMagazines = () => {
             {magazine.posts?.length > 0 && (
               <View style={styles.articlesSection}>
                 <View style={styles.sectionHeader}>
-                  <Text style={[styles.sectionTitle, { color: colors.text, fontSize: isTablet ? 20 : 18 }]}>
+                  <Text
+                    style={[
+                      styles.sectionTitle,
+                      { color: colors.text, fontSize: isTablet ? 20 : 18 },
+                    ]}
+                  >
                     Articles
                   </Text>
-                  <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
+                  <View
+                    style={[
+                      styles.sectionLine,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
                 </View>
 
-                {/* Using grid behavior layout properties for tablets */}
                 <View style={isTablet ? styles.tabletGrid : null}>
                   {magazine.posts.map((post: any) => (
                     <TouchableOpacity
                       key={post.id}
                       style={[
                         styles.articleCard,
-                        { backgroundColor: colors.card, borderColor: colors.border },
-                        isTablet && styles.articleCardTablet
+                        {
+                          backgroundColor: colors.card,
+                          borderColor: colors.border,
+                        },
+                        isTablet && styles.articleCardTablet,
                       ]}
-                      onPress={() => navigation.navigate('ArticleDetail', { slug: post.slug })}
+                      onPress={() =>
+                        navigation.navigate('ArticleDetail', {
+                          slug: post.slug,
+                        })
+                      }
                       activeOpacity={0.8}
                     >
                       <Image
@@ -283,17 +282,34 @@ const handleViewAllMagazines = () => {
                         resizeMode="cover"
                       />
                       <View style={styles.articleText}>
-                        <Text numberOfLines={2} style={[styles.articleTitle, { color: colors.text }]}>
+                        <Text
+                          numberOfLines={2}
+                          style={[styles.articleTitle, { color: colors.text }]}
+                        >
                           {post.title}
                         </Text>
                         <View style={styles.articleMeta}>
-                          <Icon name="pricetag-outline" size={12} color={colors.primary} />
-                          <Text style={[styles.articleCategory, { color: colors.primary }]}>
+                          <Icon
+                            name="pricetag-outline"
+                            size={12}
+                            color={colors.primary}
+                          />
+                          <Text
+                            style={[
+                              styles.articleCategory,
+                              { color: colors.primary },
+                            ]}
+                          >
                             {post.category?.name || 'General'}
                           </Text>
                         </View>
                       </View>
-                      <Icon name="chevron-forward" size={20} color={colors.textMuted} style={styles.articleArrow} />
+                      <Icon
+                        name="chevron-forward"
+                        size={20}
+                        color={colors.textMuted}
+                        style={styles.articleArrow}
+                      />
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -301,37 +317,23 @@ const handleViewAllMagazines = () => {
             )}
           </View>
         </View>
-
-        {/* LATEST EDITIONS - Same as Home Screen */}
-        {/* <View style={styles.latestEditionsContainer}>
-          <LatestEditions
-            skipId={magazine?.id} // Skip the current magazine
-            onPressItem={handleMagazinePress}
-            onPressViewAll={handleViewAllMagazines}
-          />
-        </View> */}
       </ScrollView>
     </MainLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollWrap: {
-    // paddingBottom: 40,
-  },
+  scrollWrap: {},
   loader: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // Responsive Wrapper to keep text reading bounds optimized on large layouts
   responsiveContentBlock: {
     width: '100%',
     alignSelf: 'center',
     paddingHorizontal: 20,
   },
-
   heroContainer: {
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
@@ -353,7 +355,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: 80,
   },
-
   backBtn: {
     position: 'absolute',
     left: 15,
@@ -370,8 +371,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
       },
-      android: { elevation: 3 }
-    })
+      android: { elevation: 3 },
+    }),
   },
   topRow: {
     flexDirection: 'row',
@@ -429,12 +430,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 6,
       },
-      android: { elevation: 4 }
-    })
+      android: { elevation: 4 },
+    }),
   },
   subscribeBtnText: {
     color: '#fff',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 15,
     letterSpacing: 0.8,
   },
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.3,
   },
   sectionLine: {
@@ -456,8 +457,6 @@ const styles = StyleSheet.create({
     height: 1,
     marginLeft: 12,
   },
-
-  // Tablet optimization: Lists line up cleanly side-by-side on wide screens
   tabletGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -473,7 +472,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   articleCardTablet: {
-    width: '49%', // Splits into 2 items per row on tablets
+    width: '49%',
   },
   articleImage: {
     width: 80,
@@ -500,11 +499,5 @@ const styles = StyleSheet.create({
   },
   articleArrow: {
     marginRight: 12,
-  },
-  // Latest Editions Container
-  latestEditionsContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    // paddingBottom: 20,
   },
 });
