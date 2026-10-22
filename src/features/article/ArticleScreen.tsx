@@ -30,7 +30,10 @@ import { Animated } from 'react-native';
 import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import MainLayout from '../../MainLayout';
-import { getArticleBySlug, getRelatedPosts } from '../../services/article.service';
+import {
+  getArticleBySlug,
+  getRelatedPosts,
+} from '../../services/article.service';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 
@@ -262,8 +265,7 @@ export default function ArticleDetailPage() {
     );
   }
 
-  const plainText = article.description?.replace(/<[^>]+>/g, '') || '';
-  const previewText = plainText.split(' ').slice(0, 60).join(' ');
+  const shortDescription = article.short_description || '';
 
   return (
     <MainLayout
@@ -480,45 +482,32 @@ export default function ArticleDetailPage() {
             ]}
           >
             {isSubscribed ? (
-              (() => {
-                const cleanedHtml =
-                  article.description
-                    ?.replace(/&nbsp;/g, ' ')
-                    ?.replace(/\s+/g, ' ')
-                    ?.replace(
-                      /list-style-type:\s*numeric/g,
-                      'list-style-type: decimal',
-                    ) || '';
-
-                return (
-                  <RenderHtml
-                    contentWidth={width - (isAndroid ? 40 : 40)}
-                    source={{ html: cleanedHtml }}
-                    tagsStyles={{
-                      ...tagsStyles,
-                      p: {
-                        ...tagsStyles.p,
-                        fontSize: isTablet ? 16 : 14,
-                        lineHeight: isTablet ? 28 : 22,
-                      },
-                    }}
-                    baseStyle={{
-                      color: colors.text,
-                      fontSize: isTablet ? 16 : 14,
-                      lineHeight: isTablet ? 28 : 24,
-                    }}
-                    defaultTextProps={{
-                      selectable: true,
-                      allowFontScaling: true,
-                    }}
-                    enableExperimentalMarginCollapsing={true}
-                    enableCSSInlineProcessing={true}
-                  />
-                );
-              })()
+              <RenderHtml
+                contentWidth={width - 40}
+                source={{ html: article.description || '' }}
+                tagsStyles={{
+                  ...tagsStyles,
+                  p: {
+                    ...tagsStyles.p,
+                    fontSize: isTablet ? 16 : 14,
+                    lineHeight: isTablet ? 28 : 22,
+                  },
+                }}
+                baseStyle={{
+                  color: colors.text,
+                  fontSize: isTablet ? 16 : 14,
+                  lineHeight: isTablet ? 28 : 24,
+                }}
+                defaultTextProps={{
+                  selectable: true,
+                  allowFontScaling: true,
+                }}
+                enableExperimentalMarginCollapsing={true}
+                enableCSSInlineProcessing={true}
+              />
             ) : (
               <View>
-                {/* Preview Text */}
+                {/* Short Description Preview */}
                 <View
                   style={[
                     styles.previewContainer,
@@ -530,18 +519,16 @@ export default function ArticleDetailPage() {
                     },
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.previewText,
-                      {
-                        color: colors.textSecondary,
-                        fontSize: isTablet ? font.md : font.md,
-                        lineHeight: isTablet ? 30 : 22,
-                      },
-                    ]}
-                  >
-                    {previewText}...
-                  </Text>
+                  <RenderHtml
+                    contentWidth={width - 40}
+                    source={{ html: shortDescription }}
+                    baseStyle={{
+                      color: colors.textSecondary,
+                      fontSize: isTablet ? 16 : 14,
+                      lineHeight: isTablet ? 30 : 22,
+                    }}
+                    tagsStyles={tagsStyles}
+                  />
                 </View>
 
                 {/* Premium Lock Box */}
@@ -1221,16 +1208,16 @@ const tagsStyles = {
     fontWeight: '600' as const,
   },
   em: {
-    fontStyle: 'italic' as const,   // ADD `as const`
+    fontStyle: 'italic' as const, // ADD `as const`
   },
   i: {
-    fontStyle: 'italic' as const,   // ADD `as const`
+    fontStyle: 'italic' as const, // ADD `as const`
   },
   u: {
-    textDecorationLine: 'underline' as const,  // Also recommended
+    textDecorationLine: 'underline' as const, // Also recommended
   },
   a: {
-    textDecorationLine: 'underline' as const,  // Also recommended
+    textDecorationLine: 'underline' as const, // Also recommended
   },
   ul: {
     marginVertical: 12,
@@ -1254,7 +1241,7 @@ const tagsStyles = {
   },
   img: {
     width: '100%',
-    height: 'auto' as const,   // `height: 'auto'` also widens to string
+    height: 'auto' as const, // `height: 'auto'` also widens to string
     borderRadius: 18,
     marginVertical: 20,
   },
@@ -1289,7 +1276,7 @@ const tagsStyles = {
     borderBottomWidth: 1,
     marginVertical: 24,
   },
-} as const;   // Optional: makes the whole object readonly & literal
+} as const; // Optional: makes the whole object readonly & literal
 
 const styles = StyleSheet.create({
   screen: {
