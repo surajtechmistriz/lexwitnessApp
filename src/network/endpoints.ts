@@ -35,9 +35,31 @@ export const ENDPOINTS = {
     LATEST_EDITION: '/homepage-latest-edition',
     MAGAZINES: '/magazines',
     EDITORIAL_SETTINGS: '/editorial-settings',
-    POSTS: '/posts',
   },
   CATEGORY: {
     LIST: '/categories',
+  },
+  AUTHOR: {
+    LIST: '/authors',
+  },
+  DASHBOARD: {
+    PROFILE: '/profile',
+  },
+  INVOICE: {
+    HISTORY: '/subscription/plan-history',
+    DOWNLOAD: (id: number | string) => `/subscription/plan-invoice/${id}`,
+  },
+  MAGAZINE: {
+    LIST: '/magazines',
+    DETAIL: (slugOrId: string | number) => `/magazines/${slugOrId}`,
+    // Shared with category and author screens for the year filter.
+    YEARS: '/years',
+  },
+  // Shared by home (hero/editor-picks) AND article (list/detail/related) —
+  // both features hit this same endpoint, so it lives here once instead
+  // of being duplicated as a literal string under each feature.
+  POSTS: {
+    LIST: '/posts',
+    DETAIL: (slug: string | number) => `/posts/${slug}`,
   },
 } as const;

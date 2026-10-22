@@ -22,10 +22,11 @@ import Pagination from '../../components/common/Pagination';
 
 import MainLayout from '../../MainLayout';
 import { useTheme } from '../../store/hooks/useTheme';
-import { getPosts } from '../article/api/posts';
-import { getYears } from '../magazines/api/years';
-import { getAuthor } from '../author/api/author';
+
 import { getMenu } from '../../services/category.service';
+import { getPosts } from '../../services/article.service';
+import { getYears } from '../../services/magazine.service';
+import { getAuthor } from '../../services/author.service';
 // import { useTheme } from '../../hooks/useTheme';
 
 // const { width: SCREEN_WIDTH } = Dimensions.get('window');

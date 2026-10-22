@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setProfile } from '../../store/slices/authSlice';
-import { getProfile } from '../../features/dashboard/api/dashboard.api';
+import { getProfile } from '../../services/dashboard.service';
+import { STORAGE_KEYS } from '../../constant/storageKeys';
 
 export const refreshProfile = async (dispatch: any) => {
   try {
@@ -17,15 +18,13 @@ export const refreshProfile = async (dispatch: any) => {
 
     if (!profile) return;
 
-    await AsyncStorage.setItem('user', JSON.stringify(profile.user));
-
+    await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile.user));
     await AsyncStorage.setItem(
-      'subscription',
+      STORAGE_KEYS.SUBSCRIPTION,
       JSON.stringify(profile.subscription),
     );
-
     await AsyncStorage.setItem(
-      'nextSubscriptions',
+      STORAGE_KEYS.NEXT_SUBSCRIPTIONS,
       JSON.stringify(profile.next_subscriptions || []),
     );
 

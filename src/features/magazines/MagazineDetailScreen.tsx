@@ -14,10 +14,10 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import IconBack from 'react-native-vector-icons/Feather';
 import LinearGradient from 'react-native-linear-gradient';
-import { getSingleMagazine } from './api/magazine';
 import Config from 'react-native-config';
 import MainLayout from '../../MainLayout';
 import { useTheme } from '../../store/hooks/useTheme';
+import { getSingleMagazine } from '../../services/magazine.service';
 
 const imgUrl = Config.MAGAZINES_BASE_URL;
 const imgUrl2 = Config.POSTS_BASE_URL;

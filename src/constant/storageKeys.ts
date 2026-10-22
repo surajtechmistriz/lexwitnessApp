@@ -8,6 +8,12 @@ export const STORAGE_KEYS = {
   USER: 'user',
   SUBSCRIPTION: 'subscription',
   THEME: 'theme',
+  // Found in DashboardScreen.tsx's logout cleanup — not previously listed here.
+  NEXT_SUBSCRIPTIONS: 'nextSubscriptions',
+  // redux-persist's own internal key — kept here for visibility since
+  // DashboardScreen clears it on logout, even though redux-persist
+  // manages it internally.
+  PERSIST_ROOT: 'persist:root',
   // Reserved for when/if a refresh-token flow is added.
   // Remove this line if it's not actually used anywhere yet.
   REFRESH_TOKEN: 'refresh_token',

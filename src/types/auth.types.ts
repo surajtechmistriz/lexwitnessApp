@@ -1,4 +1,5 @@
 import { User } from './user.types';
+import { Subscription } from './subscription.types';
 
 export interface LoginPayload {
   email: string;
@@ -69,6 +70,13 @@ export interface ResetPasswordFormData {
   password_confirmation: string;
 }
 
+/**
+ * CORRECTED — found the real shape in DashboardScreen.tsx's local
+ * AuthState interface. The earlier guess only had `user`; the Redux
+ * auth slice actually also carries `subscription` and `nextSubscriptions`.
+ */
 export interface AuthState {
   user: User | null;
+  subscription: Subscription | null;
+  nextSubscriptions: Subscription[];
 }

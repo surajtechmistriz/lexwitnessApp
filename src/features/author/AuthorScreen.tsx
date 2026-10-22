@@ -18,13 +18,14 @@ import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
 import Banner from '../../components/common/DynamicBanner';
-import { getAuthorBySlug } from './api/authorarticle';
+
+import { getPosts } from '../../services/article.service';
 
 import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
-import { getPosts } from '../article/api/posts';
-import { getYears } from '../magazines/api/years';
 import TopMenu from '../../components/layout/Menubar';
+import { getAuthorBySlug } from '../../services/author.service';
+import { getYears } from '../../services/magazine.service';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

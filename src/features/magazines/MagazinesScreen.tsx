@@ -20,10 +20,9 @@ import MainLayout from '../../MainLayout';
 import YearFilter from '../../components/common/YearFilter';
 import Pagination from '../../components/common/Pagination';
 
-import { getMagazines } from './api/magazine';
 import { useResponsive } from '../../hooks/useResponsive';
-import { getYears } from './api/years';
 import { useTheme } from '../../store/hooks/useTheme';
+import { getMagazines, getYears } from '../../services/magazine.service';
 
 type RootStackParamList = {
   MagazineDetail: { slug: string };

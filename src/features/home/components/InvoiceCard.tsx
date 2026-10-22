@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../../../store/hooks/useTheme';
-import { downloadInvoicePdf } from '../../invoice/invoiceDownload';
+import { downloadInvoicePdf } from '../../../utils/invoiceDownload';
 
 // ---------- Types ----------
 

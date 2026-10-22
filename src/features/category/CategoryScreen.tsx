@@ -21,9 +21,9 @@ import Banner from '../../components/common/DynamicBanner';
 import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { getCategoryBySlug } from '../../services/category.service';
-import { getPosts } from '../article/api/posts';
-import { getYears } from '../magazines/api/years';
+import { getPosts } from '../../services/article.service';
 import TopMenu from '../../components/layout/Menubar';
+import { getYears } from '../../services/magazine.service';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

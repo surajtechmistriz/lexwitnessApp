@@ -24,7 +24,7 @@ export const latesteEdition = getLatestEdition;
 
 export const getHeroPost = async () => {
   try {
-    const { data } = await api.get(ENDPOINTS.HOME.POSTS, {
+    const { data } = await api.get(ENDPOINTS.POSTS.LIST, {
       params: { is_featured_post: 1 },
     });
     return data?.data || [];
@@ -45,7 +45,7 @@ export const getEditorPick = async (params?: {
   limit?: number;
 }) => {
   try {
-    const { data } = await api.get(ENDPOINTS.HOME.POSTS, {
+    const { data } = await api.get(ENDPOINTS.POSTS.LIST, {
       params: {
         category_id: params?.category_id ?? 5,
         limit: params?.limit ?? 5,

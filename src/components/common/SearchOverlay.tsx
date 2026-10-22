@@ -15,8 +15,8 @@ import { Picker } from '@react-native-picker/picker';
 
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../store/hooks/useTheme';
-import { getAuthor } from '../../features/author/api/author';
-import { getYears } from '../../features/magazines/api/years';
+import { getAuthor } from '../../services/author.service';
+import { getYears } from '../../services/magazine.service';
 import { getMenu } from '../../services/category.service';
 
 type RootStackParamList = {

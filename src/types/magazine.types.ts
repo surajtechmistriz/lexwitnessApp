@@ -28,3 +28,18 @@ export interface MagazineListItem {
   magazine_name?: string;
   description?: string;
 }
+
+/**
+ * A FIFTH Magazine shape — this is the full single-magazine detail
+ * object (includes its articles), from GET /magazines/{slugOrId}.
+ * Used by MagazineDetailScreen via getSingleMagazine.
+ */
+export interface MagazineDetail {
+  id: number;
+  slug: string;
+  title: string;
+  magazine_name?: string;
+  image?: string;
+  description?: string;
+  posts?: any[];
+}

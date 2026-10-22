@@ -25,9 +25,9 @@ import { useDispatch } from 'react-redux';
 import Toast from 'react-native-toast-message';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTheme } from '../../store/hooks/useTheme';
-import { loginApi } from './api/auth';
-import { getProfile } from '../dashboard/api/dashboard.api';
 import { setProfile } from '../../store/slices/authSlice';
+import { getProfile } from '../../services/dashboard.service';
+import { loginApi } from '../../services/auth.service';
 
 const { height, width } = Dimensions.get('window');
 

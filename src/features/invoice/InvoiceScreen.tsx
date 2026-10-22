@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { getUserInvoices, Invoice } from './invoice';
+import { getUserInvoices } from '../../services/invoice.service';
+import type { Invoice } from '../../types/invoice.types';
 import InvoiceCard from '../home/components/InvoiceCard';
 import { useTheme } from '../../store/hooks/useTheme';
 

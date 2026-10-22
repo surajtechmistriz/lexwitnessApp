@@ -22,11 +22,11 @@ import { useAppDispatch } from '../../store/hooks/hooks';
 
 import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
-import { getProfile } from '../dashboard/api/dashboard.api';
 import { setProfile } from '../../store/slices/authSlice';
 import { sendUpdateOtp, updateProfile } from '../../services/profile.service';
 import { PasswordForm } from '../../types/profile.types';
 import { AuthState } from '../../types/auth.types';
+import { getProfile } from '../../services/dashboard.service';
 
 const INITIAL_FORM_DATA: FormData = {
   firstName: '',

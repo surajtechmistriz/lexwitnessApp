@@ -30,7 +30,7 @@ import { Animated } from 'react-native';
 import { useTheme } from '../../store/hooks/useTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import MainLayout from '../../MainLayout';
-import { getArticleBySlug, getRelatedPosts } from './api/posts';
+import { getArticleBySlug, getRelatedPosts } from '../../services/article.service';
 
 const postBaseUrl = Config.POSTS_BASE_URL;
 

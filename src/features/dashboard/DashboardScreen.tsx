@@ -26,46 +26,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ConfirmationModal from '../../components/common/ConfirmationModal';
 import { refreshProfile } from '../../utils/helpers/refreshProfile';
 import { logoutApi } from '../../services/auth.service';
-import { renewPlan, verifyRenewPayment } from '../../services/subscription.service';
+import {
+  renewPlan,
+  verifyRenewPayment,
+} from '../../services/subscription.service';
+import { STORAGE_KEYS } from '../../constant/storageKeys';
 
-// ------ TYPES ------
+import type { Plan, Subscription } from '../../types/subscription.types';
+import type { User } from '../../types/user.types';
+import type { AuthState } from '../../types/auth.types';
 
-interface Plan {
-  id: number;
-  name: string;
-  price: string;
-  duration_value: number;
-  duration_unit: string;
-}
-
-interface Subscription {
-  id: number;
-  plan_id: number;
-  plan: Plan;
-  membership_plan_id?: number;
-  status: string;
-  start_date: string;
-  end_date: string;
-  total_amount: number;
-  purchase_type: string;
-}
-
-interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  contact: string;
-  city?: string;
-  state?: string;
-  country?: string;
-}
-
-interface AuthState {
-  user: User | null;
-  subscription: Subscription | null;
-  nextSubscriptions: Subscription[];
-}
 
 // ------ COMPONENT ------
 
@@ -194,11 +164,11 @@ const DashboardScreen = () => {
 
       // Remove AsyncStorage
       await Promise.all([
-        AsyncStorage.removeItem('token'),
-        AsyncStorage.removeItem('user'),
-        AsyncStorage.removeItem('subscription'),
-        AsyncStorage.removeItem('nextSubscriptions'),
-        AsyncStorage.removeItem('persist:root'),
+        AsyncStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN),
+        AsyncStorage.removeItem(STORAGE_KEYS.USER),
+        AsyncStorage.removeItem(STORAGE_KEYS.SUBSCRIPTION),
+        AsyncStorage.removeItem(STORAGE_KEYS.NEXT_SUBSCRIPTIONS),
+        AsyncStorage.removeItem(STORAGE_KEYS.PERSIST_ROOT),
       ]);
 
       dispatch(logout());
