@@ -36,7 +36,6 @@ import type { Plan, Subscription } from '../../types/subscription.types';
 import type { User } from '../../types/user.types';
 import type { AuthState } from '../../types/auth.types';
 
-
 // ------ COMPONENT ------
 
 const DashboardScreen = () => {
@@ -48,6 +47,11 @@ const DashboardScreen = () => {
   const { user, subscription, nextSubscriptions } = useSelector(
     (state: any) => state.auth,
   ) as AuthState;
+
+  useEffect(() => {
+  console.log('DASHBOARD SUBSCRIPTION:', subscription);
+  console.log('DASHBOARD NEXT SUBSCRIPTIONS:', nextSubscriptions);
+}, [subscription, nextSubscriptions]);
 
   // const insets = useSafeAreaInsets();
 
@@ -95,37 +99,43 @@ const DashboardScreen = () => {
 
   // ------ SUBSCRIPTION STATUS ------
 
-  const now = new Date();
-  const hasExpiredByDate = subscription?.end_date
-    ? new Date(subscription.end_date) < now
-    : false;
-  const status = subscription?.status?.toUpperCase();
-  const isActive = status === 'ACTIVE' && !hasExpiredByDate;
-  const isExpired = hasExpiredByDate || status === 'EXPIRED';
+ const now = new Date();
 
-  const isFreePlan = subscription?.plan?.price
-    ? Number(subscription.plan.price) === 0
-    : Number(subscription?.total_amount || 0) === 0;
+const subscriptionExpiryDate =
+  subscription?.expiry_date ?? subscription?.end_date ?? null;
 
-  const remainingDays = subscription?.end_date
-    ? Math.ceil(
-        (new Date(subscription.end_date).getTime() - now.getTime()) /
-          (1000 * 60 * 60 * 24),
-      )
-    : null;
+const status = subscription?.status?.toUpperCase();
 
-  const remainingDaysLabel =
-    remainingDays === null
-      ? '—'
-      : remainingDays <= 0
-      ? 'Expired'
-      : `${remainingDays} day${remainingDays > 1 ? 's' : ''} left`;
+const hasExpiredByDate = subscriptionExpiryDate
+  ? new Date(subscriptionExpiryDate) < now
+  : false;
 
-  const currentPlanDuration = `${subscription?.plan?.duration_value || ''} ${
-    subscription?.plan?.duration_unit || ''
-  }`;
+const isActive = status === "ACTIVE" && !hasExpiredByDate;
 
-  const upcomingPlans = nextSubscriptions || [];
+const isExpired = status === "EXPIRED" || hasExpiredByDate;
+
+const isFreePlan =
+  Number(subscription?.plan?.price ?? subscription?.total_amount ?? 0) === 0;
+
+const remainingDays = subscriptionExpiryDate
+  ? Math.ceil(
+      (new Date(subscriptionExpiryDate).getTime() - now.getTime()) /
+        (1000 * 60 * 60 * 24),
+    )
+  : null;
+
+const remainingDaysLabel =
+  remainingDays === null
+    ? "—"
+    : remainingDays <= 0
+      ? "Expired"
+      : `${remainingDays} day${remainingDays === 1 ? "" : "s"} left`;
+
+const currentPlanDuration = subscription?.plan
+  ? `${subscription.plan.duration_value} ${subscription.plan.duration_unit}`
+  : "—";
+
+const upcomingPlans = nextSubscriptions ?? [];
 
   // ------ FIXED LOGOUT HANDLER ------
 
@@ -1410,7 +1420,7 @@ const DashboardScreen = () => {
                       },
                     ]}
                   >
-                    {formatDate(subscription?.start_date)}
+                    {formatDate(subscription?.start_date ?? subscription?.created_at)}
                   </Text>
                 </View>
                 <View
@@ -1479,7 +1489,7 @@ const DashboardScreen = () => {
                       },
                     ]}
                   >
-                    {formatDate(subscription?.end_date)}
+                  {formatDate(subscription?.expiry_date ?? subscription?.end_date)}
                   </Text>
                 </View>
                 <View
@@ -2021,7 +2031,7 @@ const DashboardScreen = () => {
                               },
                             ]}
                           >
-                            {formatDate(item?.start_date)}
+                       {formatDate(item?.start_date ?? item?.created_at)}
                           </Text>
                         </View>
                         <View
@@ -2090,7 +2100,7 @@ const DashboardScreen = () => {
                               },
                             ]}
                           >
-                            {formatDate(item?.end_date)}
+                            {formatDate(item?.expiry_date ?? item?.end_date)}
                           </Text>
                         </View>
                         <View

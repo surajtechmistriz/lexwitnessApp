@@ -1,15 +1,20 @@
 import api from '../network/client';
 import { ENDPOINTS } from '../network/endpoints';
 import { normalizeApiError } from '../network/errorHandler';
+
 import {
   LoginPayload,
   RegisterPayload,
-  SendOtpPayload,
   ForgotPasswordPayload,
   ResetPasswordPayload,
 } from '../types/auth.types';
-import { PaymentVerifyPayload } from '../types/payment.types';
 
+import {
+  PaymentVerifyPayload,
+  RegistrationPaymentVerifyPayload,
+} from '../types/payment.types';
+
+// Login API
 export const loginApi = async (payload: LoginPayload) => {
   try {
     const { data } = await api.post(ENDPOINTS.AUTH.LOGIN, payload);
@@ -19,16 +24,17 @@ export const loginApi = async (payload: LoginPayload) => {
   }
 };
 
+// Logout API
 export const logoutApi = async () => {
   try {
     const { data } = await api.post(ENDPOINTS.AUTH.LOGOUT);
     return data;
   } catch (error) {
-    // Caller should still clear local session data even if this fails.
     throw normalizeApiError(error);
   }
 };
 
+// Register API - Without OTP
 export const registerApi = async (payload: RegisterPayload) => {
   try {
     const { data } = await api.post(ENDPOINTS.AUTH.REGISTER, payload);
@@ -38,24 +44,20 @@ export const registerApi = async (payload: RegisterPayload) => {
   }
 };
 
-export const sendOtpApi = async (payload: SendOtpPayload) => {
-  try {
-    const { data } = await api.post(ENDPOINTS.AUTH.SEND_OTP, payload);
-    return data;
-  } catch (error) {
-    throw normalizeApiError(error);
-  }
-};
-
-export const verifyPaymentApi = async (payload: PaymentVerifyPayload) => {
+// Verify Razorpay Payment
+export const verifyPaymentApi = async (
+  payload: RegistrationPaymentVerifyPayload,
+) => {
   try {
     const { data } = await api.post(ENDPOINTS.AUTH.VERIFY_PAYMENT, payload);
+
     return data;
   } catch (error) {
     throw normalizeApiError(error);
   }
 };
 
+// Forgot Password API
 export const forgotPassword = async (payload: ForgotPasswordPayload) => {
   try {
     const { data } = await api.post(ENDPOINTS.PASSWORD.FORGOT, payload);
@@ -65,6 +67,7 @@ export const forgotPassword = async (payload: ForgotPasswordPayload) => {
   }
 };
 
+// Reset Password API
 export const resetPassword = async (payload: ResetPasswordPayload) => {
   try {
     const { data } = await api.post(ENDPOINTS.PASSWORD.RESET, payload);

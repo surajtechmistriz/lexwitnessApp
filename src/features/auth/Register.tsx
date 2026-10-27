@@ -8,17 +8,13 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Modal,
   useWindowDimensions,
   ActivityIndicator,
 } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import RenderHTML from 'react-native-render-html';
 import RazorpayCheckout from 'react-native-razorpay';
-import { useDispatch } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import IconBack from 'react-native-vector-icons/Feather';
 import {
   CommonActions,
@@ -28,22 +24,13 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import LinearGradient from 'react-native-linear-gradient';
 
-import {
-  registerApi,
-  sendOtpApi,
-  verifyPaymentApi,
-} from '../../services/auth.service';
+import { registerApi, verifyPaymentApi } from '../../services/auth.service';
 import { getMembershipPlans } from '../../services/membership.service';
 import type { MembershipPlan } from '../../types/membership.types';
-import type { RegisterPayload } from '../../types/auth.types';
-import { STORAGE_KEYS } from '../../constant/storageKeys';
-import { loginSuccess } from '../../store/slices/authSlice';
 import MainLayout from '../../MainLayout';
 import { useTheme } from '../../store/hooks/useTheme';
 
-
 const RegisterScreen = () => {
-  const dispatch = useDispatch();
   const { width } = useWindowDimensions();
   const route = useRoute<any>();
   const preselectedPlanId = route?.params?.selectedPlanId;
@@ -55,7 +42,6 @@ const RegisterScreen = () => {
     last_name: '',
     email: '',
     contact: '',
-    otp: '',
     dob: '',
     organisation_name: '',
     gst_number: '',
@@ -72,15 +58,9 @@ const RegisterScreen = () => {
 
   const [plans, setPlans] = useState<MembershipPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
-  const [isOtpSent, setIsOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [receivedOtp, setReceivedOtp] = useState('');
   const [focusedField, setFocusedField] = useState<string | null>(null);
-
-  // const [dobDate, setDobDate] = useState<Date | null>(null);
 
   const fetchPlans = useCallback(async () => {
     setLoadingPlans(true);
@@ -155,197 +135,286 @@ const RegisterScreen = () => {
     });
   };
 
-  const handleSendOtp = async () => {
-    if (form.contact.length !== 10) {
-      showToast(
-        'error',
-        'Invalid Phone Number',
-        'Please enter a valid 10-digit mobile number',
-      );
-      return;
-    }
-    if (!form.email) {
-      showToast(
-        'error',
-        'Email Required',
-        'Please enter your email address first',
-      );
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const payload = { contact: form.contact, email: form.email };
-      const res = await sendOtpApi(payload);
-
-      if (res?.status) {
-        setIsOtpSent(true);
-        if (res?.data?.otp) {
-          setReceivedOtp(res.data.otp.toString());
-          setShowOtpModal(true);
-        }
-        showToast(
-          'success',
-          'Success',
-          res?.message || 'OTP sent successfully',
-        );
-        setResendTimer(60);
-        const timer = setInterval(() => {
-          setResendTimer(prev => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      } else {
-        showToast('error', 'Failed', res?.message || 'Unable to send OTP');
-      }
-    } catch (err: any) {
-      showToast('error', 'Error', err?.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const autoFillOtp = () => {
-    handleChange('otp', receivedOtp);
-    setShowOtpModal(false);
-    showToast('info', 'OTP Auto-filled', 'OTP has been automatically filled');
+  const handleRegistrationSuccess = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'SignIn',
+            params: {
+              successMessage:
+                'Registration successful! Please sign in to continue.',
+            },
+          },
+        ],
+      }),
+    );
   };
 
   const registerUser = async () => {
+    if (loading) return;
+
+    const log = (step: string, data?: unknown) => {
+      if (__DEV__) {
+        console.log(`[REGISTER PAYMENT] ${step}`, data ?? '');
+      }
+    };
+
     try {
       setLoading(true);
+
+      // STEP 1: Validate selected plan
+      const selectedPlan = plans.find(
+        p => String(p.id) === String(form.plan_id),
+      );
+
+      if (!selectedPlan) {
+        showToast('error', 'Error', 'Please select a valid plan');
+        return;
+      }
+
+      const isPaidPlan = Number(selectedPlan.price ?? 0) > 0;
+
+      log('STEP 1: Selected plan', {
+        planId: selectedPlan.id,
+        planName: selectedPlan.name,
+        isPaidPlan,
+      });
+
+      // STEP 2: Prepare registration payload
       const payload = {
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
+        first_name: form.first_name.trim(),
+        last_name: form.last_name.trim(),
+        email: form.email.trim(),
         contact: form.contact,
-        password: form.password,
-        password_confirmation: form.password_confirmation,
-        address: form.address,
-        membership_plan_id: form.plan_id,
         dob: formatDisplayDate(form.dob).replace(/\//g, '-'),
         organisation: form.organisation_name,
         gst_number: form.gst_number,
+        address: form.address,
         city: form.city,
+        pincode: form.pincode,
         state: form.state,
         country: form.country,
-        pincode: form.pincode,
-        otp: form.otp,
+        password: form.password,
+        password_confirmation: form.password_confirmation,
+        membership_plan_id: form.plan_id,
       };
 
+      log('STEP 2: Sending registration request');
+
+      // STEP 3: Register user
       const res = await registerApi(payload);
+
+      log('STEP 3: Registration response structure', {
+        status: res?.status,
+        message: res?.message,
+        hasData: Boolean(res?.data),
+        hasPayment: Boolean(res?.data?.payment),
+        hasSubscription: Boolean(res?.data?.subscription),
+        hasCheckoutToken: Boolean(res?.data?.checkout_token),
+      });
+
       if (!res?.status) {
-        showToast('error', 'Failed', res?.message || 'Registration failed');
-        return;
-      }
-
-      if (!res?.data?.payment) {
-        const token = res?.data?.token;
-        const user = res?.data?.user;
-        const subscription = res?.data?.subscription;
-
-       await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
-await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-        if (subscription) {
-          await AsyncStorage.setItem(
-            'subscription',
-            JSON.stringify(subscription),
-          );
-        }
-
-        dispatch(loginSuccess({ token, user, subscription }));
-        showToast('success', 'Success', 'Registration completed successfully');
-
-        setTimeout(() => {
-          navigation.dispatch(
-            CommonActions.reset({
-              index: 0,
-              routes: [{ name: 'Dashboard' }],
-            }),
-          );
-        }, 100);
-        return;
-      }
-
-      const payment = res.data.payment;
-      const options = {
-        description: 'Membership Subscription',
-        image: 'https://your-logo-url.com/logo.png',
-        currency: payment.currency,
-        key: payment.razorpay_key,
-        amount: payment.amount,
-        name: 'Lex Witness',
-        order_id: payment.order_id,
-        prefill: {
-          email: form.email,
-          contact: form.contact,
-          name: `${form.first_name} ${form.last_name}`,
-        },
-        theme: { color: '#c9060a' },
-      };
-
-      // console.log('REGISTER RESPONSE', res);
-
-      try {
-        const paymentResponse: any = await RazorpayCheckout.open(options);
-        const verifyPayload = {
-          purchase_type: res.data.purchase_type,
-          membership_plan_id: res.data.membership_plan_id.toString(),
-          razorpay_payment_id: paymentResponse.razorpay_payment_id,
-          razorpay_order_id: paymentResponse.razorpay_order_id,
-          razorpay_signature: paymentResponse.razorpay_signature,
-        };
-
-        const verifyRes = await verifyPaymentApi(verifyPayload);
-
-        if (verifyRes?.status) {
-          const token = verifyRes?.data?.token || res?.data?.token;
-          const user = verifyRes?.data?.user || res?.data?.user;
-          const subscription =
-            verifyRes?.data?.subscription || res?.data?.subscription;
-
-          await AsyncStorage.setItem('token', token);
-          await AsyncStorage.setItem('user', JSON.stringify(user));
-          if (subscription) {
-            await AsyncStorage.setItem(STORAGE_KEYS.SUBSCRIPTION, JSON.stringify(subscription)
-            );
-          }
-
-          dispatch(loginSuccess({ token, user, subscription }));
-          showToast(
-            'success',
-            'Success',
-            'Payment verified & subscription activated',
-          );
-
-          setTimeout(() => {
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'Dashboard' }],
-              }),
-            );
-          }, 100);
-        } else {
-          showToast(
-            'error',
-            'Verification Failed',
-            verifyRes?.message || 'Verification failed',
-          );
-        }
-      } catch (error: any) {
         showToast(
           'error',
-          'Payment Failed',
-          error?.description || error?.message || 'User cancelled payment',
+          'Registration Failed',
+          res?.message || 'Registration failed',
         );
+        return;
       }
-    } catch (err: any) {
-      showToast('error', 'Error', err?.message || 'Something went wrong');
+
+      // STEP 4: Free plan
+      if (!isPaidPlan) {
+        log('STEP 4: Free registration successful');
+
+        showToast(
+          'success',
+          'Registration Successful',
+          'Please sign in to continue',
+        );
+
+        handleRegistrationSuccess();
+        return;
+      }
+
+      // STEP 5: Paid plan checkout details
+      const registrationData = res?.data;
+
+      const subscriptionId = Number(registrationData?.subscription?.id);
+
+      const checkoutToken = registrationData?.checkout_token;
+
+      // Support common response nesting.
+      // These paths must match the actual backend response.
+      const payment =
+        registrationData?.payment ??
+        registrationData?.checkout?.payment ??
+        registrationData?.checkout;
+
+      const razorpayKey = payment?.razorpay_key ?? payment?.key;
+
+      const orderId = payment?.order_id ?? payment?.razorpay_order_id;
+
+      const amount = Number(payment?.amount);
+      const currency = payment?.currency ?? 'INR';
+
+      log('STEP 5: Checkout details', {
+        subscriptionId,
+        hasCheckoutToken: Boolean(checkoutToken),
+        hasRazorpayKey: Boolean(razorpayKey),
+        hasOrderId: Boolean(orderId),
+        amount,
+        currency,
+      });
+
+      if (
+        !Number.isInteger(subscriptionId) ||
+        subscriptionId <= 0 ||
+        !checkoutToken ||
+        !razorpayKey ||
+        !orderId ||
+        !Number.isFinite(amount) ||
+        amount <= 0
+      ) {
+        showToast(
+          'error',
+          'Payment Error',
+          'Registration was saved, but payment checkout details are missing. Please contact support.',
+        );
+
+        log('ERROR: Incomplete payment checkout response');
+        return;
+      }
+
+      // STEP 6: Configure Razorpay
+      const options = {
+        key: razorpayKey,
+        order_id: orderId,
+        amount,
+        currency,
+        name: 'Lex Witness',
+        description: 'Membership Subscription',
+        prefill: {
+          email: form.email.trim(),
+          contact: form.contact,
+          name: `${form.first_name} ${form.last_name}`.trim(),
+        },
+        theme: {
+          color: '#c9060a',
+        },
+      };
+
+      log('STEP 6: Opening Razorpay');
+
+      // STEP 7: Open Razorpay checkout
+      let paymentResponse: {
+        razorpay_payment_id: string;
+        razorpay_order_id: string;
+        razorpay_signature: string;
+      };
+
+      try {
+        paymentResponse = await RazorpayCheckout.open(options);
+      } catch (error: any) {
+        log('STEP 7: Razorpay checkout closed or failed', {
+          code: error?.code,
+          description: error?.description,
+        });
+
+        showToast(
+          'error',
+          'Payment Not Completed',
+          error?.description ||
+            error?.message ||
+            'Payment was cancelled or failed',
+        );
+        return;
+      }
+
+      log('STEP 7: Razorpay returned payment details', {
+        hasPaymentId: Boolean(paymentResponse?.razorpay_payment_id),
+        hasOrderId: Boolean(paymentResponse?.razorpay_order_id),
+        hasSignature: Boolean(paymentResponse?.razorpay_signature),
+      });
+
+      if (
+        !paymentResponse?.razorpay_payment_id ||
+        !paymentResponse?.razorpay_order_id ||
+        !paymentResponse?.razorpay_signature
+      ) {
+        showToast(
+          'error',
+          'Payment Error',
+          'Incomplete Razorpay payment response',
+        );
+        return;
+      }
+
+      // STEP 8: Prepare backend verification
+      const verifyPayload = {
+        subscription_id: subscriptionId,
+        checkout_token: checkoutToken,
+        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+        razorpay_order_id: paymentResponse.razorpay_order_id,
+        razorpay_signature: paymentResponse.razorpay_signature,
+      };
+
+      log('STEP 8: Verifying payment with backend');
+
+      // STEP 9: Verify payment
+      let verifyRes;
+
+      try {
+        verifyRes = await verifyPaymentApi(verifyPayload);
+      } catch (error: any) {
+        log('STEP 9: Verification request failed', {
+          message: error?.message,
+        });
+
+        showToast(
+          'error',
+          'Payment Verification Pending',
+          'Payment checkout completed, but verification could not be confirmed. Please contact support before trying to register again.',
+        );
+        return;
+      }
+
+      log('STEP 9: Verification response', {
+        status: verifyRes?.status,
+        message: verifyRes?.message,
+      });
+
+      // STEP 10: Redirect only after backend confirmation
+      if (verifyRes?.status === true) {
+        log('STEP 10: Payment verified successfully');
+
+        showToast(
+          'success',
+          'Payment Successful',
+          'Your subscription has been confirmed',
+        );
+
+        handleRegistrationSuccess();
+        return;
+      }
+
+      showToast(
+        'error',
+        'Verification Failed',
+        verifyRes?.message ||
+          'Payment verification was not confirmed. Please contact support.',
+      );
+    } catch (error: any) {
+      log('REGISTRATION ERROR', {
+        message: error?.message,
+      });
+
+      showToast(
+        'error',
+        'Registration Failed',
+        error?.message || 'Something went wrong',
+      );
     } finally {
       setLoading(false);
     }
@@ -358,14 +427,6 @@ await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   };
 
   const validateForm = () => {
-    if (!isOtpSent) {
-      showToast('error', 'OTP Required', 'Please request OTP first');
-      return false;
-    }
-    if (!form.otp) {
-      showToast('error', 'OTP Required', 'Please enter the OTP');
-      return false;
-    }
     if (!form.first_name) {
       showToast('error', 'First Name Required', 'Please enter your first name');
       return false;
@@ -522,7 +583,7 @@ await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
               isDark={isDark}
             />
 
-            {/* Phone with OTP */}
+            {/* Contact Number*/}
             <View style={styles.phoneContainer}>
               <Text style={[styles.label, { color: colors.text }]}>
                 Contact Number{' '}
@@ -530,71 +591,34 @@ await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
                   *
                 </Text>
               </Text>
-              <View style={styles.row}>
-                <View
-                  style={[
-                    styles.phoneInputWrapper,
-                    {
-                      borderColor: isDark ? colors.border : '#e0e0e0',
-                      backgroundColor: isDark ? colors.background : '#fafafa',
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="call-outline"
-                    size={20}
-                    color={colors.textMuted}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    placeholder="Enter contact number"
-                    style={[styles.phoneInput, { color: colors.text }]}
-                    keyboardType="number-pad"
-                    value={form.contact}
-                    onChangeText={(v: string) => handleChange('contact', v)}
-                    maxLength={10}
-                    placeholderTextColor={colors.textMuted}
-                  />
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.otpBtn,
-                    (loading || resendTimer > 0) && styles.otpBtnDisabled,
-                    { backgroundColor: colors.primary },
-                  ]}
-                  onPress={handleSendOtp}
-                  disabled={loading || resendTimer > 0}
-                >
-                  <Text style={styles.otpBtnText}>
-                    {loading
-                      ? 'Sending...'
-                      : resendTimer > 0
-                      ? `${resendTimer}s`
-                      : isOtpSent
-                      ? 'Resend'
-                      : 'Send OTP'}
-                  </Text>
-                </TouchableOpacity>
+
+              <View
+                style={[
+                  styles.phoneInputWrapper,
+                  {
+                    borderColor: isDark ? colors.border : '#e0e0e0',
+                    backgroundColor: isDark ? colors.background : '#fafafa',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="call-outline"
+                  size={20}
+                  color={colors.textMuted}
+                  style={styles.inputIcon}
+                />
+
+                <TextInput
+                  placeholder="Enter contact number"
+                  style={[styles.phoneInput, { color: colors.text }]}
+                  keyboardType="number-pad"
+                  value={form.contact}
+                  onChangeText={(v: string) => handleChange('contact', v)}
+                  maxLength={10}
+                  placeholderTextColor={colors.textMuted}
+                />
               </View>
             </View>
-
-            {/* OTP Input */}
-            {isOtpSent && (
-              <Input
-                label="OTP"
-                required
-                value={form.otp}
-                onChange={(v: string) => handleChange('otp', v)}
-                keyboardType="number-pad"
-                placeholder="Enter 6 digit OTP"
-                icon="key-outline"
-                focused={focusedField === 'otp'}
-                onFocus={() => setFocusedField('otp')}
-                onBlur={() => setFocusedField(null)}
-                colors={colors}
-                isDark={isDark}
-              />
-            )}
 
             {/* DOB PICKER */}
             <View style={styles.dobContainer}>
@@ -686,7 +710,9 @@ await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
             <Input
               label="GST Number"
               value={form.gst_number}
-              onChange={(v: string) => handleChange('gst_number', v.toUpperCase())}
+              onChange={(v: string) =>
+                handleChange('gst_number', v.toUpperCase())
+              }
               placeholder="Enter GST Number "
               icon="receipt-outline"
               focused={focusedField === 'gst_number'}
@@ -1038,11 +1064,11 @@ await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (!isOtpSent || !form.otp) && styles.submitButtonDisabled,
+              loading && styles.submitButtonDisabled,
               { backgroundColor: colors.primary },
             ]}
             onPress={handleSubmit}
-            disabled={loading || !isOtpSent || !form.otp}
+            disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color="#ffffff" />
@@ -1054,100 +1080,8 @@ await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
               </Text>
             )}
           </TouchableOpacity>
-
-          {(!isOtpSent || !form.otp) && (
-            <Text
-              style={{
-                textAlign: 'center',
-                marginTop: 1,
-                marginBottom: 40,
-                fontSize: 13,
-                color: colors.textSecondary,
-                paddingHorizontal: 20,
-                fontStyle: 'italic',
-              }}
-            >
-              Please verify your mobile number using the OTP before completing
-              registration.
-            </Text>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* OTP Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showOtpModal}
-        onRequestClose={() => setShowOtpModal(false)}
-      >
-        <View
-          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
-        >
-          <View
-            style={[styles.modalContainer, { backgroundColor: colors.card }]}
-          >
-            <View
-              style={[styles.modalHeader, { backgroundColor: colors.primary }]}
-            >
-              <Text style={[styles.modalTitle, { color: '#fff' }]}>
-                OTP Received
-              </Text>
-              <TouchableOpacity onPress={() => setShowOtpModal(false)}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.modalBody, { backgroundColor: colors.card }]}>
-              <Text
-                style={[styles.modalSubtitle, { color: colors.textSecondary }]}
-              >
-                Your One-Time Password is:
-              </Text>
-              <Text style={[styles.otpDisplay, { color: colors.primary }]}>
-                {receivedOtp}
-              </Text>
-              <Text style={[styles.modalInfo, { color: colors.textMuted }]}>
-                This OTP is valid for 1 minute.{'\n'}Use this OTP to complete
-                your registration.
-              </Text>
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    styles.copyButton,
-                    {
-                      backgroundColor: isDark ? colors.background : '#f5f5f5',
-                      borderColor: colors.border,
-                    },
-                  ]}
-                  onPress={() => setShowOtpModal(false)}
-                >
-                  <Text
-                    style={[
-                      styles.copyButtonText,
-                      { color: colors.textSecondary },
-                    ]}
-                  >
-                    Enter Manually
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    styles.autoFillButton,
-                    { backgroundColor: colors.primary },
-                  ]}
-                  onPress={autoFillOtp}
-                >
-                  <Text style={[styles.autoFillButtonText, { color: '#fff' }]}>
-                    Auto-Fill OTP
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </MainLayout>
   );
 };
@@ -1299,19 +1233,7 @@ const styles = StyleSheet.create({
     // paddingVertical: Platform.OS === 'ios' ? 12 : 8,
     fontSize: 14,
   },
-  otpBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  otpBtnDisabled: { opacity: 0.6 },
-  otpBtnText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600' as const,
-  },
+
   dobContainer: { marginBottom: 16 },
   dateButton: {
     flexDirection: 'row',
@@ -1459,12 +1381,7 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: 'bold' },
   modalBody: { padding: 24, alignItems: 'center' },
   modalSubtitle: { fontSize: 14, marginBottom: 12 },
-  otpDisplay: {
-    fontSize: 42,
-    fontWeight: 'bold',
-    letterSpacing: 8,
-    marginVertical: 16,
-  },
+
   modalInfo: {
     fontSize: 12,
     textAlign: 'center',

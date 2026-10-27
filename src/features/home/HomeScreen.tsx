@@ -119,12 +119,20 @@ const Home = () => {
           return;
         }
 
+        console.log('[HOME] Fetching hero posts...');
+
         const heroResponse = await getHeroPost();
+
+        console.log('[HOME] Hero response:', heroResponse);
 
         setArticles(heroResponse || []);
         setHeroLoading(false);
 
+        console.log('[HOME] Fetching editor picks...');
+
         const editorResponse = await getEditorPick();
+
+        console.log('[HOME] Editor picks response:', editorResponse);
 
         setEditorPicks(editorResponse || []);
         setRestLoading(false);
@@ -133,8 +141,15 @@ const Home = () => {
           articles: heroResponse || [],
           editorPicks: editorResponse || [],
         });
-      } catch (error) {
-        console.error('Failed to load home data:', error);
+      } catch (error: any) {
+        console.error('[HOME API ERROR]', {
+          message: error?.message,
+          status: error?.response?.status,
+          data: error?.response?.data,
+          url: error?.config?.url,
+          baseURL: error?.config?.baseURL,
+          code: error?.code,
+        });
       } finally {
         setHeroLoading(false);
         setRestLoading(false);

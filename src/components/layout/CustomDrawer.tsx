@@ -527,8 +527,8 @@ const createStyles = (colors: any) =>
     headerGradient: {
       borderRadius: 24,
       padding: 20,
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 2,
+      borderColor: '#c6090a',
     },
     closeButton: {
       position: 'absolute',

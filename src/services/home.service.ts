@@ -24,15 +24,30 @@ export const latesteEdition = getLatestEdition;
 
 export const getHeroPost = async () => {
   try {
-    const { data } = await api.get(ENDPOINTS.POSTS.LIST, {
-      params: { is_featured_post: 1 },
+    console.log('[HERO API] Request started');
+
+    const response = await api.get(ENDPOINTS.POSTS.LIST, {
+      params: {
+        is_featured_post: 1,
+      },
     });
-    return data?.data || [];
-  } catch (error) {
-    throw normalizeApiError(error);
+
+    console.log('[HERO API] Response:', response.data);
+
+    return response.data?.data || [];
+  } catch (error: any) {
+    console.error('[HERO API ERROR]', {
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data,
+      url: error?.config?.url,
+      baseURL: error?.config?.baseURL,
+      code: error?.code,
+    });
+
+    throw error;
   }
 };
-
 /**
  * BUG FIX: the original hardcoded `category_id: 5` and completely
  * ignored the category_id passed via params — any caller requesting a
@@ -45,16 +60,30 @@ export const getEditorPick = async (params?: {
   limit?: number;
 }) => {
   try {
-    const { data } = await api.get(ENDPOINTS.POSTS.LIST, {
+    console.log('[EDITOR PICKS] Request started');
+
+    const response = await api.get(ENDPOINTS.POSTS.LIST, {
       params: {
         category_id: params?.category_id ?? 5,
         limit: params?.limit ?? 5,
         latest: 1,
       },
     });
-    return data?.data || [];
-  } catch (error) {
-    throw normalizeApiError(error);
+
+    console.log('[EDITOR PICKS] Response:', response.data);
+
+    return response.data?.data || [];
+  } catch (error: any) {
+    console.error('[EDITOR PICKS ERROR]', {
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data,
+      url: error?.config?.url,
+      baseURL: error?.config?.baseURL,
+      code: error?.code,
+    });
+
+    throw error;
   }
 };
 

@@ -21,10 +21,22 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const token = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      const token = await AsyncStorage.getItem(
+        STORAGE_KEYS.AUTH_TOKEN,
+      );
+
+      if (__DEV__) {
+        console.log('[API REQUEST]', {
+          url: config.url,
+          hasToken: Boolean(token),
+          tokenLength: token?.length ?? 0,
+        });
+      }
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else {
+        delete config.headers.Authorization;
       }
     } catch (error) {
       if (__DEV__) {
@@ -34,7 +46,7 @@ api.interceptors.request.use(
 
     return config;
   },
-  (error: AxiosError) => Promise.reject(error),
+  error => Promise.reject(error),
 );
 
 /* ---------------- RESPONSE INTERCEPTOR ---------------- */

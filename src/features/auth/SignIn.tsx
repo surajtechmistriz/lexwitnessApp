@@ -1,6 +1,3 @@
-// screens/auth/screens/SignIn.tsx
-
-import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -16,7 +13,13 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+
+import {
+  CommonActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Feather from 'react-native-vector-icons/Feather';
@@ -28,6 +31,7 @@ import { useTheme } from '../../store/hooks/useTheme';
 import { setProfile } from '../../store/slices/authSlice';
 import { getProfile } from '../../services/dashboard.service';
 import { loginApi } from '../../services/auth.service';
+import { STORAGE_KEYS } from '../../constant/storageKeys';
 
 const { height, width } = Dimensions.get('window');
 
@@ -71,6 +75,26 @@ const SignInScreen = () => {
   const navigation = useNavigation<any>();
   const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
+
+  const route = useRoute<any>();
+
+  useEffect(() => {
+    const message = route.params?.successMessage;
+
+    if (!message) return;
+
+    Toast.show({
+      type: 'success',
+      text1: 'Registration Successful!',
+      text2: message,
+      position: 'top',
+      visibilityTime: 4000,
+    });
+
+    navigation.setParams({
+      successMessage: undefined,
+    });
+  }, [route.params?.successMessage, navigation]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -129,26 +153,36 @@ const SignInScreen = () => {
         throw new Error('Invalid login response');
       }
 
-      await AsyncStorage.setItem('token', data.token);
+      await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, data.token);
 
       const profileRes = await getProfile();
-      const profile = profileRes.data;
+
+      // Adjust this based on the actual API response structure.
+      const responseData = profileRes?.data?.data ?? profileRes?.data;
+      const profile = responseData;
+
+      console.log('PROFILE RESPONSE:', JSON.stringify(profile, null, 2));
+
+      console.log(
+        'SUBSCRIPTION:',
+        JSON.stringify(profile?.subscription, null, 2),
+      );
 
       await AsyncStorage.setItem('user', JSON.stringify(profile.user));
       await AsyncStorage.setItem(
         'subscription',
-        JSON.stringify(profile.subscription),
+        JSON.stringify(profile.subscription ?? null),
       );
       await AsyncStorage.setItem(
         'nextSubscriptions',
-        JSON.stringify(profile.next_subscriptions || []),
+        JSON.stringify(profile.next_subscriptions ?? []),
       );
 
       dispatch(
         setProfile({
           user: profile.user,
-          subscription: profile.subscription,
-          nextSubscriptions: profile.next_subscriptions || [],
+          subscription: profile.subscription ?? null,
+          nextSubscriptions: profile.next_subscriptions ?? [],
         }),
       );
 
@@ -650,19 +684,19 @@ const SignInScreen = () => {
               </View>
 
               {/* Login Button */}
+              {/* Login Button */}
               <TouchableOpacity
                 style={[
                   styles.loginBtn,
-                  loading && styles.disabledBtn,
                   {
+                    height: verticalScale(isTablet ? 58 : 52),
+                    width: '100%',
                     borderRadius: scale(isTablet ? 16 : 14),
-                    shadowOffset: {
-                      width: 0,
-                      height: verticalScale(isTablet ? 6 : 4),
-                    },
-                    shadowOpacity: 0.3,
-                    shadowRadius: scale(isTablet ? 12 : 8),
-                    elevation: isTablet ? 6 : 4,
+                    shadowColor: BRAND.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
+                    elevation: 4,
                   },
                 ]}
                 onPress={handleLogin}
@@ -673,32 +707,40 @@ const SignInScreen = () => {
                   colors={BRAND.primaryGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  style={[
-                    styles.loginGradient,
-                    {
-                      paddingVertical: verticalScale(isTablet ? 18 : 16),
-                      borderRadius: scale(isTablet ? 16 : 14),
-                    },
-                  ]}
+                  style={{
+                    height: '100%',
+                    width: '100%',
+                    borderRadius: scale(isTablet ? 16 : 14),
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 >
-                  {loading ? (
-                    <ActivityIndicator
-                      color={BRAND.white}
-                      size={isSmallDevice ? 'small' : 'large'}
-                    />
-                  ) : (
-                    <Text
-                      style={[
-                        styles.loginBtnText,
-                        {
-                          fontSize: moderateScale(isTablet ? 18 : 16),
-                          letterSpacing: 0.5,
-                        },
-                      ]}
-                    >
-                      Sign In
-                    </Text>
-                  )}
+                  {/* Keep both elements mounted to prevent layout changes */}
+                  <View
+                    style={{
+                      position: 'absolute',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      height: '100%',
+                      opacity: loading ? 1 : 0,
+                    }}
+                    pointerEvents="none"
+                  >
+                    <ActivityIndicator size="small" color={BRAND.white} />
+                  </View>
+
+                  <Text
+                    style={{
+                      color: BRAND.white,
+                      fontWeight: '600',
+                      fontSize: moderateScale(isTablet ? 18 : 16),
+                      letterSpacing: 0.5,
+                      opacity: loading ? 0 : 1,
+                    }}
+                  >
+                    Sign In
+                  </Text>
                 </LinearGradient>
               </TouchableOpacity>
 
@@ -1098,8 +1140,11 @@ const styles = StyleSheet.create({
   },
 
   loginBtn: {
-    overflow: 'hidden',
     width: '100%',
+    alignSelf: 'stretch',
+    flexGrow: 0,
+    flexShrink: 0,
+    overflow: 'hidden',
   },
 
   loginGradient: {

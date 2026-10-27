@@ -61,14 +61,14 @@ const authSlice = createSlice({
       state,
       action: PayloadAction<{
         user: any;
-        subscription: any;
-        nextSubscriptions: any[];
+        subscription: Subscription | null;
+        nextSubscriptions?: any[];
       }>,
     ) => {
       state.isLoggedIn = true;
       state.user = action.payload.user;
-      state.subscription = action.payload.subscription;
-      state.nextSubscriptions = action.payload.nextSubscriptions;
+      state.subscription = action.payload.subscription ?? null;
+      state.nextSubscriptions = action.payload.nextSubscriptions ?? [];
       state.isHydrated = true;
     },
 

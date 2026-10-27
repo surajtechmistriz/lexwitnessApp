@@ -79,7 +79,9 @@ const ForgetPasswordScreen = () => {
       setLoading(true);
       setError('');
 
-      const response = await forgotPassword(email);
+      const response = await forgotPassword({
+        email: email.trim().toLowerCase(),
+      });
 
       if (response?.status) {
         setEmailSent(true);

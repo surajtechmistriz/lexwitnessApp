@@ -3,10 +3,24 @@
  * verifySubscriptionPayment — these had the exact same shape
  * duplicated in two files. Import this one type from both places.
  */
-export interface PaymentVerifyPayload {
+// types/payment.types.ts
+
+export interface RazorpayPaymentFields {
   razorpay_payment_id: string;
   razorpay_order_id: string;
   razorpay_signature: string;
+}
+
+// Registration payment verification
+export interface RegistrationPaymentVerifyPayload
+  extends RazorpayPaymentFields {
+  subscription_id: number;
+  checkout_token: string;
+}
+
+// Existing subscription payment verification
+export interface PaymentVerifyPayload
+  extends RazorpayPaymentFields {
   purchase_type?: 'NEW' | 'RENEW' | 'UPGRADE';
   membership_plan_id?: number;
 }
