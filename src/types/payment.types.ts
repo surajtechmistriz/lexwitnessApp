@@ -21,6 +21,7 @@ export interface RegistrationPaymentVerifyPayload
 // Existing subscription payment verification
 export interface PaymentVerifyPayload
   extends RazorpayPaymentFields {
+    subscription_id: number;
   purchase_type?: 'NEW' | 'RENEW' | 'UPGRADE';
   membership_plan_id?: number;
 }

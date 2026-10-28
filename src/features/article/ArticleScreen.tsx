@@ -58,15 +58,28 @@ export default function ArticleDetailPage() {
   }>({});
   const rotateAnim = useRef<{ [key: string]: Animated.Value }>({}).current;
 
-  const { user, subscription } = useSelector((state: RootState) => state.auth);
+const { user, subscription } = useSelector((state: RootState) => state.auth);
 
-  const isSubscribed = Boolean(
-    user &&
-      subscription &&
-      subscription.status === 'ACTIVE' &&
-      subscription.end_date &&
-      new Date(subscription.end_date) >= new Date(),
-  );
+const isSubscribed = Boolean(
+  user && subscription?.status === 'ACTIVE',
+);
+
+  useEffect(() => {
+  if (__DEV__) {
+    const endDate = subscription?.end_date
+      ? new Date(subscription.end_date)
+      : null;
+
+    console.log('Subscription check:', {
+      userExists: Boolean(user),
+      subscriptionExists: Boolean(subscription),
+      status: subscription?.status,
+      endDate: subscription?.end_date,
+      validEndDate: endDate ? !Number.isNaN(endDate.getTime()) : false,
+      isSubscribed,
+    });
+  }
+}, [user, subscription, isSubscribed]);
 
   const isAndroid = Platform.OS === 'android';
 

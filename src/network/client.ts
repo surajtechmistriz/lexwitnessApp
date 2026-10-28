@@ -21,9 +21,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const token = await AsyncStorage.getItem(
-        STORAGE_KEYS.AUTH_TOKEN,
-      );
+      const token = await AsyncStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
 
       if (__DEV__) {
         console.log('[API REQUEST]', {
@@ -59,6 +57,15 @@ api.interceptors.response.use(
         status: error.response?.status,
         code: error.code,
         message: error.message,
+      });
+    }
+
+    if (__DEV__) {
+      console.log('[API ERROR DETAILS]', {
+        url: error?.config?.url,
+        status: error?.response?.status,
+        message: error?.response?.data?.message,
+        errors: error?.response?.data?.errors,
       });
     }
 

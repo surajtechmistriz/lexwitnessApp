@@ -380,24 +380,36 @@ const RegisterScreen = () => {
         return;
       }
 
-      log('STEP 9: Verification response', {
-        status: verifyRes?.status,
-        message: verifyRes?.message,
-      });
+    log('STEP 9: Verification response', {
+  status: verifyRes?.status,
+  paymentConfirmed: verifyRes?.data?.payment_confirmed,
+  paymentStatus: verifyRes?.data?.payment_status,
+  message: verifyRes?.message,
+});
 
-      // STEP 10: Redirect only after backend confirmation
-      if (verifyRes?.status === true) {
-        log('STEP 10: Payment verified successfully');
+// STEP 10: Redirect only after backend confirms the payment
+if (
+  verifyRes?.status === true &&
+  verifyRes?.data?.payment_confirmed === true
+) {
+  log('STEP 10: Payment verified successfully');
 
-        showToast(
-          'success',
-          'Payment Successful',
-          'Your subscription has been confirmed',
-        );
+  showToast(
+    'success',
+    'Payment Successful',
+    'Your subscription has been confirmed',
+  );
 
-        handleRegistrationSuccess();
-        return;
-      }
+  handleRegistrationSuccess();
+  return;
+}
+
+showToast(
+  'error',
+  'Payment Not Confirmed',
+  verifyRes?.message ||
+    'Payment is awaiting confirmation. Please check your subscription before paying again.',
+);
 
       showToast(
         'error',

@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SubscriptionPlan } from './subscriptionSlice';
 
 /* ---------------- TYPES ---------------- */
 
 type Subscription = {
   id: number;
   plan_id: number;
-  plan: any;
+  plan: SubscriptionPlan | null;
   status: 'ACTIVE' | 'EXPIRED' | string;
   start_date: string;
   end_date: string;

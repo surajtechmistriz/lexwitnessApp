@@ -18,9 +18,11 @@ import Pagination from '../../components/common/Pagination';
 import YearFilter from '../../components/common/YearFilter';
 import Banner from '../../components/common/DynamicBanner';
 import ArticleSkeleton from '../../skeleton/ArticleSkeleton';
-import { getPosts } from '../article/api/posts';
-import { getYears } from '../magazines/api/years';
+// import { getPosts } from '../article/api/posts';
+// import { getYears } from '../magazines/api/years';
 import { useTheme } from '../../store/hooks/useTheme';
+import { getPosts } from '../../services/article.service';
+import { getYears } from '../../services/magazine.service';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

@@ -49,9 +49,9 @@ const DashboardScreen = () => {
   ) as AuthState;
 
   useEffect(() => {
-  console.log('DASHBOARD SUBSCRIPTION:', subscription);
-  console.log('DASHBOARD NEXT SUBSCRIPTIONS:', nextSubscriptions);
-}, [subscription, nextSubscriptions]);
+    console.log('DASHBOARD SUBSCRIPTION:', subscription);
+    console.log('DASHBOARD NEXT SUBSCRIPTIONS:', nextSubscriptions);
+  }, [subscription, nextSubscriptions]);
 
   // const insets = useSafeAreaInsets();
 
@@ -99,43 +99,43 @@ const DashboardScreen = () => {
 
   // ------ SUBSCRIPTION STATUS ------
 
- const now = new Date();
+  const now = new Date();
 
-const subscriptionExpiryDate =
-  subscription?.expiry_date ?? subscription?.end_date ?? null;
+  const subscriptionExpiryDate =
+    subscription?.expiry_date ?? subscription?.end_date ?? null;
 
-const status = subscription?.status?.toUpperCase();
+  const status = subscription?.status?.toUpperCase();
 
-const hasExpiredByDate = subscriptionExpiryDate
-  ? new Date(subscriptionExpiryDate) < now
-  : false;
+  const hasExpiredByDate = subscriptionExpiryDate
+    ? new Date(subscriptionExpiryDate) < now
+    : false;
 
-const isActive = status === "ACTIVE" && !hasExpiredByDate;
+  const isActive = status === 'ACTIVE' && !hasExpiredByDate;
 
-const isExpired = status === "EXPIRED" || hasExpiredByDate;
+  const isExpired = status === 'EXPIRED' || hasExpiredByDate;
 
-const isFreePlan =
-  Number(subscription?.plan?.price ?? subscription?.total_amount ?? 0) === 0;
+  const isFreePlan =
+    Number(subscription?.plan?.price ?? subscription?.total_amount ?? 0) === 0;
 
-const remainingDays = subscriptionExpiryDate
-  ? Math.ceil(
-      (new Date(subscriptionExpiryDate).getTime() - now.getTime()) /
-        (1000 * 60 * 60 * 24),
-    )
-  : null;
+  const remainingDays = subscriptionExpiryDate
+    ? Math.ceil(
+        (new Date(subscriptionExpiryDate).getTime() - now.getTime()) /
+          (1000 * 60 * 60 * 24),
+      )
+    : null;
 
-const remainingDaysLabel =
-  remainingDays === null
-    ? "—"
-    : remainingDays <= 0
-      ? "Expired"
-      : `${remainingDays} day${remainingDays === 1 ? "" : "s"} left`;
+  const remainingDaysLabel =
+    remainingDays === null
+      ? '—'
+      : remainingDays <= 0
+      ? 'Expired'
+      : `${remainingDays} day${remainingDays === 1 ? '' : 's'} left`;
 
-const currentPlanDuration = subscription?.plan
-  ? `${subscription.plan.duration_value} ${subscription.plan.duration_unit}`
-  : "—";
+  const currentPlanDuration = subscription?.plan
+    ? `${subscription.plan.duration_value} ${subscription.plan.duration_unit}`
+    : '—';
 
-const upcomingPlans = nextSubscriptions ?? [];
+  const upcomingPlans = nextSubscriptions ?? [];
 
   // ------ FIXED LOGOUT HANDLER ------
 
@@ -289,12 +289,23 @@ const upcomingPlans = nextSubscriptions ?? [];
         theme: { color: colors.primary },
       };
 
+      const renewalSubscriptionId = res?.data?.subscription?.id;
+
+      if (!renewalSubscriptionId) {
+        Alert.alert(
+          'Payment Verification Pending',
+          'Renewal subscription ID was not returned. Please check the subscription status before paying again.',
+        );
+        return;
+      }
+
       const razorpayResponse = await RazorpayCheckout.open(options);
 
       const verifyRes = await verifyRenewPayment({
-        razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
-        razorpay_order_id: razorpayResponse?.razorpay_order_id,
-        razorpay_signature: razorpayResponse?.razorpay_signature,
+        subscription_id: renewalSubscriptionId,
+        razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+        razorpay_order_id: razorpayResponse.razorpay_order_id,
+        razorpay_signature: razorpayResponse.razorpay_signature,
         membership_plan_id: subscription?.membership_plan_id,
         purchase_type: 'RENEW',
       });
@@ -1420,7 +1431,9 @@ const upcomingPlans = nextSubscriptions ?? [];
                       },
                     ]}
                   >
-                    {formatDate(subscription?.start_date ?? subscription?.created_at)}
+                    {formatDate(
+                      subscription?.start_date ?? subscription?.created_at,
+                    )}
                   </Text>
                 </View>
                 <View
@@ -1489,7 +1502,9 @@ const upcomingPlans = nextSubscriptions ?? [];
                       },
                     ]}
                   >
-                  {formatDate(subscription?.expiry_date ?? subscription?.end_date)}
+                    {formatDate(
+                      subscription?.expiry_date ?? subscription?.end_date,
+                    )}
                   </Text>
                 </View>
                 <View
@@ -2031,7 +2046,7 @@ const upcomingPlans = nextSubscriptions ?? [];
                               },
                             ]}
                           >
-                       {formatDate(item?.start_date ?? item?.created_at)}
+                            {formatDate(item?.start_date ?? item?.created_at)}
                           </Text>
                         </View>
                         <View

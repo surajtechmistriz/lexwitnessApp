@@ -18,8 +18,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useTheme } from '../../store/hooks/useTheme';
 
 import { refreshProfile } from '../../utils/helpers/refreshProfile';
-import { upgradePlan, verifySubscriptionPayment } from '../../services/subscription.service';
+import {
+  upgradePlan,
+  verifySubscriptionPayment,
+} from '../../services/subscription.service';
 import { getMembershipPlans } from '../../services/membership.service';
+import { PaymentVerifyPayload } from '../../types/payment.types';
 
 const PricingCard = () => {
   const navigation = useNavigation<any>();
@@ -88,7 +92,22 @@ const PricingCard = () => {
       setLoading(true);
 
       const orderRes = await upgradePlan(selectedPlan.id);
+
+      if (!orderRes?.status) {
+        Alert.alert('Error', orderRes?.message || 'Unable to start upgrade');
+        return;
+      }
+
       const paymentData = orderRes?.data?.payment;
+      const upgradeSubscriptionId = orderRes?.data?.subscription?.id;
+
+      if (!upgradeSubscriptionId) {
+        Alert.alert(
+          'Error',
+          'Upgrade subscription ID was not returned. Please contact support.',
+        );
+        return;
+      }
 
       if (!paymentData?.order_id) {
         Alert.alert('Error', 'Unable to create payment order');
@@ -114,20 +133,37 @@ const PricingCard = () => {
 
       setProcessingPayment(true);
       console.log('1 Payment Success');
+      if (__DEV__) {
+  console.log('UPGRADE VERIFY CHECK:', {
+    subscriptionId: upgradeSubscriptionId,
+    hasPaymentId: Boolean(razorpayResponse?.razorpay_payment_id),
+    hasOrderId: Boolean(razorpayResponse?.razorpay_order_id),
+    hasSignature: Boolean(razorpayResponse?.razorpay_signature),
+  });
+}
 
-      const verifyPayload = {
-        razorpay_payment_id: razorpayResponse?.razorpay_payment_id,
-        razorpay_order_id: razorpayResponse?.razorpay_order_id,
-        razorpay_signature: razorpayResponse?.razorpay_signature,
-        membership_plan_id: selectedPlan.id,
-        purchase_type: 'UPGRADE' as const,
+      const verifyPayload: PaymentVerifyPayload = {
+        subscription_id: upgradeSubscriptionId,
+        razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+        razorpay_order_id: razorpayResponse.razorpay_order_id,
+        razorpay_signature: razorpayResponse.razorpay_signature,
       };
 
       try {
-        await verifySubscriptionPayment(verifyPayload);
+        // Backend se payment verify karo
+        const verifyRes = await verifySubscriptionPayment(verifyPayload);
 
-        setProcessingPayment(false);
+        // Web ki tarah payment confirmation check karo
+        if (!verifyRes?.status || !verifyRes?.data?.payment_confirmed) {
+          Alert.alert(
+            'Payment Not Confirmed',
+            verifyRes?.message ||
+              'Please check your subscription status before paying again.',
+          );
+          return;
+        }
 
+        // Sirf confirmed payment ke baad dashboard par jao
         navigation.dispatch(
           CommonActions.reset({
             index: 0,
@@ -145,13 +181,13 @@ const PricingCard = () => {
 
         refreshProfile(dispatch).catch(console.log);
       } catch (e: any) {
-        setProcessingPayment(false);
-
         Alert.alert(
-          'Error',
-          e?.response?.data?.message || 'Payment verification failed',
+          'Payment Verification Pending',
+          e?.message ||
+            'Payment verification could not be confirmed. Please check your subscription status before paying again.',
         );
       } finally {
+        setProcessingPayment(false);
         setLoading(false);
       }
     } catch (error: any) {
