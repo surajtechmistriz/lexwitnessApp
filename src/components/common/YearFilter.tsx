@@ -130,9 +130,15 @@ const YearFilter: React.FC<YearFilterProps> = ({
       </View>
 
       {/* Dropdown modal */}
-      <Modal visible={open} transparent animationType="fade" statusBarTranslucent>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeDropdown}
+      >
         <TouchableOpacity
-          style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}
+          style={styles.overlay}
           activeOpacity={1}
           onPress={closeDropdown}
         >
@@ -211,6 +217,8 @@ const styles = StyleSheet.create({
     height: 46,
     borderWidth: 1,
     paddingHorizontal: 14,
+    minHeight: 46,
+    paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -231,16 +239,18 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'center',
-    paddingLeft: 15,
-    paddingRight: 91,
-    paddingBottom: 40,
-    marginTop: -37,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
+
   dropdownBox: {
-    maxHeight: 300,
-    maxWidth: 240,
-    marginTop: 350,
+    width: '100%',
+    maxWidth: 360,
+    maxHeight: '60%',
     borderRadius: 20,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,

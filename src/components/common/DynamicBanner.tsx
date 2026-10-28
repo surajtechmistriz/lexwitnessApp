@@ -57,8 +57,12 @@ export default function Banner({
 }: BannerProps) {
   const { colors } = useTheme();
 
+
+const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<FilterState>(initialFilters);
+  const [appliedFilters, setAppliedFilters] =
+    useState<FilterState>(initialFilters);
   const [tempFilters, setTempFilters] = useState<FilterState>(initialFilters);
 
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -170,9 +174,17 @@ export default function Banner({
     ) : null;
 
   const renderTitle = () => (
-    <View style={[styles.titleWrapper, showBackButton && styles.titleWrapperWithBack]}>
+    <View
+      style={[
+        styles.titleWrapper,
+        showBackButton && styles.titleWrapperWithBack,
+      ]}
+    >
       <Text
-        style={[styles.mainTitle, title === 'Magazines' && styles.magazineTitle]}
+        style={[
+          styles.mainTitle,
+          title === 'Magazines' && styles.magazineTitle,
+        ]}
         numberOfLines={1}
       >
         {title?.toUpperCase() || ''}
@@ -267,29 +279,49 @@ export default function Banner({
             </Animated.View>
 
             <Animated.View
-              style={[styles.bottomSheet, { transform: [{ translateY: slideAnim }] }]}
+              style={[
+                styles.bottomSheet,
+                { transform: [{ translateY: slideAnim }] },
+              ]}
             >
-              <SafeAreaView style={styles.safeArea}>
+              <SafeAreaView
+                edges={['bottom', 'left', 'right']}
+                style={[styles.safeArea, styles.sheetBackground]}
+              >
                 <View
-                  style={[styles.dragHandleContainer, { backgroundColor: colors.card }]}
+                  style={[
+                    styles.dragHandleContainer,
+                    { backgroundColor: colors.card },
+                  ]}
                 >
                   <View
-                    style={[styles.dragHandle, { backgroundColor: colors.border }]}
+                    style={[
+                      styles.dragHandle,
+                      { backgroundColor: colors.border },
+                    ]}
                   />
                 </View>
 
                 <View
                   style={[
                     styles.filterHeader,
-                    { backgroundColor: colors.card, borderBottomColor: colors.border },
+                    {
+                      backgroundColor: colors.card,
+                      borderBottomColor: colors.border,
+                    },
                   ]}
                 >
-                  <Text style={[styles.filterHeaderTitle, { color: colors.text }]}>
+                  <Text
+                    style={[styles.filterHeaderTitle, { color: colors.text }]}
+                  >
                     Filter
                   </Text>
                   <TouchableOpacity
                     onPress={closeModal}
-                    style={[styles.closeButton, { backgroundColor: colors.background }]}
+                    style={[
+                      styles.closeButton,
+                      { backgroundColor: colors.background },
+                    ]}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Ionicons name="close" size={24} color={colors.text} />
@@ -297,12 +329,10 @@ export default function Banner({
                 </View>
 
                 <ScrollView
-                  style={[styles.filterContent, { backgroundColor: colors.card }]}
+                  style={[styles.filterContent, styles.sheetBackground]}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={[
-                    styles.filterContentContainer,
-                    { backgroundColor: colors.card },
-                  ]}
+                  contentInsetAdjustmentBehavior="never"
+                  contentContainerStyle={styles.filterContentContainer}
                 >
                   {renderFilter(
                     closeModal,
@@ -324,11 +354,24 @@ export default function Banner({
 
 // ---------- Styles ----------
 
-const styles = StyleSheet.create({
+type ThemeColors = ReturnType<typeof useTheme>['colors'];
+
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
   outerContainer: {
     zIndex: 1000,
     elevation: 10,
   },
+  sheetBackground: {
+  backgroundColor: colors.card,
+},
+
+safeArea: {
+  flexShrink: 1,
+  borderTopLeftRadius: 24,
+  borderTopRightRadius: 24,
+  overflow: 'hidden',
+},
   bannerContainer: {
     width: '100%',
     height: Math.max(65, SCREEN_HEIGHT * 0.08),
@@ -457,10 +500,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 25,
-    maxHeight: SCREEN_HEIGHT * 0.25,
+    maxHeight: '80%',
   },
-  safeArea: {
-    flex: 1,
+
+  filterContent: {
+    flexGrow: 0,
+    flexShrink: 1,
+  },
+
+  filterContentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   dragHandleContainer: {
     alignItems: 'center',
@@ -492,13 +543,5 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  filterContent: {
-    flex: 1,
-  },
-  filterContentContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 32,
   },
 });

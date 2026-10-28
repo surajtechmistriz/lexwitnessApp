@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   Platform,
   StatusBar,
 } from 'react-native';
@@ -15,8 +14,6 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../store/hooks/useTheme';
 import { getMenu } from '../../services/category.service';
-
-const { width } = Dimensions.get('window');
 
 interface Category {
   id?: number | string;
@@ -27,78 +24,63 @@ interface Category {
   count?: number;
 }
 
-// ------ Optimized design mapping for Lex Witness ------
-const getDesign = (index: number) => {
-  const designs = [
-    { title: 'Arbitration', icon: 'gavel', color: '#1a5f7a', type: 'mci' },
-    {
-      title: 'Banking & Finance',
-      icon: 'bank-outline',
-      color: '#c9060a',
-      type: 'mci',
+type ThemeColors = ReturnType<typeof useTheme>['colors'];
+
+const categoryColors = [
+  '#1a5f7a',
+  '#c9060a',
+  '#27ae60',
+  '#f39c12',
+  '#2980b9',
+  '#8e44ad',
+  '#d35400',
+  '#2c3e50',
+];
+
+const categoryStyles = categoryColors.map(color =>
+  StyleSheet.create({
+    accentBar: {
+      backgroundColor: color,
     },
-    { title: 'CSR', icon: 'handshake-outline', color: '#27ae60', type: 'mci' },
-    {
-      title: 'IPR',
-      icon: 'shield-check-outline',
-      color: '#f39c12',
-      type: 'mci',
+    dot: {
+      backgroundColor: color,
     },
-    {
-      title: 'Legal Updates',
-      icon: 'newspaper-outline',
-      color: '#2980b9',
-      type: 'mci',
+    bottomCorner: {
+      backgroundColor: `${color}08`,
     },
-    {
-      title: 'Real Estate',
-      icon: 'office-building-marker-outline',
-      color: '#8e44ad',
-      type: 'mci',
-    },
-    {
-      title: 'Tete-a-Tete',
-      icon: 'microphone-outline',
-      color: '#d35400',
-      type: 'mci',
-    },
-    {
-      title: 'Expert Views',
-      icon: 'scale-balance',
-      color: '#2c3e50',
-      type: 'mci',
-    },
-  ];
-  return designs[index % designs.length];
-};
+  }),
+);
 
 const CategoryList = () => {
   const navigation = useNavigation<any>();
   const { colors, isDark } = useTheme();
+
+  const styles = useMemo(
+    () => createStyles(colors, isDark),
+    [colors, isDark],
+  );
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+
+        const res = await getMenu();
+        const data = res?.data ?? res ?? [];
+
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.log('Category Fetch Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchCategories();
   }, []);
-
-  const fetchCategories = async () => {
-    try {
-      setLoading(true);
-      const res = await getMenu();
-      const data = res?.data || res || [];
-      setCategories(data);
-    } catch (err) {
-      console.log('Category Fetch Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ------Back button handler------
-  const handleBack = () => {
-    navigation.goBack();
-  };
 
   const handleCategoryPress = (item: Category) => {
     navigation.navigate('Category', {
@@ -106,70 +88,51 @@ const CategoryList = () => {
     });
   };
 
-  const renderItem = ({ item, index }: { item: Category; index: number }) => {
-    const design = getDesign(index);
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: Category;
+    index: number;
+  }) => {
+    const design = categoryStyles[index % categoryStyles.length];
     const categoryName = item.name || item.title;
-    const articleCount = item.articles_count || item.count;
+    const articleCount = item.articles_count ?? item.count;
 
     return (
       <TouchableOpacity
-        style={[
-          styles.card,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-            shadowColor: isDark ? '#000' : '#000',
-          },
-        ]}
+        style={styles.card}
         activeOpacity={0.8}
         onPress={() => handleCategoryPress(item)}
       >
-        {/* Top Accent Bar for visual distinction */}
-        <View style={[styles.accentBar, { backgroundColor: design.color }]} />
+        <View style={[styles.accentBar, design.accentBar]} />
 
         <View style={styles.cardContent}>
-          {/* Category Name - Larger and bolder */}
-          <Text
-            style={[styles.cardTitle, { color: colors.text }]}
-            numberOfLines={2}
-          >
+          <Text style={styles.cardTitle} numberOfLines={2}>
             {categoryName}
           </Text>
 
-          {/* Article Count - Clean pill design */}
-          <View
-            style={[
-              styles.badgeContainer,
-              { backgroundColor: colors.background },
-            ]}
-          >
-            <View style={[styles.dot, { backgroundColor: design.color }]} />
-            <Text style={[styles.cardCount, { color: colors.textMuted }]}>
-              {articleCount ? `${articleCount} Articles` : 'Explore'}
+          <View style={styles.badgeContainer}>
+            <View style={[styles.dot, design.dot]} />
+
+            <Text style={styles.cardCount}>
+              {articleCount != null
+                ? `${articleCount} Articles`
+                : 'Explore'}
             </Text>
           </View>
         </View>
 
-        {/* Subtle background hint of the color at the bottom corner */}
-        <View
-          style={[
-            styles.bottomCorner,
-            { backgroundColor: design.color + '08' },
-          ]}
-        />
+        <View style={[styles.bottomCorner, design.bottomCorner]} />
       </TouchableOpacity>
     );
   };
 
   if (loading) {
     return (
-      <View
-        style={[styles.loaderContainer, { backgroundColor: colors.background }]}
-      >
+      <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 10, color: colors.textMuted }}>
-          Loading Insights...
-        </Text>
+        <Text style={styles.loadingText}>Loading Insights...</Text>
       </View>
     );
   }
@@ -177,52 +140,40 @@ const CategoryList = () => {
   return (
     <>
       <StatusBar
-        barStyle={isDark ? 'light-content' : 'light-content'}
+        barStyle="light-content"
         backgroundColor={isDark ? '#121212' : '#c9060a'}
       />
+
       <SafeAreaView
-        style={[styles.safeArea, { backgroundColor: colors.primary }]}
-        edges={['top', 'left', 'right']} // Removed 'bottom' from edges
+        style={styles.safeArea}
+        edges={['top', 'left', 'right']}
       >
-        {/* Header with Back Button */}
-        <View style={[styles.header, { backgroundColor: colors.background }]}>
+        <View style={styles.header}>
           <TouchableOpacity
-            style={[
-              styles.backButton,
-              { backgroundColor: isDark ? colors.border : 'rgba(0,0,0,0.05)' },
-            ]}
-            onPress={handleBack}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
             activeOpacity={0.7}
           >
             <Icon name="arrow-back" size={24} color="#c9060a" />
           </TouchableOpacity>
 
           <View style={styles.headerContent}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>
-              All Categories
-            </Text>
-            <Text style={[styles.headerSub, { color: colors.primary }]}>
-              Lex Witness Insights
-            </Text>
+            <Text style={styles.headerTitle}>All Categories</Text>
+            <Text style={styles.headerSub}>Lex Witness Insights</Text>
           </View>
 
           <View style={styles.headerRight} />
         </View>
 
         <FlatList
+          style={styles.list}
           data={categories}
           renderItem={renderItem}
           keyExtractor={(item, index) =>
-            item.id?.toString() || index.toString()
+            item.id?.toString() ?? item.slug ?? index.toString()
           }
           numColumns={2}
-          contentContainerStyle={[
-            styles.listContent,
-            {
-              backgroundColor: colors.background,
-              paddingBottom: 20, // Added explicit bottom padding
-            },
-          ]}
+          contentContainerStyle={styles.listContent}
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
         />
@@ -231,142 +182,165 @@ const CategoryList = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    paddingBottom: 40,
-  },
+const createStyles = (colors: ThemeColors, isDark: boolean) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      paddingBottom: 80,
+      backgroundColor: colors.primary,
+    },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 18,
-  },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 18,
+      backgroundColor: colors.background,
+    },
 
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -8,
-  },
+    backButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: -8,
+      backgroundColor: isDark
+        ? colors.border
+        : 'rgba(0,0,0,0.05)',
+    },
 
-  headerContent: {
-    flex: 1,
-    marginLeft: 8,
-  },
+    headerContent: {
+      flex: 1,
+      marginLeft: 8,
+    },
 
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '800' as const,
-    marginLeft: 6,
-    marginTop: 6,
-    letterSpacing: -0.6,
-  },
+    headerTitle: {
+      fontSize: 20,
+      fontWeight: '800',
+      marginLeft: 6,
+      marginTop: 6,
+      letterSpacing: -0.6,
+      color: colors.text,
+    },
 
-  headerSub: {
-    fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginTop: 2,
-    letterSpacing: 0.8,
-  },
+    headerSub: {
+      fontSize: 12,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      marginTop: 2,
+      letterSpacing: 0.8,
+      color: colors.primary,
+    },
 
-  headerRight: {
-    width: 40,
-  },
+    headerRight: {
+      width: 40,
+    },
 
-  listContent: {
-    paddingHorizontal: 16,
-    // paddingBottom: 20, // Moved to inline style for dynamic control
-    paddingVertical: 20,
-  },
+    list: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  row: {
-    justifyContent: 'space-between',
-  },
+    listContent: {
+      paddingHorizontal: 16,
+      paddingVertical: 20,
+    },
 
-  card: {
-    width: width / 2 - 24,
-    marginVertical: 8,
-    borderRadius: 16,
-    overflow: 'hidden',
-    position: 'relative',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.04,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-    borderWidth: 1,
-  },
+    row: {
+      justifyContent: 'space-between',
+    },
 
-  accentBar: {
-    height: 4,
-    width: '100%',
-  },
+    card: {
+      width: '48%',
+      marginVertical: 8,
+      borderRadius: 16,
+      overflow: 'hidden',
+      position: 'relative',
+      borderWidth: 1,
+      backgroundColor: colors.card,
+      borderColor: colors.border,
+      ...Platform.select({
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.04,
+          shadowRadius: 12,
+        },
+        android: {
+          elevation: 2,
+        },
+      }),
+    },
 
-  cardContent: {
-    paddingVertical: 24,
-    paddingHorizontal: 16,
-    minHeight: 120,
-    justifyContent: 'center',
-    zIndex: 2,
-  },
+    accentBar: {
+      height: 4,
+      width: '100%',
+    },
 
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 22,
-    marginBottom: 10,
-  },
+    cardContent: {
+      paddingVertical: 24,
+      paddingHorizontal: 16,
+      minHeight: 120,
+      justifyContent: 'center',
+      zIndex: 2,
+    },
 
-  badgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      lineHeight: 22,
+      marginBottom: 10,
+      color: colors.text,
+    },
 
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
-  },
+    badgeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      backgroundColor: colors.background,
+    },
 
-  cardCount: {
-    fontSize: 10,
-    fontWeight: '600' as const,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      marginRight: 6,
+    },
 
-  bottomCorner: {
-    position: 'absolute',
-    bottom: -20,
-    right: -20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    zIndex: 1,
-  },
+    cardCount: {
+      fontSize: 10,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      color: colors.textMuted,
+    },
 
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
+    bottomCorner: {
+      position: 'absolute',
+      bottom: -20,
+      right: -20,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      zIndex: 1,
+    },
+
+    loaderContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+
+    loadingText: {
+      marginTop: 10,
+      color: colors.textMuted,
+    },
+  });
 
 export default CategoryList;
