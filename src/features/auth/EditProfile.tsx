@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -27,6 +26,7 @@ import { sendUpdateOtp, updateProfile } from '../../services/profile.service';
 import { PasswordForm } from '../../types/profile.types';
 import { AuthState } from '../../types/auth.types';
 import { getProfile } from '../../services/dashboard.service';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const INITIAL_FORM_DATA: FormData = {
   firstName: '',
@@ -390,6 +390,7 @@ const EditProfileScreen = () => {
 
   return (
     <SafeAreaView
+      edges={['top', 'left', 'right']}
       style={[
         styles.container,
         {
