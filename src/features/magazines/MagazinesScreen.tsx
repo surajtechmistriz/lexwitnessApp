@@ -23,6 +23,7 @@ import Pagination from '../../components/common/Pagination';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useTheme } from '../../store/hooks/useTheme';
 import { getMagazines, getYears } from '../../services/magazine.service';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 type RootStackParamList = {
   MagazineDetail: { slug: string };
@@ -67,6 +68,8 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
   // Status bar color
   const statusBarColor = '#c9060a';
   const statusBarStyle = 'light-content';
+
+  const tabBarHeight = useBottomTabBarHeight();
 
   // Force status bar update when screen is focused
   // useFocusEffect(
@@ -287,7 +290,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
               styles.flatListContent,
               {
                 paddingTop: isTablet ? verticalScale(16) : 0,
-                paddingBottom: verticalScale(isTablet ? 30 : 20),
+                paddingBottom: 0,
               },
             ]}
             onScroll={handleScroll}
@@ -347,7 +350,7 @@ const MagazinesScreen = ({ onScrollDown, onScrollUp }: any) => {
                   styles.footerWrapper,
                   {
                     marginTop: isTablet ? verticalScale(16) : verticalScale(10),
-                    paddingBottom: isTablet ? verticalScale(20) : 55,
+                   paddingBottom: tabBarHeight + 16,
                   },
                 ]}
               >

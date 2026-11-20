@@ -1,9 +1,3 @@
-/**
- * Shared by BOTH auth's verifyPaymentApi and subscription's
- * verifySubscriptionPayment — these had the exact same shape
- * duplicated in two files. Import this one type from both places.
- */
-// types/payment.types.ts
 
 export interface RazorpayPaymentFields {
   razorpay_payment_id: string;

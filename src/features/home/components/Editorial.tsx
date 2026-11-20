@@ -45,6 +45,20 @@ const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
   const [data, setData] = useState<EditorialData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const { colors, isDark } = useTheme();
+  const [ratio, setRatio] = useState(4 / 3);
+
+  useEffect(() => {
+    Image.getSize(
+      imageSource,
+      (w, h) => {
+        if (w && h) {
+          // Clamp so very tall or very wide photos don't break the card.
+          setRatio(Math.min(Math.max(w / h, 0.8), 1.78));
+        }
+      },
+      () => {},
+    );
+  }, [imageSource]);
 
   const navigation = useNavigation<any>();
 
@@ -120,7 +134,7 @@ const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
         onPress={handlePress}
       >
         {/* IMAGE */}
-        <View style={styles.imageWrapper}>
+        <View style={[styles.imageWrapper, { aspectRatio: ratio }]}>
           <Image
             source={{ uri: imageSource }}
             style={[
@@ -131,7 +145,7 @@ const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
           />
 
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.55)']}
+            colors={['transparent', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.35)']}
             style={styles.overlay}
           />
 
@@ -236,8 +250,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   imageWrapper: {
-    height: 170,
+    width: '100%',
     position: 'relative',
+    overflow: 'hidden',
   },
   coverImage: {
     width: '100%',

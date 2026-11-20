@@ -1,19 +1,25 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
+  ActivityIndicator,
   Image,
-  StyleSheet,
+  ScrollView,
   StatusBar,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  useWindowDimensions,
+  View,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Config from 'react-native-config';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../store/hooks/useTheme';
+import { getEditorial } from '../../services/home.service';
 
 // ---------- Types ----------
 
@@ -37,99 +43,226 @@ type EditorialDetailRoute = RouteProp<
   'EditorialDetail'
 >;
 
+// ---------- Constants & helpers ----------
+
+// Same red as the other screens so the status bar matches across the app.
+const STATUS_BAR_COLOR = '#D32F2F';
+
+const FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
+
+/** Turns the API's HTML description into plain-text paragraphs. */
+const toParagraphs = (html?: string): string[] => {
+  if (!html) return [];
+
+  return html
+    .replace(/<\/p>|<br\s*\/?>/gi, '\n\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .split(/\n{2,}/)
+    .map(p => p.trim())
+    .filter(Boolean);
+};
+
+const hasText = (value?: string) =>
+  !!value && value !== 'null' && value.trim() !== '';
+
 // ---------- Component ----------
 
 const EditorialDetail = () => {
-  const route = useRoute<EditorialDetailRoute>(); //  typed
+  const route = useRoute<EditorialDetailRoute>();
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
 
-  const editorialData = route.params?.editorialData ?? {};
+  // Hero scales with the screen height.
+  const heroHeight = Math.min(Math.max(windowHeight * 0.55, 380), 560);
 
   const imgUrl = Config.EDITORIAL_IMAGE_URL || '';
 
-  const cleanDescription = useMemo(() => {
-    return (
-      editorialData?.description?.replace(/<[^>]*>?/gm, '').trim() ||
-      'No description available.'
-    );
-  }, [editorialData?.description]);
+  // Use what the previous screen passed; otherwise load it here.
+  const passedData = route.params?.editorialData;
 
-  const fallbackImage =
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
+  const [data, setData] = useState<EditorialData | null>(passedData ?? null);
+  const [loading, setLoading] = useState(!passedData);
+  const [imageFailed, setImageFailed] = useState(false);
 
-  const initialImage = useMemo(() => {
-    const image = editorialData?.image;
-    if (image && image !== 'null' && image.trim() !== '') {
-      return `${imgUrl}/${image}`;
+  // Keep in sync if the screen is reused with new params.
+  useEffect(() => {
+    if (passedData) {
+      setData(passedData);
+      setLoading(false);
+      setImageFailed(false);
     }
-    return fallbackImage;
-  }, [editorialData?.image, imgUrl]);
+  }, [passedData]);
 
-  const [imageSource, setImageSource] = useState({ uri: initialImage });
+  // No data passed: fetch the editorial from the same endpoint the Home card uses.
+  useEffect(() => {
+    if (passedData) return;
+
+    let alive = true;
+
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await getEditorial();
+        if (alive) setData(res?.data ?? null);
+      } catch (error) {
+        console.error('Error fetching editorial:', error);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      alive = false;
+    };
+  }, [passedData]);
+
+  const imageUri = useMemo(() => {
+    if (!imageFailed && hasText(data?.image)) {
+      return `${imgUrl}/${data?.image}`;
+    }
+    return FALLBACK_IMAGE;
+  }, [data?.image, imgUrl, imageFailed]);
+
+  const paragraphs = useMemo(
+    () => toParagraphs(data?.description),
+    [data?.description],
+  );
+
+  // Only show info boxes that actually have a value.
+  const infoItems = useMemo(
+    () =>
+      [
+        {
+          key: 'designation',
+          icon: 'briefcase-outline',
+          label: 'DESIGNATION',
+          value: data?.designation,
+        },
+        {
+          key: 'place',
+          icon: 'location-outline',
+          label: 'LOCATION',
+          value: data?.place,
+        },
+      ].filter(item => hasText(item.value)),
+    [data?.designation, data?.place],
+  );
 
   const handleBack = () => {
     navigation.goBack();
   };
 
-  return (
-    <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      edges={['left', 'right', 'bottom']}
-    >
+  // Red fills the top inset, so the image starts below the status bar / notch.
+  const renderScreen = (children: React.ReactNode) => (
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
       <StatusBar
-        translucent={false}
-        backgroundColor={colors.background}
-        barStyle={isDark ? 'light-content' : 'dark-content'}
+        translucent
+        backgroundColor="transparent"
+        barStyle="light-content"
       />
+      <View style={[styles.body, { backgroundColor: colors.background }]}>
+        {children}
+      </View>
+    </SafeAreaView>
+  );
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+  if (loading) {
+    return renderScreen(
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>,
+    );
+  }
+
+  if (!data) {
+    return renderScreen(
+      <View style={styles.centered}>
+        <Icon
+          name="document-text-outline"
+          size={48}
+          color={colors.textMuted}
+        />
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>
+          Editorial not available
+        </Text>
         <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: 'rgba(0,0,0,0.3)' }]}
+          style={[styles.emptyButton, { backgroundColor: colors.primary }]}
           onPress={handleBack}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <Icon name="arrow-back" size={24} color="#fff" />
+          <Text style={styles.emptyButtonText}>Go back</Text>
         </TouchableOpacity>
+      </View>,
+    );
+  }
 
-        <View style={styles.heroWrapper}>
-          <Image
-            source={imageSource}
-            style={styles.heroImage}
-            resizeMode="cover"
-            onError={() => setImageSource({ uri: fallbackImage })}
-          />
+  return renderScreen(
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={[
+        styles.scrollContent,
+        { paddingBottom: 50 + insets.bottom },
+      ]}
+    >
+      <TouchableOpacity
+        style={[styles.backButton, { backgroundColor: 'rgba(0,0,0,0.3)' }]}
+        onPress={handleBack}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Go back"
+      >
+        <Icon name="arrow-back" size={24} color="#fff" />
+      </TouchableOpacity>
 
-          <LinearGradient
-            colors={[
-              'rgba(0,0,0,0.1)',
-              'rgba(0,0,0,0.45)',
-              isDark ? 'rgba(18,18,18,0.95)' : '#f8f9fa',
-            ]}
-            style={styles.overlay}
-          />
+      <View style={[styles.heroWrapper, { height: heroHeight }]}>
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.heroImage}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
 
-          <View style={styles.heroContent}>
-            <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-              <Text style={styles.badgeText}>FEATURED STORY</Text>
-            </View>
+        <LinearGradient
+          colors={[
+            'rgba(0,0,0,0.1)',
+            'rgba(0,0,0,0.45)',
+            isDark ? 'rgba(18,18,18,0.95)' : '#f8f9fa',
+          ]}
+          style={styles.overlay}
+        />
 
-            <Text style={styles.name} numberOfLines={2}>
-              {editorialData?.name || 'Editorial Author'}
+        <View style={styles.heroContent}>
+          <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+            <Text style={styles.badgeText}>FEATURED STORY</Text>
+          </View>
+
+          {hasText(data.name) && (
+            <Text style={styles.name} numberOfLines={3}>
+              {data.name}
             </Text>
+          )}
 
+          {hasText(data.company_name) && (
             <View style={styles.companyRow}>
               <Icon name="business-outline" size={16} color="#fff" />
-              <Text style={styles.company}>
-                {editorialData?.company_name || 'Editorial Team'}
-              </Text>
+              <Text style={styles.company}>{data.company_name}</Text>
             </View>
-          </View>
+          )}
         </View>
+      </View>
 
+      {infoItems.length > 0 && (
         <View
           style={[
             styles.infoGrid,
@@ -140,37 +273,37 @@ const EditorialDetail = () => {
             },
           ]}
         >
-          <View style={styles.infoBox}>
-            <Icon name="briefcase-outline" size={22} color={colors.primary} />
-            <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
-              DESIGNATION
-            </Text>
-            <Text
-              style={[styles.infoValue, { color: colors.text }]}
-              numberOfLines={2}
+          {infoItems.map((item, index) => (
+            <View
+              key={item.key}
+              style={[
+                styles.infoBox,
+                index > 0 && styles.borderLeft,
+                index > 0 && { borderLeftColor: colors.border },
+              ]}
             >
-              {editorialData?.designation || 'Editor'}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.infoBox,
-              styles.borderLeft,
-              { borderLeftColor: colors.border },
-            ]}
-          >
-            <Icon name="location-outline" size={22} color={colors.primary} />
-            <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
-              LOCATION
-            </Text>
-            <Text style={[styles.infoValue, { color: colors.text }]}>
-              {editorialData?.place || 'India'}
-            </Text>
-          </View>
+              <Icon name={item.icon} size={22} color={colors.primary} />
+              <Text style={[styles.infoLabel, { color: colors.textMuted }]}>
+                {item.label}
+              </Text>
+              <Text
+                style={[styles.infoValue, { color: colors.text }]}
+                numberOfLines={2}
+              >
+                {item.value}
+              </Text>
+            </View>
+          ))}
         </View>
+      )}
 
-        <View style={styles.contentBody}>
+      {paragraphs.length > 0 && (
+        <View
+          style={[
+            styles.contentBody,
+            infoItems.length === 0 && styles.contentBodyNoInfo,
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <View
               style={[styles.accentBar, { backgroundColor: colors.primary }]}
@@ -180,21 +313,56 @@ const EditorialDetail = () => {
             </Text>
           </View>
 
-          <Text style={[styles.description, { color: colors.textSecondary }]}>
-            {cleanDescription}
-          </Text>
+          {paragraphs.map((paragraph, index) => (
+            <Text
+              key={index}
+              style={[
+                styles.description,
+                { color: colors.textSecondary },
+                index < paragraphs.length - 1 && styles.paragraphGap,
+              ]}
+            >
+              {paragraph}
+            </Text>
+          ))}
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      )}
+    </ScrollView>,
   );
 };
 
 export default EditorialDetail;
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { paddingBottom: 50 },
-  heroWrapper: { height: 500, width: '100%' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: STATUS_BAR_COLOR,
+  },
+  body: { flex: 1 },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  emptyTitle: {
+    marginTop: 12,
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  emptyButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  scrollContent: {},
+  heroWrapper: { width: '100%' },
   heroImage: { width: '100%', height: '100%', position: 'absolute' },
   overlay: { ...StyleSheet.absoluteFillObject },
   heroContent: {
@@ -206,7 +374,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 16,
+    top: 12,
     left: 16,
     zIndex: 10,
     borderRadius: 30,
@@ -279,6 +447,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginTop: 36,
   },
+  contentBodyNoInfo: {
+    marginTop: 8,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -297,5 +468,8 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     lineHeight: 30,
+  },
+  paragraphGap: {
+    marginBottom: 16,
   },
 });

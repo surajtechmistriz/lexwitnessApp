@@ -1,8 +1,4 @@
-/**
- * Real shape — found inline in features/auth/Register.tsx (it was
- * declared locally there as `interface MembershipPlan`). Moved here;
- * remove the local duplicate from Register.tsx and import this instead.
- */
+
 export interface MembershipPlan {
   id: number;
   name: string;

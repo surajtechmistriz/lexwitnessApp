@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../../store/hooks/useTheme';
 import { getMenu } from '../../services/category.service';
@@ -25,6 +25,9 @@ interface Category {
 }
 
 type ThemeColors = ReturnType<typeof useTheme>['colors'];
+
+// Same red as InvoiceScreen so the status bar matches across the app.
+const STATUS_BAR_COLOR = '#D32F2F';
 
 const categoryColors = [
   '#1a5f7a',
@@ -53,12 +56,10 @@ const categoryStyles = categoryColors.map(color =>
 
 const CategoryList = () => {
   const navigation = useNavigation<any>();
+  const isFocused = useIsFocused();
   const { colors, isDark } = useTheme();
 
-  const styles = useMemo(
-    () => createStyles(colors, isDark),
-    [colors, isDark],
-  );
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,13 +89,16 @@ const CategoryList = () => {
     });
   };
 
-  const renderItem = ({
-    item,
-    index,
-  }: {
-    item: Category;
-    index: number;
-  }) => {
+  // Tab screens stay mounted, so only render StatusBar while this tab is focused.
+  const statusBar = isFocused ? (
+    <StatusBar
+      barStyle="light-content"
+      backgroundColor="transparent"
+      translucent
+    />
+  ) : null;
+
+  const renderItem = ({ item, index }: { item: Category; index: number }) => {
     const design = categoryStyles[index % categoryStyles.length];
     const categoryName = item.name || item.title;
     const articleCount = item.articles_count ?? item.count;
@@ -116,9 +120,7 @@ const CategoryList = () => {
             <View style={[styles.dot, design.dot]} />
 
             <Text style={styles.cardCount}>
-              {articleCount != null
-                ? `${articleCount} Articles`
-                : 'Explore'}
+              {articleCount != null ? `${articleCount} Articles` : 'Explore'}
             </Text>
           </View>
         </View>
@@ -130,24 +132,22 @@ const CategoryList = () => {
 
   if (loading) {
     return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Loading Insights...</Text>
-      </View>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        {statusBar}
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading Insights...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={isDark ? '#121212' : '#c9060a'}
-      />
+    <SafeAreaView edges={['top']} style={styles.safeArea}>
+      {statusBar}
 
-      <SafeAreaView
-        style={styles.safeArea}
-        edges={['top', 'left', 'right']}
-      >
+      {/* Inner view carries the theme background and the bottom padding. */}
+      <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -177,17 +177,23 @@ const CategoryList = () => {
           columnWrapperStyle={styles.row}
           showsVerticalScrollIndicator={false}
         />
-      </SafeAreaView>
-    </>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const createStyles = (colors: ThemeColors, isDark: boolean) =>
   StyleSheet.create({
+    // Red fills the top safe-area inset, which shows behind the translucent status bar.
     safeArea: {
       flex: 1,
+      backgroundColor: STATUS_BAR_COLOR,
+    },
+
+    container: {
+      flex: 1,
       paddingBottom: 80,
-      backgroundColor: colors.primary,
+      backgroundColor: colors.background,
     },
 
     header: {
@@ -206,9 +212,7 @@ const createStyles = (colors: ThemeColors, isDark: boolean) =>
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: -8,
-      backgroundColor: isDark
-        ? colors.border
-        : 'rgba(0,0,0,0.05)',
+      backgroundColor: isDark ? colors.border : 'rgba(0,0,0,0.05)',
     },
 
     headerContent: {

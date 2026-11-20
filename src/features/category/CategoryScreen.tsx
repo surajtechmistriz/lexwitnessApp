@@ -8,7 +8,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Config from 'react-native-config';
 
@@ -36,6 +36,8 @@ export default function Category() {
 
   const slug = route.params?.slug ?? '';
   const postBaseUrl = Config.POSTS_BASE_URL;
+
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -192,7 +194,7 @@ export default function Category() {
           contentContainerStyle={[
             styles.scrollContent,
             {
-              paddingBottom: isAndroid ? spacing.lg : spacing.md,
+              paddingBottom: (isAndroid ? spacing.lg : spacing.md) + insets.bottom,
               paddingTop: isAndroid ? spacing.xs : 0,
             },
           ]}

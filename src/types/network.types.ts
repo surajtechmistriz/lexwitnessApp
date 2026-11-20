@@ -1,8 +1,3 @@
-/**
- * Centralized network/API types.
- * Every service file should import from here instead of
- * redefining its own response/error shapes.
- */
 
 /** Actual shape our backend returns — confirmed via existing `res.data?.status` checks. */
 export interface ApiResponse<T = unknown> {

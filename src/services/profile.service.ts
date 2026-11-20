@@ -19,10 +19,7 @@ export const updateProfile = async (payload: UpdateProfilePayload) => {
 
 export const sendUpdateOtp = async (payload: SendUpdateOtpPayload) => {
   try {
-    const { data } = await api.post(
-      ENDPOINTS.PROFILE.SEND_UPDATE_OTP,
-      payload,
-    );
+    const { data } = await api.post(ENDPOINTS.PROFILE.SEND_UPDATE_OTP, payload);
     return data;
   } catch (error) {
     throw new Error(normalizeApiError(error).message);

@@ -24,10 +24,7 @@ export const buyNewPlan = async (membership_plan_id: number) => {
 export const renewPlan = async (subscription_id: number) => {
   try {
     const payload: RenewPlanPayload = { subscription_id };
-    const { data } = await api.post(
-      ENDPOINTS.SUBSCRIPTION.RENEW_PLAN,
-      payload,
-    );
+    const { data } = await api.post(ENDPOINTS.SUBSCRIPTION.RENEW_PLAN, payload);
     return data;
   } catch (error) {
     throw normalizeApiError(error);

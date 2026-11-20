@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getCache, setCache } from '../../utils/cache';
-import { getMenu } from '../../features/category/api/category';
+import { getMenu } from '../../services/category.service';
 
 const CACHE_KEY = 'TOP_MENU';
 

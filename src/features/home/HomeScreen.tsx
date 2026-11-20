@@ -89,13 +89,13 @@ const Home = () => {
   }, [navigation]);
 
   const handleEditorialPress = useCallback(
-    (item: any) => {
-      navigation.navigate('EditorialDetail', {
-        editorialId: item.id,
-      });
-    },
-    [navigation],
-  );
+  (item: any) => {
+    navigation.navigate('EditorialDetail', {
+      editorialData: item,
+    });
+  },
+  [navigation],
+);
 
   const fetchHomeData = useCallback(
     async (force = false) => {

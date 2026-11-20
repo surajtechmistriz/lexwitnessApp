@@ -68,4 +68,3 @@ export const getRelatedPosts = async ({
     return [];
   }
 };
-
