@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import Config from 'react-native-config';
@@ -39,26 +38,16 @@ const imgUrl = Config.EDITORIAL_IMAGE_URL;
 const fallbackImage =
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200&auto=format&fit=crop';
 
+const hasText = (value?: string) =>
+  !!value && value !== 'null' && value.trim() !== '';
+
 // ---------- Component ----------
 
 const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
   const [data, setData] = useState<EditorialData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [imageFailed, setImageFailed] = useState(false);
   const { colors, isDark } = useTheme();
-  const [ratio, setRatio] = useState(4 / 3);
-
-  useEffect(() => {
-    Image.getSize(
-      imageSource,
-      (w, h) => {
-        if (w && h) {
-          // Clamp so very tall or very wide photos don't break the card.
-          setRatio(Math.min(Math.max(w / h, 0.8), 1.78));
-        }
-      },
-      () => {},
-    );
-  }, [imageSource]);
 
   const navigation = useNavigation<any>();
 
@@ -82,11 +71,9 @@ const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
     };
   }, []);
 
-  const stripHtml = (html: string) => html?.replace(/<[^>]*>?/gm, '') || '';
-
   const imageSource =
-    data?.image && data.image !== 'null' && data.image.trim() !== ''
-      ? `${imgUrl}/${data.image}`
+    !imageFailed && hasText(data?.image)
+      ? `${imgUrl}/${data?.image}`
       : fallbackImage;
 
   const handlePress = () => {
@@ -97,9 +84,8 @@ const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
       return;
     }
 
-    // Fallback: navigate internally with the correct param key
     navigation.navigate('EditorialDetail', {
-      editorialData: data, //  matches what EditorialDetail reads
+      editorialData: data,
     });
   };
 
@@ -121,94 +107,102 @@ const EditorialCard: React.FC<EditorialCardProps> = ({ onPressItem }) => {
         <View style={[styles.redLine, { backgroundColor: colors.primary }]} />
       </View>
 
-      {/* SMALL COMPACT CARD */}
+      {/* COMPACT CARD: small photo on the left, details on the right */}
       <TouchableOpacity
         activeOpacity={0.92}
         style={[
           styles.card,
           {
             backgroundColor: colors.card,
-            shadowColor: isDark ? '#000' : '#000',
+            borderColor: colors.border,
           },
         ]}
         onPress={handlePress}
       >
-        {/* IMAGE */}
-        <View style={[styles.imageWrapper, { aspectRatio: ratio }]}>
-          <Image
-            source={{ uri: imageSource }}
-            style={[
-              styles.coverImage,
-              { backgroundColor: isDark ? colors.border : '#f2f2f2' },
-            ]}
-            resizeMode="cover"
-          />
+        <Image
+          source={{ uri: imageSource }}
+          style={[
+            styles.thumb,
+            { backgroundColor: isDark ? colors.border : '#f2f2f2' },
+          ]}
+          resizeMode="cover"
+          onError={() => setImageFailed(true)}
+        />
 
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.35)']}
-            style={styles.overlay}
-          />
-
-          <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-            <Text style={styles.badgeText}>FEATURED</Text>
-          </View>
-        </View>
-
-        {/* CONTENT */}
         <View style={styles.content}>
-          <Text numberOfLines={1} style={[styles.name, { color: colors.text }]}>
-            {data.name}
+          <Text style={[styles.featured, { color: colors.primary }]}>
+            FEATURED
           </Text>
 
-          <Text
-            numberOfLines={1}
-            style={[styles.company, { color: colors.textSecondary }]}
-          >
-            {data.company_name}
-          </Text>
-
-          {/* META */}
-          <View style={styles.metaRow}>
-            <View
-              style={[styles.metaItem, { backgroundColor: colors.background }]}
+          {hasText(data.name) && (
+            <Text
+              numberOfLines={1}
+              style={[styles.name, { color: colors.text }]}
             >
-              <Icon name="briefcase-outline" size={13} color={colors.primary} />
-              <Text
-                numberOfLines={1}
-                style={[styles.metaText, { color: colors.textSecondary }]}
-              >
-                {data.designation}
-              </Text>
-            </View>
+              {data.name}
+            </Text>
+          )}
 
-            <View
-              style={[styles.metaItem, { backgroundColor: colors.background }]}
+          {hasText(data.company_name) && (
+            <Text
+              numberOfLines={1}
+              style={[styles.company, { color: colors.textSecondary }]}
             >
-              <Icon name="location-outline" size={13} color={colors.primary} />
-              <Text
-                numberOfLines={1}
-                style={[styles.metaText, { color: colors.textSecondary }]}
-              >
-                {data.place}
-              </Text>
+              {data.company_name}
+            </Text>
+          )}
+
+          {(hasText(data.designation) || hasText(data.place)) && (
+            <View style={styles.metaRow}>
+              {hasText(data.designation) && (
+                <View
+                  style={[
+                    styles.metaItem,
+                    { backgroundColor: colors.background },
+                  ]}
+                >
+                  <Icon
+                    name="briefcase-outline"
+                    size={11}
+                    color={colors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.metaText, { color: colors.textSecondary }]}
+                  >
+                    {data.designation}
+                  </Text>
+                </View>
+              )}
+
+              {hasText(data.place) && (
+                <View
+                  style={[
+                    styles.metaItem,
+                    { backgroundColor: colors.background },
+                  ]}
+                >
+                  <Icon
+                    name="location-outline"
+                    size={11}
+                    color={colors.primary}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.metaText, { color: colors.textSecondary }]}
+                  >
+                    {data.place}
+                  </Text>
+                </View>
+              )}
             </View>
-          </View>
+          )}
 
-          {/* DESCRIPTION */}
-          <Text
-            numberOfLines={2}
-            style={[styles.description, { color: colors.textSecondary }]}
-          >
-            {stripHtml(data.description)}
-          </Text>
-
-          {/* FOOTER */}
           <View style={styles.footer}>
             <Text style={[styles.readMore, { color: colors.primary }]}>
               Read Editorial
             </Text>
-
-            <Icon name="arrow-forward" size={16} color={colors.primary} />
+            <Icon name="arrow-forward" size={14} color={colors.primary} />
           </View>
         </View>
       </TouchableOpacity>
@@ -220,8 +214,8 @@ export default EditorialCard;
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginTop: 18,
-    marginBottom: 24,
+    marginTop: 14,
+    marginBottom: 16,
   },
   loader: {
     marginTop: 20,
@@ -229,7 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerRow: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   heading: {
     fontSize: 15,
@@ -242,83 +236,69 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   card: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    shadowOffset: { width: 0, height: 3 },
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  imageWrapper: {
-    width: '100%',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  coverImage: {
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  badge: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 8,
-    fontWeight: '600',
-    letterSpacing: 1,
+  thumb: {
+    width: 88,
+    height: 112,
+    borderRadius: 10,
   },
   content: {
-    padding: 14,
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'center',
+  },
+  featured: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: 3,
   },
   name: {
     fontSize: 14,
     fontWeight: '800',
   },
   company: {
-    fontSize: 13,
-    marginTop: 2,
-    marginBottom: 10,
+    fontSize: 12,
+    marginTop: 1,
   },
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 10,
+    gap: 6,
+    marginTop: 8,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderRadius: 8,
-    maxWidth: '48%',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderRadius: 6,
+    maxWidth: '100%',
   },
   metaText: {
-    marginLeft: 5,
-    fontSize: 11,
+    marginLeft: 4,
+    fontSize: 10.5,
     fontWeight: '600',
     flexShrink: 1,
   },
-  description: {
-    fontSize: 13,
-    lineHeight: 20,
-  },
   footer: {
-    marginTop: 14,
+    marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   readMore: {
     fontWeight: '600',
-    fontSize: 13,
+    fontSize: 12,
+    marginRight: 4,
   },
 });
